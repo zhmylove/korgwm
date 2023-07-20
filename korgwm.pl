@@ -6,11 +6,16 @@ use feature 'signatures';
 use open ':std', ':encoding(UTF-8)';
 use utf8;
 use X11::Xlib ':all';
+use X11::Protocol;
 
 use Data::Dumper; # TODO remove
 
 # TODO Should get from config
 my $panel_height = 20;
+
+my $X = X11::Protocol->new();
+$X->init_extension("XINERAMA") or die "XINERAMA not available";
+# $X->XineramaIsActive(), $X->XineramaQueryScreens()
 
 my $display = X11::Xlib->new();
 
@@ -26,7 +31,8 @@ my $root = $screen->root_window;
 $root->event_mask_include(SubstructureRedirectMask, SubstructureNotifyMask);
 
 for(;;) {
-    my $evt = $display->wait_event();
+    # TODO rewrite event loop to handle events from Xlib, Gtk and AE and set timeout = 0
+    my $evt = $display->wait_event(timeout => 0.01);
     next unless defined $evt; # TODO check if wait_event could be interrupted
     warn $evt->type;
     my $ref = ref $evt;
