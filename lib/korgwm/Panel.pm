@@ -114,7 +114,7 @@ sub ws_create($self, $title = "", $ws_cb = sub {1}) {
     $workspace;
 }
 
-sub new ($class, $panel_id, $ws_cb) {
+sub new($class, $panel_id, $ws_cb) {
     my ($panel, $window, @workspaces, $label, $clock) = {};
     bless $panel, $class;
     # Prepare window
@@ -148,7 +148,7 @@ sub new ($class, $panel_id, $ws_cb) {
     $hdbar->override_background_color(normal => Gtk3::Gdk::RGBA::parse($color_bg));
     $window->add($hdbar);
     $window->show_all;
-    $panel->ws_set_visible($_, 0) for 1..@ws_names;
+    # $panel->ws_set_visible($_, 0) for 1..@ws_names; # TODO uncomment on release
 
     return $panel;
 }
@@ -188,27 +188,27 @@ sub iter {
 # 
 #     exit(0) if $in =~ /^q$/;
 # };
-
-warn <<'@';
- Usage:
-    a5      -- add workspace #5
-    r3      -- remove workspace #3
-    s8      -- switch to workspace #8
-    u9      -- toggle urgency of workspace #9
-    l TEXT  -- set label text
-    d       -- dump @workspaces
-
-@
-
-my $p = __PACKAGE__->new(1, sub { warn "p1: @_" });
-my $p2 = __PACKAGE__->new(2, sub { warn "p2: @_" });
-
-# Handle gtk events each 1 second
-for(;;) {
-    iter();
-    my $pause = AE::cv;
-    my $w = AE::timer 1, 0, sub { $pause->send };
-    $pause->recv;
-}
+#
+# warn <<'@';
+#  Usage:
+#     a5      -- add workspace #5
+#     r3      -- remove workspace #3
+#     s8      -- switch to workspace #8
+#     u9      -- toggle urgency of workspace #9
+#     l TEXT  -- set label text
+#     d       -- dump @workspaces
+#
+# @
+#
+# my $p = __PACKAGE__->new(1, sub { warn "p1: @_" });
+# my $p2 = __PACKAGE__->new(2, sub { warn "p2: @_" });
+#
+# # Handle gtk events each 1 second
+# for(;;) {
+#     iter();
+#     my $pause = AE::cv;
+#     my $w = AE::timer 1, 0, sub { $pause->send };
+#     $pause->recv;
+# }
 
 1;
