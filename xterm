@@ -1,0 +1,3 @@
+#!/bin/sh
+
+exec xterm -font 'xft:DejaVu Sans Mono' -fs 14 -g 150x40

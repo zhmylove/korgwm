@@ -5,6 +5,7 @@ use lib 'lib', '../X11-XCB/lib', '../X11-XCB/blib/arch';
 use X11::XCB ':all';
 use X11::XCB::Connection;
 use X11::XCB::Setup;
+use X11::XCB::Event::KeyPress;
 use Data::Dumper;
 
 my $RANDR_cmd = q(xrandr --output HDMI-A-0 --left-of eDP --auto --output DisplayPort-0 --right-of eDP --auto);
@@ -22,14 +23,17 @@ warn Dumper $x->change_window_attributes($r->id, CW_BACK_PIXEL, 0xff262729);
 warn Dumper $x->clear_area(0, $r->id, 0, 0, $r->{_rect}->width, $r->{_rect}->height);
 
 warn Dumper my $setup = $x->get_setup();
-warn Dumper my $kbdmap = $x->get_keyboard_mapping($setup->min_keycode, $setup->max_keycode - $setup->min_keycode + 1);
-warn Dumper $x->get_keyboard_mapping_reply($kbdmap->{sequence});
-die;
+# warn Dumper my $kbdmap = $x->get_keyboard_mapping($setup->min_keycode, $setup->max_keycode - $setup->min_keycode + 1);
+# warn Dumper $x->get_keyboard_mapping_reply($kbdmap->{sequence});
+my $keymap = $x->get_keymap();
+warn Dumper 0 + @$keymap;
 
 $r->warp_pointer(50, 150);
 $x->flush();
 
 # Grab keys
+## GRAB_ANY => keycode[0]
+## MOD_MASK_ANY => state
 warn Dumper $x->grab_key(0, $r->id, MOD_MASK_4, GRAB_ANY, GRAB_MODE_ASYNC, GRAB_MODE_ASYNC);
 
 # Initialize RANDR
@@ -82,5 +86,17 @@ for(;;) {
         warn Dumper $x->xinerama_query_screens_reply($_->{sequence});
         $x->flush();
         warn Dumper $x->screens();
+    }
+
+    if (ref $evt eq "X11::XCB::Event::KeyPress") {
+        warn "Key pressed...";
+        # state: ... 1 4 8 64
+        # warn Dumper [MOD_MASK_SHIFT, MOD_MASK_CONTROL, MOD_MASK_1, MOD_MASK_4];
+        # %keys_by_state = (
+        #   64 => {}, # keys with Super
+        #   12 => {}, # keys with Ctrl + Alt
+        # )
+        # warn Dumper [$keymap->[$evt->detail]];
+        warn sprintf("Key pressed, key: (%c) state:(%x)", $keymap->[$evt->detail]->[0], $evt->state);
     }
 }
