@@ -1,6 +1,7 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
+use v5.36;
 use lib 'lib', '../X11-XCB/lib', '../X11-XCB/blib/arch';
 use X11::XCB ':all';
 use X11::XCB::Connection;
@@ -47,12 +48,23 @@ die "RANDR not available" unless $RANDR->{present};
 my $RANDR_SCREEN_CHANGE_NOTIFY = $RANDR->{first_event};
 die "Could not get RANDR first_event" unless $RANDR_SCREEN_CHANGE_NOTIFY;
 
-for(;;) {
-    my $evt = $x->wait_for_event();
-    warn Dumper $evt;
-    next unless defined $evt->{response_type};
-
-    if (ref $evt eq "X11::XCB::Event::ConfigureRequest") {
+my %xcb_events = (
+    KEY_PRESS, sub($evt) {
+        # state: ... 1 4 8 64
+        # warn Dumper [MOD_MASK_SHIFT, MOD_MASK_CONTROL, MOD_MASK_1, MOD_MASK_4];
+        # %keys_by_state = (
+        #   64 => {}, # keys with Super
+        #   12 => {}, # keys with Ctrl + Alt
+        # )
+        # warn Dumper [$keymap->[$evt->detail]];
+        warn sprintf("Key pressed, key: (%c) state:(%x)", $keymap->[$evt->detail]->[0], $evt->state);
+    },
+    MAP_REQUEST, sub($evt) {
+        warn "Mapping...";
+        $x->map_window($evt->{window});
+        $x->flush();
+    },
+    CONFIGURE_REQUEST, sub($evt) {
         warn "Configuring...";
         # TODO process $evt->{value_mask}
         ##
@@ -74,32 +86,23 @@ for(;;) {
         warn "val: @values";
         $x->configure_window($evt->{window}, $mask, @values);
         $x->flush();
-    }
-
-    if (ref $evt eq "X11::XCB::Event::MapRequest") {
-        warn "Mapping...";
-        $x->map_window($evt->{window});
-        $x->flush();
-    }
-
-    if ($evt->{response_type} == $RANDR_SCREEN_CHANGE_NOTIFY) {
+    },
+    $RANDR_SCREEN_CHANGE_NOTIFY => sub($evt) {
         warn "RANDR screen change notify";
         qx($RANDR_cmd);
-        warn Dumper $_ = $x->xinerama_query_screens();
-        warn Dumper $x->xinerama_query_screens_reply($_->{sequence});
+        warn Dumper $x->xinerama_query_screens_reply($x->xinerama_query_screens()->{sequence});
         $x->flush();
         warn Dumper $x->screens();
+    },
+);
+
+# Main event loop
+for(;;) {
+    my $evt = $x->wait_for_event();
+    warn Dumper $evt;
+    if (defined $evt && defined(my $evt_cb = $xcb_events{$evt->{response_type}})) {
+        $evt_cb->($evt);
     }
 
-    if (ref $evt eq "X11::XCB::Event::KeyPress") {
-        warn "Key pressed...";
-        # state: ... 1 4 8 64
-        # warn Dumper [MOD_MASK_SHIFT, MOD_MASK_CONTROL, MOD_MASK_1, MOD_MASK_4];
-        # %keys_by_state = (
-        #   64 => {}, # keys with Super
-        #   12 => {}, # keys with Ctrl + Alt
-        # )
-        # warn Dumper [$keymap->[$evt->detail]];
-        warn sprintf("Key pressed, key: (%c) state:(%x)", $keymap->[$evt->detail]->[0], $evt->state);
-    }
+    # TODO should handle Gtk / AE events here
 }
