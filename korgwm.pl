@@ -8,7 +8,7 @@ use open ':std', ':encoding(UTF-8)';
 use utf8;
 use X11::Xlib ':all';
 use X11::Protocol;
-use korgwm::Panel;
+use X11::korgwm::Panel;
 
 use Data::Dumper; # TODO remove
 

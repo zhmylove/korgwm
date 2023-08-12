@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 # vim: cc=119 et sw=4 ts=4 :
-package korgwm::Panel;
+package X11::korgwm::Panel;
 use strict;
 use warnings;
 use feature 'signatures';
@@ -17,7 +17,6 @@ my $color_bg = "#262729";
 my $color_urgent_bg = "#464729";
 my $color_urgent_fg = "#ffff00";
 my $clock_format = " %a, %e %B %H:%M ";
-my $panel_id = 1;
 my $label_max = 64;
 my $panel_height = 20;
 my @ws_names = qw( T W M C 5 6 7 8 9 );
@@ -131,7 +130,7 @@ sub new($class, $panel_id, $ws_cb) {
     $panel->{title} = $label;
     $clock = Gtk3::Label->new();
     $clock->set_yalign(0.9);
-    my $clock_w = AE::timer 0, 1, sub { $clock->txt(strftime $clock_format, localtime) };
+    my $clock_w = AE::timer 0, 1, sub { $clock->txt(strftime($clock_format, localtime) =~ s/  +/ /gr) };
     $panel->{clock} = $clock;
     $panel->{_clock_w} = $clock_w;
 
