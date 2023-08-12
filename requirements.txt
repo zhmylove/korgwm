@@ -54,5 +54,6 @@ screens => {
         always_on => [],            # list of windows to show on each tag on the screen
         prev_tag => Int,            # id of previous tag on this screen for switch rotation
         (x, y, w, h),               # basically, for pointer warp and xsetroot
+        focus => Int,               # xid of focused window, or undef
     },
 }
