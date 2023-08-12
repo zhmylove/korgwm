@@ -1,0 +1,15 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+LAYOUT_WITH_LEGEND()
+title korgwm: Context
+Person(user, "User", "The computer user.")
+System(korgwm, "korgwm", "Manages all the windows in the session.")
+System_Ext(apps, "Other X11 apps", "Other X11 clients with windows.")
+System_Ext(srv, "X11 server", "X11 server instance to process all windows.")
+Rel(user, apps, "Uses", "All ways of interaction")
+Rel(user, korgwm, "Controls", "Keyboard, mouse, CLI API")
+Rel_Down(apps, srv, "Send events", "X11 protocol")
+Rel_Up(srv, apps, "Send events", "X11 protocol")
+Rel_Neighbor(srv, korgwm, "Send events", "X11 protocol")
+Rel_Neighbor(korgwm, srv, "Send events", "X11 protocol")
+@enduml
