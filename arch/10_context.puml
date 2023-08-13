@@ -3,7 +3,7 @@
 LAYOUT_WITH_LEGEND()
 title korgwm: Context
 Person(user, "User", "The computer user.")
-System(korgwm, "korgwm", "Manages all the windows in the session.")
+System(korgwm, "korgwm", "Manages all the windows in the session.", $link="20_container.svg")
 System_Ext(apps, "Other X11 apps", "Other X11 clients with windows.")
 System_Ext(srv, "X11 server", "X11 server instance to process all windows.")
 Rel(user, apps, "Uses", "All ways of interaction")

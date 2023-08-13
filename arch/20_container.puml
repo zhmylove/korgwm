@@ -1,0 +1,35 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+LAYOUT_WITH_LEGEND()
+title korgwm: Container
+
+System_Boundary(container, "korgwm Window Manager") {
+  ContainerDb(korgwm_config, "korgwm::Config", "x", "Configuration file for korgwm")
+  Container(korgwm_xcb, "X11::XCB", "Perl + XSUB", "libxcb bindings with Xinerama and RandR extensions.")
+  Container(korgwm_panel, "korgwm::Panel", "Gtk3", "Panel on each screen to show tags, window title, and some other info.")
+  Container(korgwm_api, "korgwm::API", "AnyEvent TCP", "Asynchronous TCP endpoint to control korgwm programmatically.")
+  Container(korgwm_core, "korgwm", "Perl", "The heart of korgwm: initializes all the systems and orchestrates three event loops.")
+}
+
+Person(user, "User", "The computer user.")
+System_Ext(apps, "Other X11 apps", "Other X11 clients with windows.")
+System_Ext(srv, "X11 server", "X11 server instance to process all windows.")
+
+Rel(user, korgwm_xcb, "Presses korgwm's hotkeys", "Keyboard")
+Rel(user, apps, "Uses", "All ways of interaction")
+Rel(user, korgwm_api, "Sends control comnands", "Some protocol over TCP")
+Rel(user, korgwm_panel, "Selects tags using mouse", "Mouse pointer")
+Rel_Back(user, korgwm_panel, "Shows info: window title, clock, maybe tray", "Screen GUI")
+
+Rel_Down(apps, srv, "Send events", "X11 protocol")
+Rel_Back(apps, srv, "Send events", "X11 protocol")
+Rel_Down(srv, korgwm_xcb, "Send events", "X11 protocol")
+Rel_Back(srv, korgwm_xcb, "Send events", "X11 protocol")
+
+Rel_Right(korgwm_xcb, korgwm_core, "Send events", "XS")
+Rel_Back(korgwm_xcb, korgwm_core, "Send events", "XS")
+Rel_Down(korgwm_panel, korgwm_core, "Send mouse click events", "Perl")
+Rel_Back(korgwm_panel, korgwm_core, "Updates user-visible data", "Perl")
+Rel_Down(korgwm_api, korgwm_core, "Sends control commands and makes RPC", "Perl")
+Rel_Up(korgwm_core, korgwm_config, "Reads configuration data", "Perl Storable")
+@enduml
