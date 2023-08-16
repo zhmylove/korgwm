@@ -10,7 +10,9 @@ use Gtk3 -init;
 use AnyEvent;
 use POSIX qw(strftime);
 
-# Should get from config
+# Should get from config TODO
+our $cfg;
+*cfg = *X11::korgwm::cfg;
 my $font = "DejaVu Sans Mono 10";
 my $color_fg = "#a3babf";
 my $color_bg = "#262729";
@@ -113,16 +115,16 @@ sub ws_create($self, $title = "", $ws_cb = sub {1}) {
     $workspace;
 }
 
-sub new($class, $panel_id, $ws_cb) {
+sub new($class, $panel_id, $panel_width, $panel_x, $ws_cb) {
     my ($panel, $window, @workspaces, $label, $clock) = {};
     bless $panel, $class;
     # Prepare window
-    $window = Gtk3::Window->new('toplevel');
+    $window = Gtk3::Window->new('popup');
     $window->modify_font($font);
-    $window->set_default_size(1300, 0);
+    $window->set_default_size($panel_width, $panel_height);
+    $window->move($panel_x, 0);
     $window->set_decorated(Gtk3::false);
     $window->set_startup_id("korgwm-panel-$panel_id");
-    ## movement is handled in WM
 
     # Prepare workspaces, label and clock areas
     $label = Gtk3::Label->new();
@@ -147,7 +149,9 @@ sub new($class, $panel_id, $ws_cb) {
     $hdbar->override_background_color(normal => Gtk3::Gdk::RGBA::parse($color_bg));
     $window->add($hdbar);
     $window->show_all;
-    # $panel->ws_set_visible($_, 0) for 1..@ws_names; # TODO uncomment on release
+    if ($cfg->{hide_empty_tags}) {
+        $panel->ws_set_visible($_, 0) for 1..@ws_names;
+    }
 
     return $panel;
 }
