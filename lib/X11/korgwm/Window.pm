@@ -37,7 +37,7 @@ sub _get_property($wid, $prop_name, $prop_type='UTF8_STRING', $ret_length=8) {
 sub _resize_and_move($wid, $x, $y, $w, $h, $bw=$cfg->{border_width}) {
     my $mask = CONFIG_WINDOW_X | CONFIG_WINDOW_Y | CONFIG_WINDOW_WIDTH | CONFIG_WINDOW_HEIGHT |
         CONFIG_WINDOW_BORDER_WIDTH;
-    $X->configure_window($wid, $mask, $x, $y, $w, $h, $bw);
+    $X->configure_window($wid, $mask, $x, $y, $w - 2 * $bw, $h - 2 * $bw, $bw);
 }
 
 sub _configure_notify($wid, $sequence, $x, $y, $w, $h, $above_sibling=0, $override_redirect=0,
@@ -45,7 +45,7 @@ sub _configure_notify($wid, $sequence, $x, $y, $w, $h, $above_sibling=0, $overri
     my $packed = pack('CCSLLLssSSSC', CONFIGURE_NOTIFY, 0, $sequence,
         $wid, # event
         $wid, # window
-        $above_sibling, $x, $y, $w, $h, $bw, $override_redirect);
+        $above_sibling, $x, $y, $w - 2 * $bw, $h - 2 * $bw, $bw, $override_redirect);
     $X->send_event(0, $wid, EVENT_MASK_STRUCTURE_NOTIFY, $packed);
 }
 

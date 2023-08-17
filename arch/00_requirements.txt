@@ -39,26 +39,31 @@
 
 
 windows => {
-    xid => {
-        (x, y, w, h),               # just mandatory
-        title => Str,               # title
-        is_maximized => undef,      # or list of tags on which it's maximized
+    wid => {
+        id => wid,                  # ID of the window
         on_tags => {},              # hash of tags on which this window is shown
+        (x, y, w, h),               # geometry of window requested in configure (or set to some defaults); used only for floating windows
     },
 }
 
 screens => {
     0 => {
-        present => Bool,            # flag if this screen is actually on
         tags => {
             1 => {
                 max_window => xid,  # if defined, hide panel and maximize window
-                windows => {},      # hash (in sake of performance) of windows attached to this tag, also affects Panel tag visibility
+                windows_tiled => [],# list (performance bye-bye) of windows attached to this tag, also affects Panel tag visibility
+                windows_float => [],# list of floating windows on the tag
+                layout => Ref,      # reference to Layout object, or undef (when there is no tiled windows on tag)
             },
         },
-        always_on => [],            # list of windows to show on each tag on the screen
+        always_on => [],            # list of windows to show on each tag on the screen, should be float
         prev_tag => Int,            # id of previous tag on this screen for switch rotation
         (x, y, w, h),               # basically, for pointer warp and xsetroot
-        focus => Int,               # xid of focused window, or undef
+        focus => Int,               # wid of focused window, or undef; copied to %focus when switching to the screen
     },
+}
+
+focus => {
+    screen => ScreenId,             # id of focused screen
+    focus => Int,                   # wid of focused windows
 }

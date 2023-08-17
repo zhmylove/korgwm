@@ -9,6 +9,7 @@ use utf8;
 use Carp;
 use POSIX qw( ceil floor round );
 use Storable qw( dclone );
+use X11::korgwm::Window;
 
 use Data::Dumper;
 $Data::Dumper::Sortkeys = 1;
@@ -111,7 +112,7 @@ sub _new_layout($windows) {
     return $grid;
 }
 
-sub arrange_windows($self, $windows, $dpy_width, $dpy_height, $y_offset=0) {
+sub arrange_windows($self, $windows, $dpy_width, $dpy_height, $x_offset=0, $y_offset=0) {
     croak "Cannot arrange non-windows" unless ref $windows eq "ARRAY";
     croak "Cannot arrange imaginary windows" if @{ $windows } < 1;
     croak "Trying to use non-initialized layout" unless defined $self->{grid};
@@ -130,11 +131,10 @@ sub arrange_windows($self, $windows, $dpy_width, $dpy_height, $y_offset=0) {
             my $height = floor($dpy_height_orig * $row_w);
             my $y = $dpy_height - $height;
             $y--, $height++ if $y == 1;
-            $y += $y_offset; # reserved for panel
 
             my $win = shift @windows;
             croak "Window cannot be undef" unless defined $win;
-            warn "win:$win x = $x, y = $y, width = $width, height = $height";
+            $win->resize_and_move($x + $x_offset, $y + $y_offset, $width, $height);
 
             $dpy_height = $y;
         }
