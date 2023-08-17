@@ -23,12 +23,19 @@ use X11::korgwm::Window;
 our $cfg;
 $cfg->{panel_height} = 20;
 $cfg->{RANDR_cmd} = q(xrandr --output HDMI-A-0 --left-of eDP --auto --output DisplayPort-0 --right-of eDP --auto);
-$cfg->{color_focus} = 0xA3BABF;
-$cfg->{color_normal} = 0x262729;
+$cfg->{color_fg} = 0xA3BABF;
+$cfg->{color_bg} = 0x262729;
+$cfg->{color_urgent_bg} = 0x464729;
+$cfg->{color_urgent_fg} = 0xffff00;
 $cfg->{border_width} = 2;
 $cfg->{hide_empty_tags} = 0;
+$cfg->{title_max_len} = 64;
+$cfg->{clock_format} = " %a, %e %B %H:%M ";
+$cfg->{font} = "DejaVu Sans Mono 10";
+$cfg->{ws_names} = [qw( T W M C 5 6 7 8 9 )];
 
 $SIG{CHLD} = "IGNORE";
+my $panel;
 our $X = X11::XCB::Connection->new;
 die "Errors connecting to X11" if $X->has_error();
 warn Dumper $X->screens;
@@ -144,7 +151,11 @@ my %xcb_events = (
         $X->flush();
         warn Dumper $X->screens();
     },
-    ENTER_NOTIFY, sub($evt) { X11::korgwm::Window::focus({id => $evt->event}); },
+    ENTER_NOTIFY, sub($evt) {
+        my $wid = $evt->event;
+        X11::korgwm::Window::focus({id => $wid});
+        $panel->title(X11::korgwm::Window::title({id => $wid}));
+    },
 );
 
 sub focus($win, $focused=1) {
@@ -159,7 +170,7 @@ sub focus($win, $focused=1) {
 }
 
 my $die_trigger = 0;
-X11::korgwm::Panel->new(1, 1920, 2*1920, sub { $die_trigger = 1; die "ws_cb" . Dumper \@_ } );
+$panel = X11::korgwm::Panel->new(1, 1920, 2*1920, sub { $die_trigger = 1; die "ws_cb" . Dumper \@_ } );
 
 my $layout = X11::korgwm::Layout->new();
 warn Dumper $layout;

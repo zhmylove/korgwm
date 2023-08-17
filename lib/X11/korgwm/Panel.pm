@@ -10,25 +10,24 @@ use Gtk3 -init;
 use AnyEvent;
 use POSIX qw(strftime);
 
-# Should get from config TODO
+# Import config
 our $cfg;
 *cfg = *X11::korgwm::cfg;
-my $font = "DejaVu Sans Mono 10";
-my $color_fg = "#a3babf";
-my $color_bg = "#262729";
-my $color_urgent_bg = "#464729";
-my $color_urgent_fg = "#ffff00";
-my $clock_format = " %a, %e %B %H:%M ";
-my $label_max = 64;
-my $panel_height = 20;
-my @ws_names = qw( T W M C 5 6 7 8 9 );
 
-# Internal variables
-$font = Pango::FontDescription::from_string($font);
+# Prepare internal variables
+my ($ready, $font, $color_fg , $color_bg , $color_urgent_bg, $color_urgent_fg, @ws_names);
+sub _init {
+    $font = Pango::FontDescription::from_string($cfg->{font});
+    $color_fg = sprintf "#%x", $cfg->{color_fg};
+    $color_bg = sprintf "#%x", $cfg->{color_bg};
+    $color_urgent_bg = sprintf "#%x", $cfg->{color_urgent_fg};
+    $color_urgent_fg = sprintf "#%x", $cfg->{color_urgent_bg};
+    @ws_names = @{ $cfg->{ws_names} };
+    $ready = 1;
+}
 
 # Patch Gtk3 for simple label output (yeah, gtk is ugly)
-sub Gtk3::Label::txt ($label, $text, $color = $color_fg) {
-    $color = $color_fg unless defined $color;
+sub Gtk3::Label::txt($label, $text, $color=$color_fg) {
     $label->set_markup(
         sprintf "<span color='$color'>%s</span>",
         Glib::Markup::escape_text($text)
@@ -37,8 +36,8 @@ sub Gtk3::Label::txt ($label, $text, $color = $color_fg) {
 
 # Set title (central label) text
 sub title($self, $title = "") {
-    if (length($title) > $label_max) {
-        $title = substr $title, 0, $label_max;
+    if (length($title) > $cfg->{title_max_len}) {
+        $title = substr $title, 0, $cfg->{title_max_len};
         $title .= "...";
     }
     $self->{title}->txt($title);
@@ -98,7 +97,7 @@ sub ws_create($self, $title = "", $ws_cb = sub {1}) {
 
     my $label = Gtk3::Label->new();
     $label->txt($title);
-    $label->set_size_request($panel_height, $panel_height);
+    $label->set_size_request($cfg->{panel_height}, $cfg->{panel_height});
     $label->set_yalign(0.9);
 
     my $ebox = Gtk3::EventBox->new();
@@ -117,11 +116,12 @@ sub ws_create($self, $title = "", $ws_cb = sub {1}) {
 
 sub new($class, $panel_id, $panel_width, $panel_x, $ws_cb) {
     my ($panel, $window, @workspaces, $label, $clock) = {};
+    _init() unless $ready;
     bless $panel, $class;
     # Prepare window
     $window = Gtk3::Window->new('popup');
     $window->modify_font($font);
-    $window->set_default_size($panel_width, $panel_height);
+    $window->set_default_size($panel_width, $cfg->{panel_height});
     $window->move($panel_x, 0);
     $window->set_decorated(Gtk3::false);
     $window->set_startup_id("korgwm-panel-$panel_id");
@@ -132,7 +132,7 @@ sub new($class, $panel_id, $panel_width, $panel_x, $ws_cb) {
     $panel->{title} = $label;
     $clock = Gtk3::Label->new();
     $clock->set_yalign(0.9);
-    my $clock_w = AE::timer 0, 1, sub { $clock->txt(strftime($clock_format, localtime) =~ s/  +/ /gr) };
+    my $clock_w = AE::timer 0, 1, sub { $clock->txt(strftime($cfg->{clock_format}, localtime) =~ s/  +/ /gr) };
     $panel->{clock} = $clock;
     $panel->{_clock_w} = $clock_w;
 
@@ -159,59 +159,5 @@ sub new($class, $panel_id, $panel_width, $panel_x, $ws_cb) {
 sub iter {
     Gtk3::main_iteration_do(0) while Gtk3::events_pending();
 }
-
-# Process stdin
-# my $stdin = AE::io *STDIN, 0, sub {
-#     my $in = <STDIN>;
-#     exit(0) unless defined $in;
-#     if ($in =~ /^a\s*(\d)$/) {
-#         warn "add workspace: ($1)";
-#         return ws_set_visible($1, 1);
-#     }
-#     if ($in =~ /^r\s*(\d)$/) {
-#         warn "remove workspace:: ($1)";
-#         return ws_set_visible($1, 0);
-#     }
-#     if ($in =~ /^s\s*(\d)$/) {
-#         warn "switching to ws ($1)";
-#         return ws_set_active($1);
-#     }
-#     if ($in =~ /^u\s*(\d)$/) {
-#         warn "toggle urgent: ($1)";
-#         return ws_set_urgent($1);
-#     }
-#     if ($in =~ /^l\s*(\S+.*)?$/) {
-#         warn "setting label: ($1)";
-#         return title($1);
-#     }
-#     if ($in =~ /^d$/) {
-#         use Data::Dumper;
-#         return warn Dumper \@workspaces;
-#     }
-# 
-#     exit(0) if $in =~ /^q$/;
-# };
-#
-# warn <<'@';
-#  Usage:
-#     a5      -- add workspace #5
-#     r3      -- remove workspace #3
-#     s8      -- switch to workspace #8
-#     u9      -- toggle urgency of workspace #9
-#     l TEXT  -- set label text
-#     d       -- dump @workspaces
-#
-# @
-#
-# my $p = __PACKAGE__->new(1, sub { warn "p1: @_" });
-# my $p2 = __PACKAGE__->new(2, sub { warn "p2: @_" });
-#
-# # Handle gtk events each 1 second
-# for(;;) {
-#     iter();
-#     my $pause = AE::cv;
-#     my $w = AE::timer 1, 0, sub { $pause->send };
-#     $pause->recv;
-# }
 
 1;
