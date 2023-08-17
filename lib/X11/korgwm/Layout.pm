@@ -11,6 +11,9 @@ use POSIX qw( ceil floor round );
 use Storable qw( dclone );
 use X11::korgwm::Window;
 
+our $X;
+*X = *X11::korgwm::X;
+
 use Data::Dumper;
 $Data::Dumper::Sortkeys = 1;
 
@@ -142,6 +145,7 @@ sub arrange_windows($self, $windows, $dpy_width, $dpy_height, $x_offset=0, $y_of
         $dpy_height = $dpy_height_orig;
         $dpy_width = $x;
     }
+    $X->flush();
 }
 
 sub new($self) {

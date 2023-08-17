@@ -99,7 +99,8 @@ my %xcb_events = (
         #   12 => {}, # keys with Ctrl + Alt
         # )
         # warn Dumper [$keymap->[$evt->detail]];
-        warn sprintf("Key pressed, key: (%c) state:(%x)", $keymap->[$evt->detail]->[0], $evt->state);
+        my $key = $keymap->[$evt->detail]->[0];
+        warn sprintf("Key pressed, key: char(%c),hex(%x),dec(%d) state:(%x)", $key, $key, $key, $evt->state);
     },
     MAP_REQUEST, sub($evt) {
         warn "Mapping...";
@@ -148,14 +149,17 @@ my %xcb_events = (
 
         # Configure window on the server
         my $win_id = $evt->{window};
+
+        return if $windows->{$win_id}; # ignore configure requests from known windows
+
         # TODO remove
-        CORE::state $i = 0;
-        my ($win_x, $win_y, $win_w, $win_h, $win_bw) = (30 + 10 * $i, 30 + 10 * $i, 400, 300, $cfg->{border_width});
-        $i++;
-        X11::korgwm::Window::_resize_and_move($win_id, $win_x, $win_y, $win_w, $win_h);
+        # CORE::state $i = 0;
+        # my ($win_x, $win_y, $win_w, $win_h, $win_bw) = (30 + 10 * $i, 30 + 10 * $i, 400, 300, $cfg->{border_width});
+        # $i++;
+        # X11::korgwm::Window::_resize_and_move($win_id, $win_x, $win_y, $win_w, $win_h);
 
         # Send xcb_configure_notify_event_t to the window's client
-        X11::korgwm::Window::_configure_notify($win_id, $evt->{sequence}, $win_x, $win_y, $win_w, $win_h);
+        X11::korgwm::Window::_configure_notify($win_id, @{ $evt }{qw( sequence x y width height )});
 
         $X->flush();
     },
