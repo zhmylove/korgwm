@@ -12,6 +12,7 @@ use X11::XCB::Event::KeyPress;
 use X11::XCB::Event::EnterLeaveNotify;
 use X11::XCB::Event::MapRequest;
 use X11::XCB::Event::UnmapNotify;
+use X11::XCB::Event::DestroyNotify;
 die "X11::XCB minimum version 0.20 required" if 0.20 > X11::XCB->VERSION();
 use AnyEvent;
 use Data::Dumper;
@@ -20,6 +21,7 @@ $Data::Dumper::Sortkeys = 1;
 use X11::korgwm::Panel;
 use X11::korgwm::Layout;
 use X11::korgwm::Window;
+use X11::korgwm::Screen;
 
 # TODO get from some config file
 our $cfg;
@@ -52,7 +54,7 @@ die "Looks like another WM is in use" if $wm_error;
 
 # Set root color
 if ($cfg->{set_root_color}) {
-    warn Dumper $X->change_window_attributes($r->id, CW_BACK_PIXEL, $cfg->{color_normal});
+    warn Dumper $X->change_window_attributes($r->id, CW_BACK_PIXEL, $cfg->{color_bg});
     warn Dumper $X->change_window_attributes($r->id, CW_BACK_PIXEL, 0x99bb00);
     warn Dumper $X->clear_area(0, $r->id, 0, 0, $r->_rect->width, $r->_rect->height);
 }
@@ -70,7 +72,6 @@ $X->flush();
 warn Dumper $X->grab_key(0, $r->id, MOD_MASK_4, GRAB_ANY, GRAB_MODE_ASYNC, GRAB_MODE_ASYNC);
 
 # Initialize RANDR
-# $X->randr_query_version(1, 1);
 qx($cfg->{RANDR_cmd});
 $X->randr_select_input($r->id, RANDR_NOTIFY_MASK_SCREEN_CHANGE);
 my $RANDR = $X->query_extension_reply($X->query_extension(5, "RANDR")->{sequence});
@@ -88,9 +89,44 @@ sub win_get_property($conn, $win, $prop_name, $prop_type='UTF8_STRING', $ret_len
     $X->get_property_reply($cookie->{sequence});
 }
 
-my $layout = X11::korgwm::Layout->new();
+our %screens;
+sub handle_screens {
+    my @screens = @{ $X->screens() };
+    my %curr_screens;
+    for my $s (@screens) {
+        my ($x, $y, $w, $h) = map { $s->rect->$_ } qw( x y width height );
+        $curr_screens{"$x,$y,$w,$h"} = undef;
+    }
+    my @del_screens = grep { not defined $curr_screens{$_} } keys %screens;
+    my @new_screens = grep { not defined $screens{$_} } keys %curr_screens;
+    return if @del_screens == 0 and @new_screens == 0;
+    $screens{$_}->destroy() for @del_screens;
+    $screens{$_} = X11::korgwm::Screen->new(split ",", $_) for keys %curr_screens;
+}
+handle_screens();
+die "No screens found" unless keys %screens;
 
-my %xcb_events = (
+our $focus = {
+    screen => $screens{(sort keys %screens)[0]},
+    focus => undef,
+};
+
+sub hide_window($wid, $delete=undef) {
+    my $win = $delete ? delete $windows->{$wid} : $windows->{$wid};
+    return unless $win;
+    for my $tag (values %{ $win->{on_tags} // {} }) {
+        $tag->win_remove($win);
+        $tag->{screen}->{focus} = undef if $win == ($tag->{screen}->{focus} // 0);
+    }
+    if ($win == ($focus->{focus} // 0)) {
+        $focus->{focus} = undef;
+        $focus->{screen}->focus();
+    }
+}
+
+our $unmap_prevent;
+
+our %xcb_events = (
     KEY_PRESS, sub($evt) {
         # state: ... 1 4 8 64
         # warn Dumper [MOD_MASK_SHIFT, MOD_MASK_CONTROL, MOD_MASK_1, MOD_MASK_4];
@@ -106,32 +142,27 @@ my %xcb_events = (
         warn "Mapping...";
         my $wid = $evt->window;
 
-        warn Dumper [$X->get_window_attributes_reply($X->get_window_attributes($wid)->{sequence})];
-        warn Dumper [win_get_property($X, $wid, '_NET_STARTUP_ID')->{value}];
+        #warn Dumper [$X->get_window_attributes_reply($X->get_window_attributes($wid)->{sequence})];
+        #warn Dumper [win_get_property($X, $wid, '_NET_STARTUP_ID')->{value}];
 
         # TODO consider die ".... TRYING TO MAP AN UNKNOWN WINDOW" . Dumper $evt unless defined $windows->{$evt->{window}};
         $X->change_window_attributes($wid, CW_EVENT_MASK,
             EVENT_MASK_ENTER_WINDOW | EVENT_MASK_LEAVE_WINDOW
         );
-        $X->map_window($evt->{window});
         $windows->{$wid} = X11::korgwm::Window->new($wid) unless defined $windows->{$wid};
-        $layout->arrange_windows([values %{$windows}], 1920, 1060, 2 * 1920, 20);
+        $windows->{$wid}->show();
+        $windows->{$wid}->focus();
+        $focus->{screen}->add_window($windows->{$wid});
+        $focus->{screen}->refresh();
+        # $layout->arrange_windows([values %{$windows}], 1920, 1060, 2 * 1920, 20);
         $X->flush();
     },
+    DESTROY_NOTIFY, sub($evt) {
+        hide_window($evt->window, 1);
+    },
     UNMAP_NOTIFY, sub($evt) {
-        my $wid = $evt->window;
-        my $win = $windows->{$wid};
-        if ($win) {
-            delete $windows->{$wid};
-
-            # TODO re-arrange the tag if it's visible
-            if (values %{ $windows }) {
-                $layout->arrange_windows([values %{$windows}], 1920, 1060, 2 * 1920, 20);
-            } else {
-                $layout = X11::korgwm::Layout->new();
-            }
-            $X->flush();
-        }
+        # The problem here is to distinguish between unmap due to $tag->hide() and unmap request from client
+        hide_window($evt->window) unless delete $unmap_prevent->{$evt->window};
     },
     CONFIGURE_REQUEST, sub($evt) {
         # Order of the fields from xproto.h:
@@ -150,6 +181,7 @@ my %xcb_events = (
         # Configure window on the server
         my $win_id = $evt->{window};
 
+        # TODO handle floating
         return if $windows->{$win_id}; # ignore configure requests from known windows
 
         # TODO remove
@@ -159,7 +191,7 @@ my %xcb_events = (
         # X11::korgwm::Window::_resize_and_move($win_id, $win_x, $win_y, $win_w, $win_h);
 
         # Send xcb_configure_notify_event_t to the window's client
-        X11::korgwm::Window::_configure_notify($win_id, @{ $evt }{qw( sequence x y width height )});
+        X11::korgwm::Window::_configure_notify($win_id, @{ $evt }{qw( sequence x y w h )});
 
         $X->flush();
     },
@@ -167,22 +199,24 @@ my %xcb_events = (
         warn "RANDR screen change notify";
         qx($cfg->{RANDR_cmd});
         warn "Xinerama query screens:";
+        # TODO check if it's really needed
         warn Dumper $X->xinerama_query_screens_reply($X->xinerama_query_screens()->{sequence});
         $X->flush();
         warn "New screens:";
         warn Dumper $X->screens();
+        handle_screens();
     },
     ENTER_NOTIFY, sub($evt) {
-        X11::korgwm::Window::reset_border($focused) if defined $focused;
-        my $win = X11::korgwm::Window->new($evt->event);
-        X11::korgwm::Window::focus($win);
-        $panel->title(X11::korgwm::Window::title($win));
-        $focused = $win;
+        # X11::korgwm::Window::reset_border($focused) if defined $focused;
+        my $win = $windows->{$evt->event} // X11::korgwm::Window->new($evt->event);
+        $win->focus();
+        # X11::korgwm::Window::focus($win);
+        # $panel->title(X11::korgwm::Window::title($win));
+        # $focused = $win;
     },
 );
 
 my $die_trigger = 0;
-$panel = X11::korgwm::Panel->new(1, 1920, 2*1920, sub { $die_trigger = 1; die "ws_cb" . Dumper \@_ } );
 
 # Main event loop
 for(;;) {

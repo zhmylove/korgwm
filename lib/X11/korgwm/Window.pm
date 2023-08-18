@@ -18,10 +18,7 @@ our ($X, $cfg);
 *cfg = *X11::korgwm::cfg;
 
 sub new($class, $id) {
-    my $win = {
-        id => $id,
-    };
-    bless $win, $class;
+    bless { id => $id }, $class;
 }
 
 sub _get_property($wid, $prop_name, $prop_type='UTF8_STRING', $ret_length=8) {
@@ -79,15 +76,27 @@ INIT {
 
 sub focus($self) {
     croak "Undefined window" unless $self->{id};
+    my $focus = $X11::korgwm::focus;
+    $focus->{focus}->reset_border() if defined $focus->{focus} and $focus->{focus} != $self;
     $X->change_window_attributes($self->{id}, CW_BORDER_PIXEL, $cfg->{color_fg});
     $X->configure_window($self->{id}, CONFIG_WINDOW_STACK_MODE, STACK_MODE_ABOVE);
     $X->set_input_focus(INPUT_FOCUS_POINTER_ROOT, $self->{id}, TIME_CURRENT_TIME);
+    $X11::korgwm::focus->{focus} = $self;
     $X->flush();
 }
 
 sub reset_border($self) {
     croak "Undefined window" unless $self->{id};
     $X->change_window_attributes($self->{id}, CW_BORDER_PIXEL, $cfg->{color_bg});
+}
+
+sub hide($self) {
+    $X11::korgwm::unmap_prevent->{$self->{id}} = 1;
+    $X->unmap_window($self->{id});
+}
+
+sub show($self) {
+    $X->map_window($self->{id});
 }
 
 1;

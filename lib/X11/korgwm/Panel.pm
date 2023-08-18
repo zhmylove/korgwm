@@ -104,7 +104,6 @@ sub ws_create($self, $title = "", $ws_cb = sub {1}) {
     # $ebox->override_background_color(normal => Gtk3::Gdk::RGBA::parse("#464729"));
     $ebox->signal_connect('button-press-event', sub ($obj, $e) {
         return unless $e->button == 1;
-        $self->ws_set_active($my_id);
         $ws_cb->($e->button, $my_id);
     });
     $ebox->add($label);
@@ -153,7 +152,13 @@ sub new($class, $panel_id, $panel_width, $panel_x, $ws_cb) {
         $panel->ws_set_visible($_, 0) for 1..@ws_names;
     }
 
+    $panel->{window} = $window;
     return $panel;
+}
+
+sub destroy($self) {
+    $self->{window}->destroy();
+    %{ $self } = ();
 }
 
 sub iter {

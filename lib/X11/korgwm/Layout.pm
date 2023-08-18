@@ -117,7 +117,7 @@ sub _new_layout($windows) {
 
 sub arrange_windows($self, $windows, $dpy_width, $dpy_height, $x_offset=0, $y_offset=0) {
     croak "Cannot arrange non-windows" unless ref $windows eq "ARRAY";
-    croak "Cannot arrange imaginary windows" if @{ $windows } < 1;
+    return if @{ $windows } < 1;
     croak "Trying to use non-initialized layout" unless defined $self->{grid};
     my $nwindows = @{ $windows };
     my ($dpy_width_orig, $dpy_height_orig) = ($dpy_width, $dpy_height);
