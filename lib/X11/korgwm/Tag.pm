@@ -60,7 +60,8 @@ sub show($self) {
         $y += $cfg->{panel_height};
         $self->{layout}->arrange_windows($self->{windows_tiled}, $w, $h, $x, $y);
         # Raise floating all the time
-        $X->configure_window($_, CONFIG_WINDOW_STACK_MODE, STACK_MODE_ABOVE) for @{ $self->{windows_float} };
+        $X->configure_window($_->{id}, CONFIG_WINDOW_STACK_MODE, STACK_MODE_ABOVE) for @{ $self->{windows_float} };
+        $X->flush();
     }
 
     # Handle focus change

@@ -83,11 +83,22 @@ INIT {
 
 sub focus($self) {
     croak "Undefined window" unless $self->{id};
+
     my $focus = $X11::korgwm::focus;
+
     $focus->{focus}->reset_border() if defined $focus->{focus} and $focus->{focus} != $self;
+
     $X->change_window_attributes($self->{id}, CW_BORDER_PIXEL, $cfg->{color_fg});
     $X->configure_window($self->{id}, CONFIG_WINDOW_STACK_MODE, STACK_MODE_ABOVE);
+
+    # Raise transient_for
     $X->configure_window($_, CONFIG_WINDOW_STACK_MODE, STACK_MODE_ABOVE) for keys %{ $self->{siblings} // {} };
+
+    # Raise all floating windows from current tag
+    for my $tag (values %{ $self->{on_tags} // {} }) {
+        $X->configure_window($_->{id}, CONFIG_WINDOW_STACK_MODE, STACK_MODE_ABOVE) for @{ $tag->{windows_float} };
+    }
+
     $X->set_input_focus(INPUT_FOCUS_POINTER_ROOT, $self->{id}, TIME_CURRENT_TIME);
     $X11::korgwm::focus->{focus} = $self;
     $X->flush();
@@ -111,12 +122,14 @@ sub toggle_floating($self) {
     $self->{floating} = ! $self->{floating};
 
     # Deal with geometry
-    my ($x, $y, $w, $h) = @{ $self }{qw( x y w h )};
+    my ($x, $y, $w, $h) = map { defined ? $_ : 0 } @{ $self }{qw( x y w h )};
     $y = $cfg->{panel_height} if $y < $cfg->{panel_height};
 
-    # TODO consider valid values for this fixup of windows, which did not asked proper size
+    # TODO consider valid values for this fixup of windows, which did not asked for proper size
     $w = 150 if $w < 1;
     $h = 150 if $h < 1;
+
+    @{ $self }{qw( x y w h )} = ($x, $y, $w, $h);
 
     $self->resize_and_move($x, $y, $w, $h);
     $_->win_float($self, $self->{floating}) for values %{ $self->{on_tags} // {} };
