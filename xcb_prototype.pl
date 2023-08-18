@@ -14,7 +14,9 @@ use X11::XCB::Event::MapRequest;
 use X11::XCB::Event::UnmapNotify;
 use X11::XCB::Event::DestroyNotify;
 die "X11::XCB minimum version 0.20 required" if 0.20 > X11::XCB->VERSION();
+use Carp;
 use AnyEvent;
+
 use Data::Dumper;
 $Data::Dumper::Sortkeys = 1;
 
@@ -99,9 +101,14 @@ sub handle_screens {
     }
     my @del_screens = grep { not defined $curr_screens{$_} } keys %screens;
     my @new_screens = grep { not defined $screens{$_} } keys %curr_screens;
+    my @not_changed_screens = grep { defined $screens{$_} } keys %curr_screens;
     return if @del_screens == 0 and @new_screens == 0;
-    $screens{$_}->destroy() for @del_screens;
-    $screens{$_} = X11::korgwm::Screen->new(split ",", $_) for keys %curr_screens;
+    $screens{$_} = X11::korgwm::Screen->new(split ",", $_) for @new_screens;
+    my $screen_for_abandoned_windows = (@new_screens, @not_changed_screens)[0];
+    warn "old: @del_screens new: @new_screens not change: @not_changed_screens";
+    $screen_for_abandoned_windows = $screens{$screen_for_abandoned_windows};
+    croak "Unable to get the screen for abandoned windows" unless defined $screen_for_abandoned_windows;
+    $screens{$_}->destroy($screen_for_abandoned_windows) for @del_screens;
 }
 handle_screens();
 die "No screens found" unless keys %screens;
@@ -230,12 +237,8 @@ our %xcb_events = (
         handle_screens();
     },
     ENTER_NOTIFY, sub($evt) {
-        # X11::korgwm::Window::reset_border($focused) if defined $focused;
         my $win = $windows->{$evt->event} // X11::korgwm::Window->new($evt->event);
         $win->focus();
-        # X11::korgwm::Window::focus($win);
-        # $panel->title(X11::korgwm::Window::title($win));
-        # $focused = $win;
     },
 );
 

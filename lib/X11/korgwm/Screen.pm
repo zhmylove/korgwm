@@ -34,9 +34,9 @@ sub new($class, $x, $y, $w, $h) {
     return $self;
 }
 
-sub destroy($self) {
+sub destroy($self, $new_screen) {
     $self->{panel}->destroy();
-    $_->destroy() for @{ $self->{tags} };
+    $_->destroy($new_screen) for @{ $self->{tags} };
     %{ $self } = ();
 }
 

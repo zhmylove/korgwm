@@ -27,9 +27,11 @@ sub new($class, $screen) {
     }, $class;
 }
 
-sub destroy($self) {
-    # TODO move window to some other place
-    ...;
+sub destroy($self, $new_screen) {
+    # Move windows to some other place
+    my $new_tag = $new_screen->{tags}->[0];
+    win_add($new_tag, $_) for grep defined, $self->{max_window}, @{ $self->{windows_float} },
+        @{ $self->{windows_tiled} };
     %{ $self } = ();
 }
 
@@ -84,6 +86,8 @@ sub win_add($self, $win) {
 }
 
 sub win_remove($self, $win) {
+    delete $win->{on_tags}->{$self};
+
     $self->{max_window} = undef if $win == ($self->{max_window} // 0);
 
     my $arr;
