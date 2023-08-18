@@ -140,6 +140,14 @@ our %xcb_events = (
         # warn Dumper [$keymap->[$evt->detail]];
         my $key = $keymap->[$evt->detail]->[0];
         warn sprintf("Key pressed, key: char(%c),hex(%x),dec(%d) state:(%x)", $key, $key, $key, $evt->state);
+
+        if (chr($key) eq 'f') {
+            my $win = $focus->{focus};
+            return unless defined $win;
+            $win->toggle_floating();
+            $focus->{screen}->refresh();
+            $X->flush();
+        }
     },
     MAP_REQUEST, sub($evt) {
         warn "Mapping...";

@@ -107,4 +107,19 @@ sub show($self) {
     $X->map_window($self->{id});
 }
 
+sub toggle_floating($self) {
+    $self->{floating} = ! $self->{floating};
+
+    # Deal with geometry
+    my ($x, $y, $w, $h) = @{ $self }{qw( x y w h )};
+    $y = $cfg->{panel_height} if $y < $cfg->{panel_height};
+
+    # TODO consider valid values for this fixup of windows, which did not asked proper size
+    $w = 150 if $w < 1;
+    $h = 150 if $h < 1;
+
+    $self->resize_and_move($x, $y, $w, $h);
+    $_->win_float($self, $self->{floating}) for values %{ $self->{on_tags} // {} };
+}
+
 1;
