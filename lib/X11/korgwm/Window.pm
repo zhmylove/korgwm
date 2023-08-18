@@ -25,9 +25,11 @@ sub _get_property($wid, $prop_name, $prop_type='UTF8_STRING', $ret_length=8) {
     my $aname = $X->atom(name => $prop_name)->id;
     my $atype = $X->atom(name => $prop_type)->id;
     my $cookie = $X->get_property(0, $wid, $aname, $atype, 0, $ret_length);
-    my $prop = $X->get_property_reply($cookie->{sequence});
+    my $prop;
+    eval { $prop = $X->get_property_reply($cookie->{sequence}); 1} or return undef;
     my $value = $prop ? $prop->{value} : undef;
-    $value = decode('UTF-8', $value) if defined $value;
+    $value = decode('UTF-8', $value) if defined $value and $prop_type eq 'UTF8_STRING';
+    ($value) = unpack('L', $value) if defined $value and $prop_type eq 'WINDOW';
     return wantarray ? ($value, $prop) : $value;
 }
 
@@ -56,6 +58,10 @@ sub _title($wid) {
     $title;
 }
 
+sub _transient_for($wid) {
+    _get_property($wid, "WM_TRANSIENT_FOR", "WINDOW", 16);
+}
+
 # Generate accessors by object
 INIT {
     no strict 'refs';
@@ -65,6 +71,7 @@ INIT {
         get_property
         resize_and_move
         title
+        transient_for
         )) {
         *{__PACKAGE__ . "::$func"} = sub {
             my $self = shift;
@@ -80,6 +87,7 @@ sub focus($self) {
     $focus->{focus}->reset_border() if defined $focus->{focus} and $focus->{focus} != $self;
     $X->change_window_attributes($self->{id}, CW_BORDER_PIXEL, $cfg->{color_fg});
     $X->configure_window($self->{id}, CONFIG_WINDOW_STACK_MODE, STACK_MODE_ABOVE);
+    $X->configure_window($_, CONFIG_WINDOW_STACK_MODE, STACK_MODE_ABOVE) for keys %{ $self->{siblings} // {} };
     $X->set_input_focus(INPUT_FOCUS_POINTER_ROOT, $self->{id}, TIME_CURRENT_TIME);
     $X11::korgwm::focus->{focus} = $self;
     $X->flush();

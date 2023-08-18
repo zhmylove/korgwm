@@ -42,6 +42,9 @@ windows => {
     wid => {
         id => wid,                  # ID of the window
         on_tags => {},              # hash of tags on which this window is shown
+        floating => Bool,           # flag if window is floating
+        siblings => {},             # hash keys = transient_for windows, values
+        transient_for => Int,       # wid of transient_for window, or undef
         (x, y, w, h),               # geometry of window requested in configure (or set to some defaults); used only for floating windows
     },
 }

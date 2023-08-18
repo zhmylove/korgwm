@@ -122,6 +122,9 @@ sub hide_window($wid, $delete=undef) {
         $focus->{focus} = undef;
         $focus->{screen}->focus();
     }
+    if ($delete and $win->{transient_for}) {
+        delete $win->{transient_for}->{siblings}->{$wid};
+    }
 }
 
 our $unmap_prevent;
@@ -142,19 +145,23 @@ our %xcb_events = (
         warn "Mapping...";
         my $wid = $evt->window;
 
-        #warn Dumper [$X->get_window_attributes_reply($X->get_window_attributes($wid)->{sequence})];
-        #warn Dumper [win_get_property($X, $wid, '_NET_STARTUP_ID')->{value}];
-
-        # TODO consider die ".... TRYING TO MAP AN UNKNOWN WINDOW" . Dumper $evt unless defined $windows->{$evt->{window}};
         $X->change_window_attributes($wid, CW_EVENT_MASK,
-            EVENT_MASK_ENTER_WINDOW | EVENT_MASK_LEAVE_WINDOW
+            EVENT_MASK_ENTER_WINDOW | EVENT_MASK_LEAVE_WINDOW | EVENT_MASK_PROPERTY_CHANGE
         );
         $windows->{$wid} = X11::korgwm::Window->new($wid) unless defined $windows->{$wid};
+
+        my $transient_for = $windows->{$wid}->transient_for();
+        $transient_for = undef unless defined $windows->{$transient_for};
+        if ($transient_for) {
+            $windows->{$wid}->{floating} = 1;
+            $windows->{$wid}->{transient_for} = $windows->{$transient_for};
+            $windows->{$transient_for}->{siblings}->{$wid} = undef;
+        }
+
         $windows->{$wid}->show();
         $windows->{$wid}->focus();
         $focus->{screen}->add_window($windows->{$wid});
         $focus->{screen}->refresh();
-        # $layout->arrange_windows([values %{$windows}], 1920, 1060, 2 * 1920, 20);
         $X->flush();
     },
     DESTROY_NOTIFY, sub($evt) {
@@ -175,20 +182,28 @@ our %xcb_events = (
         #   XCB_CONFIG_WINDOW_STACK_MODE = 64
         #
         # On any configure request we disrespect most parameters.
-        # TODO handle floating windows
         # TODO should we handle 'sibling' field?
 
         # Configure window on the server
         my $win_id = $evt->{window};
 
-        # TODO handle floating
-        return if $windows->{$win_id}; # ignore configure requests from known windows
+        if (my $win = $windows->{$win_id}) {
+            # Save desired x y w h
+            my ($x, $y, $w, $h) = @{ $win }{qw( x y w h )} = @{ $evt }{qw( x y w h )};
+            $y = $cfg->{panel_height} if $y < $cfg->{panel_height};
 
-        # TODO remove
-        # CORE::state $i = 0;
-        # my ($win_x, $win_y, $win_w, $win_h, $win_bw) = (30 + 10 * $i, 30 + 10 * $i, 400, 300, $cfg->{border_width});
-        # $i++;
-        # X11::korgwm::Window::_resize_and_move($win_id, $win_x, $win_y, $win_w, $win_h);
+            # Handle floating windows properly
+            if ($win->{floating}) {
+                # For floating we need fixup border
+                my $bw = $cfg->{border_width};
+                $win->resize_and_move($x, $y, $w + 2 * $bw, $h + 2 * $bw);
+                $win->configure_notify($evt->{sequence}, $x, $y, $w, $h);
+                $X->flush();
+            }
+
+            # Ignore configure requests from other known windows
+            return;
+        }
 
         # Send xcb_configure_notify_event_t to the window's client
         X11::korgwm::Window::_configure_notify($win_id, @{ $evt }{qw( sequence x y w h )});

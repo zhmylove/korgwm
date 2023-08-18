@@ -59,6 +59,8 @@ sub show($self) {
         $h -= $cfg->{panel_height};
         $y += $cfg->{panel_height};
         $self->{layout}->arrange_windows($self->{windows_tiled}, $w, $h, $x, $y);
+        # Raise floating all the time
+        $X->configure_window($_, CONFIG_WINDOW_STACK_MODE, STACK_MODE_ABOVE) for @{ $self->{windows_float} };
     }
 
     # Handle focus change
@@ -77,8 +79,7 @@ sub show($self) {
 sub win_add($self, $win) {
     $win->{on_tags}->{$self} = $self;
 
-    # TODO handle floating windows
-    unshift @{ $self->{windows_tiled} }, $win;
+    unshift @{ $win->{floating} ? $self->{windows_float} : $self->{windows_tiled} }, $win;
 }
 
 sub win_remove($self, $win) {
