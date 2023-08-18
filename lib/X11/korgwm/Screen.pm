@@ -81,7 +81,6 @@ sub focus($self) {
     }
     return unless defined $self->{focus};
     $self->{focus}->focus();
-    $self->{panel}->title($self->{focus}->title());
 }
 
 1;

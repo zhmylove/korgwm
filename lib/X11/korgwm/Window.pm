@@ -94,8 +94,9 @@ sub focus($self) {
     # Raise transient_for
     $X->configure_window($_, CONFIG_WINDOW_STACK_MODE, STACK_MODE_ABOVE) for keys %{ $self->{siblings} // {} };
 
-    # Raise all floating windows from current tag
+    # Raise all floating windows from current tag + set title on relevant screens
     for my $tag (values %{ $self->{on_tags} // {} }) {
+        $tag->{screen}->{panel}->title($self->title);
         $X->configure_window($_->{id}, CONFIG_WINDOW_STACK_MODE, STACK_MODE_ABOVE) for @{ $tag->{windows_float} };
     }
 
