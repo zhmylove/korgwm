@@ -35,8 +35,13 @@ sub new($class, $x, $y, $w, $h) {
 }
 
 sub destroy($self, $new_screen) {
+    # Remove panel
     $self->{panel}->destroy();
+
+    # Remove tags
     $_->destroy($new_screen) for @{ $self->{tags} };
+
+    # Undef other filds
     %{ $self } = ();
 }
 

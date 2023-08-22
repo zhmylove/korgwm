@@ -94,21 +94,37 @@ sub win_get_property($conn, $win, $prop_name, $prop_type='UTF8_STRING', $ret_len
 our %screens;
 sub handle_screens {
     my @screens = @{ $X->screens() };
+
+    # Count current screens
     my %curr_screens;
     for my $s (@screens) {
         my ($x, $y, $w, $h) = map { $s->rect->$_ } qw( x y width height );
         $curr_screens{"$x,$y,$w,$h"} = undef;
     }
-    my @del_screens = grep { not defined $curr_screens{$_} } keys %screens;
+
+    # Categorize them
+    my @del_screens = grep { not exists $curr_screens{$_} } keys %screens;
     my @new_screens = grep { not defined $screens{$_} } keys %curr_screens;
     my @not_changed_screens = grep { defined $screens{$_} } keys %curr_screens;
+
     return if @del_screens == 0 and @new_screens == 0;
+
+    # Create screens for new displays
     $screens{$_} = X11::korgwm::Screen->new(split ",", $_) for @new_screens;
+
+    # Find a screen to move windows from the screen being deleted
     my $screen_for_abandoned_windows = (@new_screens, @not_changed_screens)[0];
-    warn "old: @del_screens new: @new_screens not change: @not_changed_screens";
     $screen_for_abandoned_windows = $screens{$screen_for_abandoned_windows};
     croak "Unable to get the screen for abandoned windows" unless defined $screen_for_abandoned_windows;
-    $screens{$_}->destroy($screen_for_abandoned_windows) for @del_screens;
+
+    # TODO remove
+    warn "Moving stale windows to screen: $screen_for_abandoned_windows";
+
+    # Call destroy on old screens and remove them
+    for my $s (@del_screens) {
+        $screens{$s}->destroy($screen_for_abandoned_windows);
+        delete $screens{$s};
+    }
 }
 handle_screens();
 die "No screens found" unless keys %screens;

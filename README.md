@@ -1,3 +1,7 @@
+# Joke
+
+No, it is not a joke.
+
 # Why?
 
 **Back in 2010** I used the most impressive WM I think &mdash; WMFS (version 1).
@@ -11,11 +15,13 @@ The perfect time is now.
 
 # What is?
 
-**korgwm** is MY personal WM.
+**korgwm** is my personal WM.
 I do NOT want to make it highly customizable as I do know my wishes pretty well.
 I decided to write it in [Perl](https://www.perl.org/), as Perl is the best language ever.
 This WM is not a proof of concept, nor a society-oriented pet-project.
-It's just my instrument that I'm going to use on a daily basis.
+It is just my instrument that I'm going to use on a daily basis.
+In it's heart it uses XCB for X11 interaction, AnyEvent for API and event loop and Gtk3 for panel rendering.
+It is not reparenting for purpose, so borders are rendered by X11 itself.
 
 # Contribution
 
