@@ -18,7 +18,7 @@ our ($X, $cfg);
 *cfg = *X11::korgwm::cfg;
 
 sub new($class, $id) {
-    bless { id => $id }, $class;
+    bless { id => $id, on_tags => {} }, $class;
 }
 
 sub _get_property($wid, $prop_name, $prop_type='UTF8_STRING', $ret_length=8) {
@@ -81,32 +81,40 @@ INIT {
     }
 }
 
+sub _focus_raise($self) {
+    # Raise window and transient_for
+    $X->configure_window($self->{id}, CONFIG_WINDOW_STACK_MODE, STACK_MODE_ABOVE);
+    $X->configure_window($_, CONFIG_WINDOW_STACK_MODE, STACK_MODE_ABOVE) for keys %{ $self->{siblings} // {} };
+}
+
 sub focus($self) {
     croak "Undefined window" unless $self->{id};
 
     my $focus = $X11::korgwm::focus;
 
-    $focus->{focus}->reset_border() if defined $focus->{focus} and $focus->{focus} != $self;
+    $focus->{window}->reset_border() if $focus->{window} and $self != ($focus->{window} // 0);
 
     $X->change_window_attributes($self->{id}, CW_BORDER_PIXEL, $cfg->{color_fg});
-    $X->configure_window($self->{id}, CONFIG_WINDOW_STACK_MODE, STACK_MODE_ABOVE);
 
-    # Raise transient_for
-    $X->configure_window($_, CONFIG_WINDOW_STACK_MODE, STACK_MODE_ABOVE) for keys %{ $self->{siblings} // {} };
+    $self->_focus_raise() unless $self->{floating};
 
     # Raise all floating windows from current tag + set title on relevant screens
     for my $tag (values %{ $self->{on_tags} // {} }) {
         $tag->{screen}->{panel}->title($self->title);
+        $tag->{screen}->{focus} = $self;
         $X->configure_window($_->{id}, CONFIG_WINDOW_STACK_MODE, STACK_MODE_ABOVE) for @{ $tag->{windows_float} };
     }
 
+    $self->_focus_raise() if $self->{floating};
+
     $X->set_input_focus(INPUT_FOCUS_POINTER_ROOT, $self->{id}, TIME_CURRENT_TIME);
-    $X11::korgwm::focus->{focus} = $self;
+    $focus->{window} = $self;
     $X->flush();
 }
 
 sub reset_border($self) {
     croak "Undefined window" unless $self->{id};
+    # TODO update panel on focused screen..?
     $X->change_window_attributes($self->{id}, CW_BORDER_PIXEL, $cfg->{color_bg});
 }
 

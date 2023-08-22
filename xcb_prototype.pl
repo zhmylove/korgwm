@@ -17,6 +17,7 @@ die "X11::XCB minimum version 0.20 required" if 0.20 > X11::XCB->VERSION();
 use Carp;
 use AnyEvent;
 
+use Devel::SimpleTrace;
 use Data::Dumper;
 $Data::Dumper::Sortkeys = 1;
 
@@ -124,6 +125,7 @@ sub handle_screens {
     for my $s (@del_screens) {
         $screens{$s}->destroy($screen_for_abandoned_windows);
         delete $screens{$s};
+        $screen_for_abandoned_windows->refresh();
     }
 }
 handle_screens();
@@ -131,7 +133,7 @@ die "No screens found" unless keys %screens;
 
 our $focus = {
     screen => $screens{(sort keys %screens)[0]},
-    focus => undef,
+    window => undef,
 };
 
 sub hide_window($wid, $delete=undef) {
@@ -141,7 +143,7 @@ sub hide_window($wid, $delete=undef) {
         $tag->win_remove($win);
         $tag->{screen}->{focus} = undef if $win == ($tag->{screen}->{focus} // 0);
     }
-    if ($win == ($focus->{focus} // 0)) {
+    if ($win == ($focus->{window} // 0)) {
         $focus->{focus} = undef;
         $focus->{screen}->focus();
     }
@@ -151,6 +153,7 @@ sub hide_window($wid, $delete=undef) {
 }
 
 our $unmap_prevent;
+my $enter_notify_w;
 
 our %xcb_events = (
     KEY_PRESS, sub($evt) {
@@ -165,7 +168,7 @@ our %xcb_events = (
         warn sprintf("Key pressed, key: char(%c),hex(%x),dec(%d) state:(%x)", $key, $key, $key, $evt->state);
 
         if (chr($key) eq 'f') {
-            my $win = $focus->{focus};
+            my $win = $focus->{window};
             return unless defined $win;
             $win->toggle_floating();
             $focus->{screen}->refresh();
@@ -181,7 +184,7 @@ our %xcb_events = (
         );
         $windows->{$wid} = X11::korgwm::Window->new($wid) unless defined $windows->{$wid};
 
-        my $transient_for = $windows->{$wid}->transient_for();
+        my $transient_for = $windows->{$wid}->transient_for() // -1;
         $transient_for = undef unless defined $windows->{$transient_for};
         if ($transient_for) {
             $windows->{$wid}->{floating} = 1;
@@ -253,8 +256,14 @@ our %xcb_events = (
         handle_screens();
     },
     ENTER_NOTIFY, sub($evt) {
+        # To bypass consequent EnterNotifies and use only the last one for focus
+        # This likely fixes the bug I observed 6 years ago in WMFS1
         my $win = $windows->{$evt->event} // X11::korgwm::Window->new($evt->event);
-        $win->focus();
+        if ($win->{floating}) {
+            $enter_notify_w = AE::timer 0.1, 0, sub { $win->focus(); };
+        } else {
+            $win->focus();
+        }
     },
 );
 

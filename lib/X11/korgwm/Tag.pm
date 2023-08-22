@@ -30,8 +30,10 @@ sub new($class, $screen) {
 sub destroy($self, $new_screen) {
     # Move windows to some other place
     my $new_tag = $new_screen->{tags}->[0];
-    win_add($new_tag, $_) for grep defined, $self->{max_window}, @{ $self->{windows_float} },
-        @{ $self->{windows_tiled} };
+    for my $win (grep defined, $self->{max_window}, @{ $self->{windows_float} }, @{ $self->{windows_tiled} }) {
+        win_add($new_tag, $win);
+        $self->win_remove($win);
+    }
     %{ $self } = ();
 }
 
@@ -70,10 +72,14 @@ sub show($self) {
     my $focus = $X11::korgwm::focus;
     $focus->{screen} = $self->{screen};
     my $focus_win = $self->{screen}->{focus};
-    if (defined $focus_win) {
-        $focus_win->reset_border();
-        $focus->{focus} = $focus_win;
+    if (defined $focus_win and exists $focus_win->{on_tags}->{$self} ) {
+        # If this window is focused on this tag, just give it a focus
         $focus_win->focus();
+    } else {
+        # Try to select next window and give it a focus
+        my $win = $self->next_window();
+        # XXX maybe drop focus otherwise?
+        $win->focus() if $win;
     }
 
     $X->flush();

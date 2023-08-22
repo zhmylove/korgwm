@@ -35,11 +35,11 @@ sub new($class, $x, $y, $w, $h) {
 }
 
 sub destroy($self, $new_screen) {
-    # Remove panel
-    $self->{panel}->destroy();
-
     # Remove tags
     $_->destroy($new_screen) for @{ $self->{tags} };
+
+    # Remove panel
+    $self->{panel}->destroy();
 
     # Undef other filds
     %{ $self } = ();
@@ -78,9 +78,13 @@ sub add_window($self, $win) {
 }
 
 sub focus($self) {
-    # TODO what if screen->{focus} window is on another, hidden tag?
-    unless (defined $self->{focus}) {
-        my $tag = $self->{tags}->[$self->{tag_curr}];
+    my $tag = $self->{tags}->[$self->{tag_curr}];
+
+    if (defined $self->{focus} and exists $self->{focus}->{on_tags}->{$tag}) {
+        # self->focus already points to some window on active tag
+        # This condition just looks prettier in this way, so if-clause is empty
+    } else {
+        # Focus some window on active tag
         my $win = $tag->next_window();
         $self->{focus} = $win;
     }
