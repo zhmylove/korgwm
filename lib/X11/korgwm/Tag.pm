@@ -32,7 +32,7 @@ sub destroy($self, $new_screen) {
     # Move windows to some other place
     my $new_tag = $new_screen->{tags}->[0];
     for my $win (grep defined, $self->{max_window}, @{ $self->{windows_float} }, @{ $self->{windows_tiled} }) {
-        win_add($new_tag, $win);
+        $new_tag->win_add($win);
         $self->win_remove($win);
     }
     %{ $self } = ();

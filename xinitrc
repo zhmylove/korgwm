@@ -1,4 +1,5 @@
-xterm &
-sleep 1 && xterm &
-# xsetroot -solid '#262729' &
-exec ./xcb_prototype.pl
+xrdb -merge $HOME/.Xresources
+xsetroot -cursor_name left_ptr
+setxkbmap -layout us,ru -option grp:alt_shift_toggle,compose:ralt
+feh --bg-center $HOME/src/korgwm/resources/background_fhd.png
+exec urxvt
