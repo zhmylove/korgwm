@@ -89,7 +89,7 @@ sub focus($self) {
         my $win = $tag->next_window();
         $self->{focus} = $win;
     }
-    return unless defined $self->{focus};
+    return $self->{panel}->title() unless defined $self->{focus};
     $self->{focus}->focus();
 }
 

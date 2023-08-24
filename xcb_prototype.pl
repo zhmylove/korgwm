@@ -142,7 +142,11 @@ sub hide_window($wid, $delete=undef) {
     return unless $win;
     for my $tag (values %{ $win->{on_tags} // {} }) {
         $tag->win_remove($win);
-        $tag->{screen}->{focus} = undef if $win == ($tag->{screen}->{focus} // 0);
+        if ($win == ($tag->{screen}->{focus} // 0)) {
+            $tag->{screen}->{focus} = undef;
+            warn "Setting title to zero";
+            $tag->{screen}->{panel}->title();
+        }
     }
     if ($win == ($focus->{window} // 0)) {
         $focus->{focus} = undef;

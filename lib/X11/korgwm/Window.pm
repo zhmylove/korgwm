@@ -127,6 +127,9 @@ sub reset_border($self) {
 
 sub hide($self) {
     $X11::korgwm::unmap_prevent->{$self->{id}} = 1;
+    for my $screen ($self->screens) {
+        $screen->{panel}->title() if $screen->{focus} == $self;
+    }
     $X->unmap_window($self->{id});
 }
 
