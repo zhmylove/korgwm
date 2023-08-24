@@ -40,7 +40,7 @@ $cfg->{color_urgent_fg} = 0xffff00;
 $cfg->{font} = "DejaVu Sans Mono 10";
 $cfg->{hide_empty_tags} = 0;
 $cfg->{panel_height} = 20;
-$cfg->{set_root_color} = 1;
+$cfg->{set_root_color} = 0;
 $cfg->{title_max_len} = 64;
 $cfg->{ws_names} = [qw( T W M C 5 6 7 8 9 )];
 
@@ -60,7 +60,6 @@ die "Looks like another WM is in use" if $wm_error;
 # Set root color
 if ($cfg->{set_root_color}) {
     warn Dumper $X->change_window_attributes($r->id, CW_BACK_PIXEL, $cfg->{color_bg});
-    warn Dumper $X->change_window_attributes($r->id, CW_BACK_PIXEL, 0x99bb00);
     warn Dumper $X->clear_area(0, $r->id, 0, 0, $r->_rect->width, $r->_rect->height);
 }
 
