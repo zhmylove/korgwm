@@ -109,7 +109,13 @@ sub focus($self) {
     $self->_focus_raise() if $self->{floating};
 
     $X->set_input_focus(INPUT_FOCUS_POINTER_ROOT, $self->{id}, TIME_CURRENT_TIME);
+
+    # Update focus structure
     $focus->{window} = $self;
+    my @focus_screens = $self->screens;
+    croak "Unimplemented focus for several screens: @focus_screens" unless @focus_screens == 1;
+    $focus->{screen} = $focus_screens[0];
+
     $X->flush();
 }
 
@@ -143,6 +149,12 @@ sub toggle_floating($self) {
 
     $self->resize_and_move($x, $y, $w, $h);
     $_->win_float($self, $self->{floating}) for values %{ $self->{on_tags} // {} };
+}
+
+sub screens($self) {
+    my %screens;
+    $screens{$_} = $_ for map { $_->{screen} } values %{ $self->{on_tags} // {} };
+    values %screens;
 }
 
 1;

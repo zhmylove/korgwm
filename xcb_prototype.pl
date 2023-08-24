@@ -194,8 +194,8 @@ our %xcb_events = (
         }
 
         $windows->{$wid}->show();
-        $windows->{$wid}->focus();
         $focus->{screen}->add_window($windows->{$wid});
+        $windows->{$wid}->focus();
         $focus->{screen}->refresh();
         $X->flush();
     },
