@@ -89,8 +89,14 @@ sub focus($self) {
         my $win = $tag->next_window();
         $self->{focus} = $win;
     }
-    return $self->{panel}->title() unless defined $self->{focus};
-    $self->{focus}->focus();
+
+    # If there is a win, focus it; otherwise just reset panel title and update focus structure
+    if (defined $self->{focus}) {
+        $self->{focus}->focus();
+    } else {
+        $X11::korgwm::focus->{screen} = $self;
+        $self->{panel}->title();
+    }
 }
 
 1;
