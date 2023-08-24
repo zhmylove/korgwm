@@ -1,4 +1,5 @@
 #!/usr/bin/perl
+# made by: KorG
 # vim: cc=119 et sw=4 ts=4 :
 package X11::korgwm::Window;
 use strict;
