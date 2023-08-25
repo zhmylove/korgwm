@@ -125,6 +125,7 @@ sub arrange_windows($self, $windows, $dpy_width, $dpy_height, $x_offset=0, $y_of
     my $grid = dclone($self->{grid}->[$nwindows - 1] //= _new_layout($nwindows));
     my @cols = reverse @{ $grid };
     my @windows = reverse @{ $windows };
+    my $hide_border = 1 == @windows and 1 == keys %{ $X11::korgwm::screens };
     for my $col (@cols) {
         my $col_w = shift @{ $col };
         my $width = floor($dpy_width_orig * $col_w);
@@ -138,7 +139,7 @@ sub arrange_windows($self, $windows, $dpy_width, $dpy_height, $x_offset=0, $y_of
 
             my $win = shift @windows;
             croak "Window cannot be undef" unless defined $win;
-            $win->resize_and_move($x + $x_offset, $y + $y_offset, $width, $height);
+            $win->resize_and_move($x + $x_offset, $y + $y_offset, $width, $height, $hide_border ? 0 : ());
 
             $dpy_height = $y;
         }

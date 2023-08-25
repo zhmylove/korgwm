@@ -1,0 +1,10 @@
+<Multi_key> <1>             : "́"    U0301           # COMBINING ACUTE ACCENT
+<Multi_key> <2>             : "«"   guillemotleft   # LEFT-POINTING DOUBLE ANGLE QUOTATION MARK
+<Multi_key> <3>             : "»"   guillemotright  # RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK
+<Multi_key> <4>             : "–"   U2013           # EN DASH
+<Multi_key> <5>             : "̈"    U0308           # COMBINING DIAERESIS
+<Multi_key> <6>             : "̃"    U0303           # COMBINING TILDE
+<Multi_key> <minus> <minus> : "—"   U2014           # EM DASH
+<Multi_key> <minus> <plus>  : "±"   plusminus       # PLUS-MINUS SIGN
+<Multi_key> <plus> <minus>  : "±"   plusminus       # PLUS-MINUS SIGN
+<Multi_key> <period>        : "…"   ellipsis        # HORIZONTAL ELLIPSIS
