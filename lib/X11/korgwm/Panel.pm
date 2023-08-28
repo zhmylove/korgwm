@@ -44,6 +44,10 @@ sub title($self, $title = "") {
     $self->{title}->txt($title);
 }
 
+sub lang_set($self, $lang = "") {
+    $self->{lang}->txt(sprintf($cfg->{lang_format}, $lang));
+}
+
 # Set workspace color
 sub ws_set_color($self, $ws, $new_color_bg, $new_color_fg) {
     $ws = $self->{ws}->[$ws - 1];
@@ -115,7 +119,7 @@ sub ws_create($self, $title = "", $ws_cb = sub {1}) {
 }
 
 sub new($class, $panel_id, $panel_width, $panel_x, $ws_cb) {
-    my ($panel, $window, @workspaces, $label, $clock) = {};
+    my ($panel, $window, @workspaces, $label, $clock, $lang) = {};
     _init() unless $ready;
     bless $panel, $class;
     # Prepare window
@@ -135,6 +139,9 @@ sub new($class, $panel_id, $panel_width, $panel_x, $ws_cb) {
     my $clock_w = AE::timer 0, 1, sub { $clock->txt(strftime($cfg->{clock_format}, localtime) =~ s/  +/ /gr) };
     $panel->{clock} = $clock;
     $panel->{_clock_w} = $clock_w;
+    $lang = Gtk3::Label->new();
+    $lang->set_yalign(0.9);
+    $panel->{lang} = $lang;
 
     # Fill in @workspaces
     @workspaces = map { $panel->ws_create($_, $ws_cb) } @ws_names;
@@ -145,6 +152,7 @@ sub new($class, $panel_id, $panel_width, $panel_x, $ws_cb) {
     my $hdbar = Gtk3::Box->new(horizontal => 0);
     $hdbar->pack_start($_->{ebox}, 0, 0, 0) for @workspaces;
     $hdbar->set_center_widget($label);
+    $hdbar->pack_end($lang, 0, 0, 0);
     $hdbar->pack_end($clock, 0, 0, 0);
     $hdbar->override_background_color(normal => Gtk3::Gdk::RGBA::parse($color_bg));
     $window->add($hdbar);

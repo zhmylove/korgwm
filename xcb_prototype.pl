@@ -27,12 +27,15 @@ use X11::korgwm::Panel;
 use X11::korgwm::Layout;
 use X11::korgwm::Window;
 use X11::korgwm::Screen;
+use X11::korgwm::Xkb;
 
 # TODO get from some config file
 our $cfg;
-$cfg->{RANDR_cmd} = q(xrandr --output HDMI-A-0 --left-of eDP --auto --output DisplayPort-0 --right-of eDP --auto);
+$cfg->{randr_cmd} = q(xrandr --output HDMI-A-0 --left-of eDP --auto --output DisplayPort-0 --right-of eDP --auto);
+$cfg->{lang_format} = " %s ";
+$cfg->{lang_names} = { 0 => chr(0x00a3), 1 => chr(0x20bd) };
 $cfg->{border_width} = 2;
-$cfg->{clock_format} = " %a, %e %B %H:%M ";
+$cfg->{clock_format} = " %a, %e %B %H:%M";
 $cfg->{color_bg} = 0x262729;
 $cfg->{color_fg} = 0xA3BABF;
 $cfg->{color_urgent_bg} = 0x464729;
@@ -76,12 +79,18 @@ $X->flush();
 warn Dumper $X->grab_key(0, $r->id, MOD_MASK_4, GRAB_ANY, GRAB_MODE_ASYNC, GRAB_MODE_ASYNC);
 
 # Initialize RANDR
-qx($cfg->{RANDR_cmd});
+qx($cfg->{randr_cmd});
 $X->randr_select_input($r->id, RANDR_NOTIFY_MASK_SCREEN_CHANGE);
-my $RANDR = $X->query_extension_reply($X->query_extension(5, "RANDR")->{sequence});
-die "RANDR not available" unless $RANDR->{present};
-my $RANDR_SCREEN_CHANGE_NOTIFY = $RANDR->{first_event};
-die "Could not get RANDR first_event" unless $RANDR_SCREEN_CHANGE_NOTIFY;
+
+sub init_extension($name, $first_event) {
+    my $ext = $X->query_extension_reply($X->query_extension(length($name), $name)->{sequence});
+    die "$name not available" unless $ext->{present};
+    $$first_event = $ext->{first_event};
+    die "Could not get $name first_event" unless $$first_event;
+}
+
+my ($RANDR_EVENT_BASE);
+init_extension("RANDR", \$RANDR_EVENT_BASE);
 
 our $windows = {};
 my $focused;
@@ -195,6 +204,7 @@ our %xcb_events = (
             $windows->{$wid}->{floating} = 1;
             $windows->{$wid}->{transient_for} = $windows->{$transient_for};
             $windows->{$transient_for}->{siblings}->{$wid} = undef;
+            # TODO implement screen change and win->move here
         }
 
         $windows->{$wid}->show();
@@ -249,9 +259,9 @@ our %xcb_events = (
 
         $X->flush();
     },
-    $RANDR_SCREEN_CHANGE_NOTIFY => sub($evt) {
+    $RANDR_EVENT_BASE => sub($evt) {
         warn "RANDR screen change notify";
-        qx($cfg->{RANDR_cmd});
+        qx($cfg->{randr_cmd});
         warn "Xinerama query screens:";
         # TODO check if it's really needed
         warn Dumper $X->xinerama_query_screens_reply($X->xinerama_query_screens()->{sequence});
@@ -272,7 +282,11 @@ our %xcb_events = (
     },
 );
 
+# Prepare manual exit switch
 my $die_trigger = 0;
+
+# Init our extensions
+$_->() for our @ext_ctors;
 
 # Main event loop
 for(;;) {
@@ -290,6 +304,6 @@ for(;;) {
     # TODO should handle Gtk / AE events here
 
     my $pause = AE::cv;
-    my $w = AE::timer 0.01, 0, sub { $pause->send };
+    my $w = AE::timer 0.1, 0, sub { $pause->send };
     $pause->recv;
 }

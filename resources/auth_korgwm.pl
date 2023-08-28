@@ -24,6 +24,9 @@ $X->change_window_attributes($W, CW_BACK_PIXEL, 0x262729);
 $X->map_window($W);
 $X->flush();
 
+# Dirty hack to exit after some time
+alarm 16;
+
 # Process password
 $_ = <>;
 exit 1 unless defined;

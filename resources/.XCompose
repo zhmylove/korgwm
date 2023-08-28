@@ -8,3 +8,7 @@
 <Multi_key> <minus> <plus>  : "±"   plusminus       # PLUS-MINUS SIGN
 <Multi_key> <plus> <minus>  : "±"   plusminus       # PLUS-MINUS SIGN
 <Multi_key> <period>        : "…"   ellipsis        # HORIZONTAL ELLIPSIS
+
+<Multi_key> <Cyrillic_e>    : "́"    U0301           # COMBINING ACUTE ACCENT
+<Multi_key> <Cyrillic_be>   : "«"   guillemotleft   # LEFT-POINTING DOUBLE ANGLE QUOTATION MARK
+<Multi_key> <Cyrillic_yu>   : "»"   guillemotright  # RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK
