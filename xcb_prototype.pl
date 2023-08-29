@@ -23,6 +23,8 @@ use Devel::SimpleTrace;
 use Data::Dumper;
 $Data::Dumper::Sortkeys = 1;
 
+use X11::korgwm::Panel::Clock;
+use X11::korgwm::Panel::Lang;
 use X11::korgwm::Panel;
 use X11::korgwm::Layout;
 use X11::korgwm::Window;
@@ -43,6 +45,7 @@ $cfg->{color_urgent_fg} = 0xffff00;
 $cfg->{font} = "DejaVu Sans Mono 10";
 $cfg->{hide_empty_tags} = 0;
 $cfg->{panel_height} = 20;
+$cfg->{panel_end} = [qw( clock lang )];
 $cfg->{set_root_color} = 0;
 $cfg->{title_max_len} = 64;
 $cfg->{ws_names} = [qw( T W M C 5 6 7 8 9 )];
@@ -286,7 +289,7 @@ our %xcb_events = (
 my $die_trigger = 0;
 
 # Init our extensions
-$_->() for our @ext_ctors;
+$_->() for our @extensions;
 
 # Main event loop
 for(;;) {

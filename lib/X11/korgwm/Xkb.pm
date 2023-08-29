@@ -9,6 +9,7 @@ use open ':std', ':encoding(UTF-8)';
 use utf8;
 use Carp;
 use X11::XCB ':all';
+require X11::korgwm::Panel::Lang;
 
 use Data::Dumper;
 $Data::Dumper::Sortkeys = 1;
@@ -47,6 +48,6 @@ sub init {
     lang_update();
 }
 
-push @X11::korgwm::ext_ctors, \&init;
+push @X11::korgwm::extensions, \&init;
 
 1;

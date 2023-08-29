@@ -7,9 +7,9 @@ use warnings;
 use feature 'signatures';
 use open ':std', ':encoding(UTF-8)';
 use utf8;
+use Carp;
 use Gtk3 -init;
 use AnyEvent;
-use POSIX qw(strftime);
 
 # Import config
 our $cfg;
@@ -42,10 +42,6 @@ sub title($self, $title = "") {
         $title .= "...";
     }
     $self->{title}->txt($title);
-}
-
-sub lang_set($self, $lang = "") {
-    $self->{lang}->txt(sprintf($cfg->{lang_format}, $lang));
 }
 
 # Set workspace color
@@ -118,11 +114,17 @@ sub ws_create($self, $title = "", $ws_cb = sub {1}) {
     $workspace;
 }
 
+# Hash for sanity of Panel:: modules (see Panel::Lang for example)
+my %elements;
+sub add_element($name, $watcher = undef) {
+    $elements{$name} = $watcher;
+}
+
 sub new($class, $panel_id, $panel_width, $panel_x, $ws_cb) {
-    my ($panel, $window, @workspaces, $label, $clock, $lang) = {};
+    my ($panel, $window, @workspaces, $label) = {};
     _init() unless $ready;
     bless $panel, $class;
-    # Prepare window
+    # Prepare main window
     $window = Gtk3::Window->new('popup');
     $window->modify_font($font);
     $window->set_default_size($panel_width, $cfg->{panel_height});
@@ -130,33 +132,37 @@ sub new($class, $panel_id, $panel_width, $panel_x, $ws_cb) {
     $window->set_decorated(Gtk3::false);
     $window->set_startup_id("korgwm-panel-$panel_id");
 
-    # Prepare workspaces, label and clock areas
+    # Create title label
     $label = Gtk3::Label->new();
     $label->set_yalign(0.9);
     $panel->{title} = $label;
-    $clock = Gtk3::Label->new();
-    $clock->set_yalign(0.9);
-    my $clock_w = AE::timer 0, 1, sub { $clock->txt(strftime($cfg->{clock_format}, localtime) =~ s/  +/ /gr) };
-    $panel->{clock} = $clock;
-    $panel->{_clock_w} = $clock_w;
-    $lang = Gtk3::Label->new();
-    $lang->set_yalign(0.9);
-    $panel->{lang} = $lang;
 
-    # Fill in @workspaces
+    # Create @workspaces
     @workspaces = map { $panel->ws_create($_, $ws_cb) } @ws_names;
     $panel->{ws} = \@workspaces;
     $panel->ws_set_active(1);
 
     # Render the panel
     my $hdbar = Gtk3::Box->new(horizontal => 0);
+    $hdbar->override_background_color(normal => Gtk3::Gdk::RGBA::parse($color_bg));
     $hdbar->pack_start($_->{ebox}, 0, 0, 0) for @workspaces;
     $hdbar->set_center_widget($label);
-    $hdbar->pack_end($lang, 0, 0, 0);
-    $hdbar->pack_end($clock, 0, 0, 0);
-    $hdbar->override_background_color(normal => Gtk3::Gdk::RGBA::parse($color_bg));
+
+    # Add modules to the right-most side of the panel
+    for (reverse @{ $cfg->{panel_end} }) {
+        croak "Unknown element [$_] in cfg->{panel_end}" unless exists $elements{$_};
+        my $el = Gtk3::Label->new();
+        $el->set_yalign(0.9);
+        $hdbar->pack_end($el, 0, 0, 0);
+        $panel->{$_} = $el;
+        $panel->{"_w:$_"} = $elements{$_}->($el) if defined $elements{$_};
+    }
+
+    # Map window
     $window->add($hdbar);
     $window->show_all;
+
+    # Hide empty tags if needed
     if ($cfg->{hide_empty_tags}) {
         $panel->ws_set_visible($_, 0) for 1..@ws_names;
     }
