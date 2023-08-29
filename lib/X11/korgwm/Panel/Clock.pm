@@ -18,11 +18,6 @@ $Data::Dumper::Sortkeys = 1;
 our $cfg;
 *cfg = *X11::korgwm::cfg;
 
-# Export function to Panel class
-sub X11::korgwm::Panel::lang_set($self, $lang = "") {
-    $self->{lang}->txt(sprintf($cfg->{lang_format}, $lang));
-}
-
 # Add panel element
 &X11::korgwm::Panel::add_element("clock", sub($el) {
     AE::timer 0, 1, sub { $el->txt(strftime($cfg->{clock_format}, localtime) =~ s/  +/ /gr) };

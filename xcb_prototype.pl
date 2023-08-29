@@ -23,6 +23,7 @@ use Devel::SimpleTrace;
 use Data::Dumper;
 $Data::Dumper::Sortkeys = 1;
 
+use X11::korgwm::Config;
 use X11::korgwm::Panel::Clock;
 use X11::korgwm::Panel::Lang;
 use X11::korgwm::Panel;
@@ -30,28 +31,11 @@ use X11::korgwm::Layout;
 use X11::korgwm::Window;
 use X11::korgwm::Screen;
 use X11::korgwm::Xkb;
+use X11::korgwm::Hotkeys;
 
-# TODO get from some config file
 our $cfg;
-$cfg->{randr_cmd} = q(xrandr --output HDMI-A-0 --left-of eDP --auto --output DisplayPort-0 --right-of eDP --auto);
-$cfg->{lang_format} = " %s ";
-$cfg->{lang_names} = { 0 => chr(0x00a3), 1 => chr(0x20bd) };
-$cfg->{border_width} = 2;
-$cfg->{clock_format} = " %a, %e %B %H:%M";
-$cfg->{color_bg} = 0x262729;
-$cfg->{color_fg} = 0xA3BABF;
-$cfg->{color_urgent_bg} = 0x464729;
-$cfg->{color_urgent_fg} = 0xffff00;
-$cfg->{font} = "DejaVu Sans Mono 10";
-$cfg->{hide_empty_tags} = 0;
-$cfg->{panel_height} = 20;
-$cfg->{panel_end} = [qw( clock lang )];
-$cfg->{set_root_color} = 0;
-$cfg->{title_max_len} = 64;
-$cfg->{ws_names} = [qw( T W M C 5 6 7 8 9 )];
-
 $SIG{CHLD} = "IGNORE";
-my $panel;
+
 our $X = X11::XCB::Connection->new;
 die "Errors connecting to X11" if $X->has_error();
 warn Dumper $X->screens;
@@ -69,17 +53,8 @@ if ($cfg->{set_root_color}) {
     warn Dumper $X->clear_area(0, $r->id, 0, 0, $r->_rect->width, $r->_rect->height);
 }
 
-# TODO make proper keymap hash
-my $keymap = $X->get_keymap();
-warn Dumper 0 + @$keymap;
-
 # $r->warp_pointer(50, 150);
 $X->flush();
-
-# Grab keys
-## GRAB_ANY => keycode[0]
-## MOD_MASK_ANY => state
-warn Dumper $X->grab_key(0, $r->id, MOD_MASK_4, GRAB_ANY, GRAB_MODE_ASYNC, GRAB_MODE_ASYNC);
 
 # Initialize RANDR
 qx($cfg->{randr_cmd});
@@ -173,25 +148,6 @@ our $unmap_prevent;
 my $enter_notify_w;
 
 our %xcb_events = (
-    KEY_PRESS, sub($evt) {
-        # state: ... 1 4 8 64
-        # warn Dumper [MOD_MASK_SHIFT, MOD_MASK_CONTROL, MOD_MASK_1, MOD_MASK_4];
-        # %keys_by_state = (
-        #   64 => {}, # keys with Super
-        #   12 => {}, # keys with Ctrl + Alt
-        # )
-        # warn Dumper [$keymap->[$evt->detail]];
-        my $key = $keymap->[$evt->detail]->[0];
-        warn sprintf("Key pressed, key: char(%c),hex(%x),dec(%d) state:(%x)", $key, $key, $key, $evt->state);
-
-        if (chr($key) eq 'f') {
-            my $win = $focus->{window};
-            return unless defined $win;
-            $win->toggle_floating();
-            $focus->{screen}->refresh();
-            $X->flush();
-        }
-    },
     MAP_REQUEST, sub($evt) {
         warn "Mapping...";
         my $wid = $evt->window;
