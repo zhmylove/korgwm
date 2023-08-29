@@ -8,6 +8,7 @@ use feature 'signatures';
 use open ':std', ':encoding(UTF-8)';
 use utf8;
 use Carp;
+use List::Util qw( first );
 use X11::XCB ':all';
 use X11::korgwm::Tag;
 
@@ -21,7 +22,6 @@ our ($X, $cfg);
 sub new($class, $x, $y, $w, $h) {
     my $self = bless {}, $class;
     $self->{id} = "$x,$y,$w,$h";
-    # TODO handle always_on
     $self->{always_on} = [];
     $self->{focus} = undef;
     $self->{tag_curr} = 0;

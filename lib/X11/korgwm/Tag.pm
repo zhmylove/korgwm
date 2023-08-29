@@ -60,7 +60,10 @@ sub show($self) {
         # if we have maximized window, just place it over the screen
         ...;
     } else {
-        $_->show for grep defined, @{ $self->{windows_float} }, @{ $self->{windows_tiled} };
+        $_->show for grep defined,
+            @{ $self->{screen}->{always_on} },
+            @{ $self->{windows_float} },
+            @{ $self->{windows_tiled} };
         $h -= $cfg->{panel_height};
         $y += $cfg->{panel_height};
         $self->{layout}->arrange_windows($self->{windows_tiled}, $w, $h, $x, $y);

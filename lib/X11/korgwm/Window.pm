@@ -8,6 +8,7 @@ use feature 'signatures';
 use open ':std', ':encoding(UTF-8)';
 use utf8;
 use Carp;
+use List::Util qw( first );
 use Encode qw( encode decode );
 use X11::XCB ':all';
 
@@ -167,6 +168,46 @@ sub toggle_floating($self) {
 
     $self->resize_and_move($x, $y, $w, $h);
     $_->win_float($self, $self->{floating}) for values %{ $self->{on_tags} // {} };
+}
+
+sub toggle_maximize($self) {
+    # TODO implement toggle_maximize
+    croak "Unimplemented";
+
+    $self->{maximized} = ! $self->{maximized};
+}
+
+sub toggle_always_on($self) {
+    return unless $self->{floating};
+    my $focus = $X11::korgwm::focus; # due to sub focus()
+
+    if ($self->{always_on} = ! $self->{always_on}) {
+        # Remove window from all tags and store it in always_on of current screen
+        $_->win_remove($self) for values %{ $self->{on_tags} // {} };
+        push @{ $focus->{screen}->{always_on} }, $self;
+    } else {
+        # Remove window from always_on and store it in current tag
+        my $arr = $focus->{screen}->{always_on};
+        splice @{ $arr }, $_, 1 for reverse grep { $arr->[$_] == $self } 0..$#{ $arr };
+        my $tag = $focus->{screen}->{tags}->[ $focus->{screen}->{tag_curr} ];
+        $tag->win_add($self);
+    }
+}
+
+sub close($self) {
+    my $icccm_del_win = $X->atom(name => 'WM_DELETE_WINDOW')->id;
+    my ($value, $prop) = _get_property($self->{id}, "WM_PROTOCOLS", "ATOM", 16);
+
+    # Use ICCCM to gently ask client to close the window
+    if (first { $_ == $icccm_del_win } unpack "L" x $prop->{value_len}, $value) {
+        my $packed = pack('CCSLLLL', CLIENT_MESSAGE, 32, 0, $self->{id}, $X->atom(name => 'WM_PROTOCOLS')->id,
+            $X->atom(name => 'WM_DELETE_WINDOW')->id, TIME_CURRENT_TIME);
+        $X->send_event(0, $self->{id}, EVENT_MASK_STRUCTURE_NOTIFY, $packed);
+    } else {
+        # XXX xcb_destroy_window() instead of kill?
+        $X->kill_client($self->{id});
+    }
+    $X->flush();
 }
 
 sub screens($self) {

@@ -30,11 +30,25 @@ our @parser = (
         die "Cannont execute $arg";
     }}],
 
-    # Toggle floating
-    [qr/\Qwin_toggle_floating()/, sub ($arg) { return sub {
+    # Window close or toggle floating / maximize / always_on
+    [qr/win_(close|toggle_(?:floating|maximize|always_on))\(\)/, sub ($arg) { return sub {
         my $win = $focus->{window};
         return unless defined $win;
-        $win->toggle_floating();
+
+        # Call relevant function
+        $arg eq "close"             ? $win->close()             :
+        $arg eq "toggle_floating"   ? $win->toggle_floating()   :
+        $arg eq "toggle_maximize"   ? $win->toggle_maximize()   :
+        $arg eq "toggle_always_on"  ? $win->toggle_always_on()  :
+        croak "Unknown win_toggle_$arg function called"         ;
+
+        $focus->{screen}->refresh();
+        $X->flush();
+    }}],
+
+    # Set active tag
+    [qr/tag_select\((\d+)\)/, sub ($arg) { return sub {
+        $focus->{screen}->tag_set_active($arg - 1);
         $focus->{screen}->refresh();
         $X->flush();
     }}],

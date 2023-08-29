@@ -31,7 +31,7 @@
 [ ]  Умение изменять размеры и положение floating окошек с помощью мышки
 
 
-[ ]  Умение запускать приложения по хоткеям
+[+]  Умение запускать приложения по хоткеям
 [ ]  Поддержка конфиг файла, в котором можно будет настраивать хоткеи и команды, которые их запускают; а также коды цветов
 
 
@@ -45,6 +45,7 @@ windows => {
     wid => {
         id => wid,                  # ID of the window
         on_tags => {},              # hash of tags on which this window is shown
+        always_on => Bool,          # flag if window is always_on
         floating => Bool,           # flag if window is floating
         siblings => {},             # hash keys = transient_for windows, values
         transient_for => Int,       # wid of transient_for window, or undef
