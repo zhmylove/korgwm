@@ -144,9 +144,24 @@ sub toggle_floating($self) {
     my ($x, $y, $w, $h) = map { defined ? $_ : 0 } @{ $self }{qw( x y w h )};
     $y = $cfg->{panel_height} if $y < $cfg->{panel_height};
 
-    # TODO consider valid values for this fixup of windows, which did not asked for proper size
-    $w = 150 if $w < 1;
-    $h = 150 if $h < 1;
+    # Fix window size and/or position
+    if ($w < 1 or $h < 1 or $x < 1 or $y < 1) {
+        my ($screen_min_w, $screen_min_h);
+        for my $screen ($self->screens()) {
+            warn "scren: " .  Dumper $screen;
+            $screen_min_h = $screen->{h} if $screen->{h} < ($screen_min_h // 10**6);
+            $screen_min_w = $screen->{w} if $screen->{w} < ($screen_min_w // 10**6);
+            warn "SCREEN: $screen_min_w $screen_min_h";
+        }
+        die unless $screen_min_w and $screen_min_h;
+        if ($w < 1 or $h < 1) {
+            # Window looks uncofigured, so move it to the center
+            $x = int($screen_min_w / 4);
+            $y = int($screen_min_h / 4);
+        }
+        $w = int($screen_min_w / 2) if $w < 1;
+        $h = int($screen_min_h / 2) if $h < 1;
+    }
 
     @{ $self }{qw( x y w h )} = ($x, $y, $w, $h);
 
