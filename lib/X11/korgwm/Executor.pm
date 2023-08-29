@@ -52,6 +52,14 @@ our @parser = (
         $focus->{screen}->refresh();
         $X->flush();
     }}],
+
+    # Cycle focus
+    [qr/focus_cycle\((.+)\)/, sub ($arg) { return sub {
+        my $tag = $focus->{screen}->{tags}->[ $focus->{screen}->{tag_curr} ];
+        my $win = $tag->next_window($arg eq "backward");
+        return unless defined $win;
+        $win->focus();
+    }}],
 );
 
 # Parses $cmd and returns corresponding \&sub

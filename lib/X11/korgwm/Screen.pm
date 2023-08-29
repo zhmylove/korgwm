@@ -86,7 +86,7 @@ sub focus($self) {
         # This condition just looks prettier in this way, so if-clause is empty
     } else {
         # Focus some window on active tag
-        my $win = $tag->next_window();
+        my $win = $tag->first_window();
         $self->{focus} = $win;
     }
 
