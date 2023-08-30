@@ -42,11 +42,11 @@ my $hotkeys;    # hash with actual functions to run
 
 # Register a hotkey
 sub hotkey($hotkey, $cmd) {
-    @_ = split /_/, $hotkey;
-    my $key = pop;
+    my @keys = split /_/, $hotkey;
+    my $key = pop @keys;
     $key = $keys->{$key} // ord($key);
     my $mask = 0;
-    for (@_) {
+    for (@keys) {
         my $mod = $modifiers->{$_} or croak "Modifier $_ not defined";
         $mask |= $mod;
     }

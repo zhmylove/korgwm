@@ -24,6 +24,7 @@ use Data::Dumper;
 $Data::Dumper::Sortkeys = 1;
 
 use X11::korgwm::Config;
+use X11::korgwm::Panel::Battery;
 use X11::korgwm::Panel::Clock;
 use X11::korgwm::Panel::Lang;
 use X11::korgwm::Panel;
@@ -145,7 +146,6 @@ sub hide_window($wid, $delete=undef) {
 }
 
 our $unmap_prevent;
-my $enter_notify_w;
 
 our %xcb_events = (
     MAP_REQUEST, sub($evt) {
@@ -233,11 +233,7 @@ our %xcb_events = (
         # To bypass consequent EnterNotifies and use only the last one for focus
         # This likely fixes the bug I observed 6 years ago in WMFS1
         my $win = $windows->{$evt->event} // X11::korgwm::Window->new($evt->event);
-        if ($win->{floating}) {
-            $enter_notify_w = AE::timer 0.1, 0, sub { $win->focus(); };
-        } else {
-            $win->focus();
-        }
+        $win->focus();
     },
 );
 

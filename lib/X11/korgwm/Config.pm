@@ -15,17 +15,21 @@ our $cfg;
 # TODO get from some config file
 
 # Default values
-$cfg->{border_width} = 2;
+$cfg->{border_width} = 1;
 $cfg->{clock_format} = " %a, %e %B %H:%M";
 $cfg->{color_bg} = 0x262729;
 $cfg->{color_fg} = 0xA3BABF;
+$cfg->{color_border} = 0x232426;
+$cfg->{color_border_focus} = 0xA3BABF;
 $cfg->{color_urgent_bg} = 0x464729;
 $cfg->{color_urgent_fg} = 0xFFFF00;
+$cfg->{color_battery_low} = 0xFF0000;
 $cfg->{font} = "DejaVu Sans Mono 10";
 $cfg->{hide_empty_tags} = 0;
 $cfg->{lang_format} = " %s ";
 $cfg->{lang_names} = { 0 => chr(0x00a3), 1 => chr(0x20bd) };
-$cfg->{panel_end} = [qw( clock lang )];
+$cfg->{battery_format} = "%s";
+$cfg->{panel_end} = [qw( battery clock lang )];
 $cfg->{panel_height} = 20;
 $cfg->{randr_cmd} = q(xrandr --output HDMI-A-0 --left-of eDP --auto --output DisplayPort-0 --right-of eDP --auto);
 $cfg->{set_root_color} = 0;

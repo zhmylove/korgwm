@@ -96,13 +96,13 @@ sub focus($self) {
 
     $focus->{window}->reset_border() if $focus->{window} and $self != ($focus->{window} // 0);
 
-    $X->change_window_attributes($self->{id}, CW_BORDER_PIXEL, $cfg->{color_fg});
+    $X->change_window_attributes($self->{id}, CW_BORDER_PIXEL, $cfg->{color_border_focus});
 
     $self->_focus_raise() unless $self->{floating};
 
     # Raise all floating windows from current tag + set title on relevant screens
     for my $tag (values %{ $self->{on_tags} // {} }) {
-        $tag->{screen}->{panel}->title($self->title);
+        $tag->{screen}->{panel}->title($self->title // "");
         $tag->{screen}->{focus} = $self;
         $X->configure_window($_->{id}, CONFIG_WINDOW_STACK_MODE, STACK_MODE_ABOVE) for @{ $tag->{windows_float} };
     }
@@ -123,7 +123,7 @@ sub focus($self) {
 sub reset_border($self) {
     croak "Undefined window" unless $self->{id};
     # TODO update panel on focused screen..?
-    $X->change_window_attributes($self->{id}, CW_BORDER_PIXEL, $cfg->{color_bg});
+    $X->change_window_attributes($self->{id}, CW_BORDER_PIXEL, $cfg->{color_border});
 }
 
 sub hide($self) {
