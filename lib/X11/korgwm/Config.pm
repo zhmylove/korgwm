@@ -61,6 +61,7 @@ $cfg->{hotkeys} = {
             "mod_r"             => "exec(dmenu_run -i -nb #262729 -nf #A3BABF -sb #464729 -sf #FFFF00)",
             "mod_w"             => "exec(firefox --new-instance --private-window)",
             "mod_shift_w"       => "exec(firefox --new-instance)",
+            "mod_ctrl_shift_q"  => "exit()",
 };
 
 1;

@@ -71,7 +71,6 @@ INIT {
         attributes
         configure_notify
         get_property
-        resize_and_move
         title
         transient_for
         )) {
@@ -81,6 +80,12 @@ INIT {
             "_$func"->($self->{id}, @_);
         };
     }
+}
+
+sub resize_and_move($self, $x, $y, $w, $h, $bw=$cfg->{border_width}) {
+    croak "Undefined window" unless $self->{id};
+    @{ $self }{qw( real_x real_y real_w real_h )} = ($x, $y, $w, $h);
+    _resize_and_move($self->{id}, $x, $y, $w, $h, $bw);
 }
 
 sub _focus_raise($self) {

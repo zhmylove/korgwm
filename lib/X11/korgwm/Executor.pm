@@ -60,6 +60,11 @@ our @parser = (
         return unless defined $win;
         $win->focus();
     }}],
+
+    # Exit from WM
+    [qr/exit\(\)/, sub ($arg) { return sub {
+        $X11::korgwm::exit_trigger = 1;
+    }}],
 );
 
 # Parses $cmd and returns corresponding \&sub

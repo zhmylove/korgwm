@@ -206,10 +206,14 @@ our %xcb_events = (
                 my $bw = $cfg->{border_width};
                 $win->resize_and_move($x, $y, $w + 2 * $bw, $h + 2 * $bw);
                 $win->configure_notify($evt->{sequence}, $x, $y, $w, $h);
-                $X->flush();
+            } else {
+                # If window is tiled or maximized, tell it it's real size
+                ($x, $y, $w, $h) = @{ $win }{qw( real_x real_y real_w real_h )};
             }
 
-            # Ignore configure requests from other known windows
+            # Send notification to the client and return
+            $win->configure_notify($evt->{sequence}, $x, $y, $w, $h);
+            $X->flush();
             return;
         }
 
@@ -238,14 +242,14 @@ our %xcb_events = (
 );
 
 # Prepare manual exit switch
-my $die_trigger = 0;
+our $exit_trigger = 0;
 
 # Init our extensions
 $_->() for our @extensions;
 
 # Main event loop
 for(;;) {
-    die "Die triggered" if $die_trigger;
+    die "Exit requested" if $exit_trigger;
 
     while (my $evt = $X->poll_for_event()) {
         warn Dumper $evt;

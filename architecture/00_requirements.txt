@@ -50,6 +50,7 @@ windows => {
         siblings => {},             # hash keys = transient_for windows, values
         transient_for => Int,       # wid of transient_for window, or undef
         (x, y, w, h),               # geometry of window requested in configure (or set to some defaults); used only for floating windows
+        (real_x, real_y, real_w, real_h), # real geometry of the window, set and saved by korgwm for internal purposes
     },
 }
 
