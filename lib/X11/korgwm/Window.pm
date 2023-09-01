@@ -41,6 +41,10 @@ sub _resize_and_move($wid, $x, $y, $w, $h, $bw=$cfg->{border_width}) {
     $X->configure_window($wid, $mask, $x, $y, $w - 2 * $bw, $h - 2 * $bw, $bw);
 }
 
+sub _move($wid, $x, $y) {
+    $X->configure_window($wid, CONFIG_WINDOW_X | CONFIG_WINDOW_Y, $x, $y);
+}
+
 sub _configure_notify($wid, $sequence, $x, $y, $w, $h, $above_sibling=0, $override_redirect=0,
         $bw=$cfg->{border_width}) {
     my $packed = pack('CCSLLLssSSSC', CONFIGURE_NOTIFY, 0, $sequence,
@@ -86,6 +90,12 @@ sub resize_and_move($self, $x, $y, $w, $h, $bw=$cfg->{border_width}) {
     croak "Undefined window" unless $self->{id};
     @{ $self }{qw( real_x real_y real_w real_h )} = ($x, $y, $w, $h);
     _resize_and_move($self->{id}, $x, $y, $w, $h, $bw);
+}
+
+sub move($self, $x, $y) {
+    croak "Undefined window" unless $self->{id};
+    @{ $self }{qw( real_x real_y )} = ($x, $y);
+    $X->configure_window($self->{id}, CONFIG_WINDOW_X | CONFIG_WINDOW_Y, $x, $y);
 }
 
 sub _stack_above($self) {
@@ -275,6 +285,11 @@ sub close($self) {
         # XXX xcb_destroy_window() instead of kill?
         $X->kill_client($self->{id});
     }
+    $X->flush();
+}
+
+sub warp_pointer($self) {
+    $X->warp_pointer(0, $self->{id}, 0, 0, 0, 0, int($self->{real_w} / 2), int($self->{real_h} / 2));
     $X->flush();
 }
 

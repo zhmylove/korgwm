@@ -13,7 +13,7 @@ use X11::XCB ':all';
 use Data::Dumper;
 $Data::Dumper::Sortkeys = 1;
 
-our ($X, $cfg, $focus, %screens);
+our ($X, $cfg, $focus, %screens, @screens);
 *X = *X11::korgwm::X;
 *cfg = *X11::korgwm::cfg;
 *focus = *X11::korgwm::focus;
@@ -28,6 +28,13 @@ our @parser = (
         return if $pid;
         exec $arg;
         die "Cannont execute $arg";
+    }}],
+
+    # Set active tag
+    [qr/tag_select\((\d+)\)/, sub ($arg) { return sub {
+        $focus->{screen}->tag_set_active($arg - 1);
+        $focus->{screen}->refresh();
+        $X->flush();
     }}],
 
     # Window close or toggle floating / maximize / always_on
@@ -46,10 +53,62 @@ our @parser = (
         $X->flush();
     }}],
 
-    # Set active tag
-    [qr/tag_select\((\d+)\)/, sub ($arg) { return sub {
-        $focus->{screen}->tag_set_active($arg - 1);
+    # Window move to particular tag
+    [qr/win_move_tag\((\d+)\)/, sub ($arg) { return sub {
+        my $win = $focus->{window};
+        return unless defined $win;
+
+        my $new_tag = $focus->{screen}->{tags}->[$arg - 1] or return;
+        my $curr_tag = $focus->{screen}->current_tag();
+        return if $new_tag == $curr_tag;
+
+        $win->hide(); # always from visible tag to invisible
+        $new_tag->win_add($win);
+        $curr_tag->win_remove($win);
+
         $focus->{screen}->refresh();
+        $X->flush();
+    }}],
+
+    # Set active screen
+    [qr/screen_select\((\d+)\)/, sub ($arg) { return sub {
+        while ($arg > 1) {
+            return $screens[$arg - 1]->set_active() if defined $screens[$arg - 1];
+            $arg--;
+        }
+        croak "No screens found" unless defined $screens[0];
+        $screens[0]->set_active();
+    }}],
+
+    # Window move to particular screen
+    [qr/win_move_screen\((\d+)\)/, sub ($arg) { return sub {
+        my $win = $focus->{window};
+        return unless defined $win;
+
+        my $new_screen = $screens[$arg - 1] or return;
+        my $old_screen = $focus->{screen};
+        return if $new_screen == $old_screen;
+
+        $old_screen->win_remove($win);
+        $new_screen->win_add($win);
+
+        # Follow focus
+        $new_screen->{focus} = $win;
+        $focus->{screen} = $new_screen;
+
+        # TODO handle maximized
+
+        if ($win->{floating}) {
+            my ($new_x, $new_y) = @{ $win }{qw( real_x real_y )};
+            $new_x -= $old_screen->{x};
+            $new_y -= $old_screen->{y};
+            $new_x += $new_screen->{x};
+            $new_y += $new_screen->{y};
+            $win->move($new_x, $new_y);
+        }
+
+        $old_screen->refresh();
+        $new_screen->set_active($win);
         $X->flush();
     }}],
 

@@ -82,12 +82,13 @@ sub win_get_property($conn, $win, $prop_name, $prop_type='UTF8_STRING', $ret_len
 }
 
 our %screens;
+our @screens;
 sub handle_screens {
-    my @screens = @{ $X->screens() };
+    my @xscreens = @{ $X->screens() };
 
     # Count current screens
     my %curr_screens;
-    for my $s (@screens) {
+    for my $s (@xscreens) {
         my ($x, $y, $w, $h) = map { $s->rect->$_ } qw( x y width height );
         $curr_screens{"$x,$y,$w,$h"} = undef;
     }
@@ -116,6 +117,9 @@ sub handle_screens {
         delete $screens{$s};
         $screen_for_abandoned_windows->refresh();
     }
+
+    # Sort screens based on X axis and store them in @screens
+    @screens = map { $screens{$_} } sort { (split /,/, $a)[0] <=> (split /,/, $b)[0] or $a <=> $b } keys %screens;
 }
 handle_screens();
 die "No screens found" unless keys %screens;
@@ -167,7 +171,7 @@ our %xcb_events = (
         }
 
         $windows->{$wid}->show();
-        $focus->{screen}->add_window($windows->{$wid});
+        $focus->{screen}->win_add($windows->{$wid});
         $windows->{$wid}->focus();
         $focus->{screen}->refresh();
         $X->flush();

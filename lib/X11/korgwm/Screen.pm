@@ -77,10 +77,16 @@ sub refresh($self) {
     $tag_curr->show() if defined $tag_curr;
 }
 
-sub add_window($self, $win) {
+sub win_add($self, $win) {
     my $tag = $self->current_tag();
     croak "Unhandled undefined tag situation" unless defined $tag;
     $tag->win_add($win);
+}
+
+sub win_remove($self, $win) {
+    my $tag = $self->current_tag();
+    croak "Unhandled undefined tag situation" unless defined $tag;
+    $tag->win_remove($win);
 }
 
 sub focus($self) {
@@ -102,6 +108,17 @@ sub focus($self) {
         $X11::korgwm::focus->{screen} = $self;
         $self->{panel}->title();
     }
+}
+
+sub set_active($self, $window = undef) {
+    $self->focus();
+    $self->refresh();
+    if ($window) {
+        $window->warp_pointer();
+    } else {
+        $X->root->warp_pointer(int($self->{x} + $self->{w} / 2), int($self->{h} / 2));
+    }
+    $X->flush();
 }
 
 1;
