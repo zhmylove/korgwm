@@ -51,7 +51,7 @@ sub tag_set_active($self, $tag_new) {
     return if $tag_new == $self->{tag_curr};
 
     # Hide old tag
-    my $tag_curr = $self->{tags}->[$self->{tag_curr}];
+    my $tag_curr = $self->current_tag();
     $tag_curr->hide() if defined $tag_curr;
 
     # Remember previous tag
@@ -59,27 +59,32 @@ sub tag_set_active($self, $tag_new) {
     $self->{tag_curr} = $tag_new;
 
     # Show new tag
-    $tag_curr = $self->{tags}->[$self->{tag_curr}];
+    $tag_curr = $self->current_tag();
     $tag_curr->show() if defined $tag_curr;
 
     # Update panel view
     $self->{panel}->ws_set_active(1 + $tag_new);
 }
 
+# Return current tag
+sub current_tag($self) {
+    $self->{tags}->[ $self->{tag_curr} ];
+}
+
 sub refresh($self) {
     # Just redraw / rearrange current windows
-    my $tag_curr = $self->{tags}->[$self->{tag_curr}];
+    my $tag_curr = $self->current_tag();
     $tag_curr->show() if defined $tag_curr;
 }
 
 sub add_window($self, $win) {
-    my $tag = $self->{tags}->[$self->{tag_curr}];
+    my $tag = $self->current_tag();
     croak "Unhandled undefined tag situation" unless defined $tag;
     $tag->win_add($win);
 }
 
 sub focus($self) {
-    my $tag = $self->{tags}->[$self->{tag_curr}];
+    my $tag = $self->current_tag();
 
     if (defined $self->{focus} and exists $self->{focus}->{on_tags}->{$tag}) {
         # self->focus already points to some window on active tag

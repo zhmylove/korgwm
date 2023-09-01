@@ -30,7 +30,10 @@ our $cfg;
 
         # Process status
         open $fd, "<", "/sys/class/power_supply/BAT0/status" or return;
-        <$fd> eq "Discharging\n" or $txt .= chr(0x2234);
+        unless (<$fd> eq "Discharging\n") {
+            $txt = "" if $txt == 100;
+            $txt .= chr(0x2234);
+        }
         close $fd;
 
         $el->txt(sprintf($cfg->{battery_format}, $txt), $color ? $color : ());

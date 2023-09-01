@@ -88,38 +88,74 @@ sub resize_and_move($self, $x, $y, $w, $h, $bw=$cfg->{border_width}) {
     _resize_and_move($self->{id}, $x, $y, $w, $h, $bw);
 }
 
-sub _focus_raise($self) {
-    # Raise window and transient_for
+sub _stack_above($self) {
     $X->configure_window($self->{id}, CONFIG_WINDOW_STACK_MODE, STACK_MODE_ABOVE);
-    $X->configure_window($_, CONFIG_WINDOW_STACK_MODE, STACK_MODE_ABOVE) for keys %{ $self->{siblings} // {} };
+}
+
+sub _stack_below($self, $upper) {
+    $X->configure_window($self->{id}, CONFIG_WINDOW_SIBLING | CONFIG_WINDOW_STACK_MODE, $upper->{id}, STACK_MODE_BELOW);
 }
 
 sub focus($self) {
     croak "Undefined window" unless $self->{id};
 
+    # Get focus pointer and reset focus for previously focused window, if any
     my $focus = $X11::korgwm::focus;
-
     $focus->{window}->reset_border() if $focus->{window} and $self != ($focus->{window} // 0);
 
     $X->change_window_attributes($self->{id}, CW_BORDER_PIXEL, $cfg->{color_border_focus});
 
-    $self->_focus_raise() unless $self->{floating};
+    # TODO implement focus for several screens: check current focus, check focus for screens, select random one
+    my @focus_screens = $self->screens;
+    croak "Unimplemented focus for several screens: @focus_screens" unless @focus_screens == 1;
 
-    # Raise all floating windows from current tag + set title on relevant screens
-    for my $tag (values %{ $self->{on_tags} // {} }) {
-        $tag->{screen}->{panel}->title($self->title // "");
-        $tag->{screen}->{focus} = $self;
-        $X->configure_window($_->{id}, CONFIG_WINDOW_STACK_MODE, STACK_MODE_ABOVE) for @{ $tag->{windows_float} };
+    my @visible_tags = $self->tags_visible();
+    my $tag = $visible_tags[0];
+
+    if (0 == @visible_tags) {
+        # We were asked to focus invisible window, do nothing?
+        carp "Trying to focus an invisible window " . $self->{id};
+
+        # Looks like X11 sometimes manages to send EnterNotify on tag switching, so return here
+        # TODO race condition should be fixed
+        return;
+    } elsif (@visible_tags > 1) {
+        # Focusing window residing on multiple visible tags is not implemented yet
+        croak "Focusing window on multiple visible tags is not supported";
+    } elsif ($self->{maximized} or 0 == @{ $tag->{windows_float} }) {
+        # Just raise the window if it is maximized or there are no floating windows on current tag
+        $self->_stack_above();
+    } else {
+        # The window is not maximized and there are some floating windows
+        # This procedure likely fixes the bug I observed 6 years ago in WMFS1
+
+        # Select the most top window and place all others below
+        # - if there are transient_for windows, they're floating and place them on top of the stack
+        my @stack = $self->transients();
+        # - if current window is floating, place it below
+        push @stack, $self if $self->{floating};
+        # - if there are other floating windows, place them below
+        push @stack, grep { $_ != $self } @{ $tag->{windows_float} };
+        # - place this window below if it's tiled
+        push @stack, $self unless $self->{floating};
+        # - place all others below
+        push @stack, grep { $_ != $self } @{ $tag->{windows_tiled} };
+
+        # Fist element of the @stack should be raised above others
+        $stack[0]->_stack_above();
+
+        # Other elements should be chained below
+        for (my $i = 1; $i < @stack; $i++) {
+            $stack[$i]->_stack_below($stack[$i - 1]);
+        }
     }
-
-    $self->_focus_raise() if $self->{floating};
 
     $X->set_input_focus(INPUT_FOCUS_POINTER_ROOT, $self->{id}, TIME_CURRENT_TIME);
 
-    # Update focus structure
+    # Update focus structure and panel title
+    $tag->{screen}->{focus} = $self;
+    $tag->{screen}->{panel}->title($self->title // "");
     $focus->{window} = $self;
-    my @focus_screens = $self->screens;
-    croak "Unimplemented focus for several screens: @focus_screens" unless @focus_screens == 1;
     $focus->{screen} = $focus_screens[0];
 
     $X->flush();
@@ -143,7 +179,37 @@ sub show($self) {
     $X->map_window($self->{id});
 }
 
+sub tags($self) {
+    values %{ $self->{on_tags} // {} };
+}
+
+sub tags_visible($self) {
+    my @rc;
+    for my $screen ($self->screens()) {
+        my $screen_tag = $screen->current_tag();
+        push @rc, grep { $screen_tag == $_ } $self->tags();
+    }
+    return @rc;
+}
+
+sub screens($self) {
+    my %screens;
+    $screens{$_} = $_ for map { $_->{screen} } $self->tags();
+    values %screens;
+}
+
+# Recursively return all transient windows
+sub transients($self) {
+    my @siblings_xid = keys %{ $self->{siblings} };
+    return () unless @siblings_xid;
+    my $known = $X11::korgwm::windows;
+    map { ($known->{$_}->transients(), $known->{$_}) } @siblings_xid;
+}
+
 sub toggle_floating($self) {
+    # There is no way to disable floating for transient windows
+    return if $self->{transient_for};
+
     $self->{floating} = ! $self->{floating};
 
     # Deal with geometry
@@ -154,10 +220,8 @@ sub toggle_floating($self) {
     if ($w < 1 or $h < 1 or $x < 1 or $y < 1) {
         my ($screen_min_w, $screen_min_h);
         for my $screen ($self->screens()) {
-            warn "scren: " .  Dumper $screen;
             $screen_min_h = $screen->{h} if $screen->{h} < ($screen_min_h // 10**6);
             $screen_min_w = $screen->{w} if $screen->{w} < ($screen_min_w // 10**6);
-            warn "SCREEN: $screen_min_w $screen_min_h";
         }
         die unless $screen_min_w and $screen_min_h;
         if ($w < 1 or $h < 1) {
@@ -172,7 +236,7 @@ sub toggle_floating($self) {
     @{ $self }{qw( x y w h )} = ($x, $y, $w, $h);
 
     $self->resize_and_move($x, $y, $w, $h);
-    $_->win_float($self, $self->{floating}) for values %{ $self->{on_tags} // {} };
+    $_->win_float($self, $self->{floating}) for $self->tags();
 }
 
 sub toggle_maximize($self) {
@@ -188,14 +252,13 @@ sub toggle_always_on($self) {
 
     if ($self->{always_on} = ! $self->{always_on}) {
         # Remove window from all tags and store it in always_on of current screen
-        $_->win_remove($self) for values %{ $self->{on_tags} // {} };
+        $_->win_remove($self) for $self->tags();
         push @{ $focus->{screen}->{always_on} }, $self;
     } else {
         # Remove window from always_on and store it in current tag
         my $arr = $focus->{screen}->{always_on};
         splice @{ $arr }, $_, 1 for reverse grep { $arr->[$_] == $self } 0..$#{ $arr };
-        my $tag = $focus->{screen}->{tags}->[ $focus->{screen}->{tag_curr} ];
-        $tag->win_add($self);
+        $focus->{screen}->current_tag()->win_add($self);
     }
 }
 
@@ -213,12 +276,6 @@ sub close($self) {
         $X->kill_client($self->{id});
     }
     $X->flush();
-}
-
-sub screens($self) {
-    my %screens;
-    $screens{$_} = $_ for map { $_->{screen} } values %{ $self->{on_tags} // {} };
-    values %screens;
 }
 
 1;

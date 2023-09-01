@@ -109,7 +109,7 @@ sub win_remove($self, $win) {
     splice @{ $arr }, $_, 1 for reverse grep { $arr->[$_] == $win } 0..$#{ $arr };
 
     # If this tag is visible, call screen refresh
-    $self->{screen}->refresh() if $self == $self->{screen}->{tags}->[$self->{screen}->{tag_curr}];
+    $self->{screen}->refresh() if $self == $self->{screen}->current_tag();
 }
 
 sub win_float($self, $win, $floating=undef) {

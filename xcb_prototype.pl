@@ -234,9 +234,9 @@ our %xcb_events = (
         handle_screens();
     },
     ENTER_NOTIFY, sub($evt) {
-        # To bypass consequent EnterNotifies and use only the last one for focus
-        # This likely fixes the bug I observed 6 years ago in WMFS1
-        my $win = $windows->{$evt->event} // X11::korgwm::Window->new($evt->event);
+        # TODO Do we really need to ignore EnterNotifies on unknown windows? I'll leave it here waiting for bugs.
+        return unless exists $windows->{$evt->event};
+        my $win = $windows->{$evt->event};
         $win->focus();
     },
 );
