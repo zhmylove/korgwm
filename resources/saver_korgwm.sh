@@ -6,7 +6,7 @@
 # Path to video file is passed via XSECURELOCK_LIST_VIDEOS_COMMAND
 
 # Align time for saver_multiplex
-perl -MTime::HiRes=time,sleep -le 'sleep(int(time / 3 + 1) * 3 - time)'
+perl -MTime::HiRes=time,sleep -le 'sleep(int(time / 2 + 1) * 2 - time)'
 
 exec mpv --no-input-terminal \
     --really-quiet \

@@ -117,7 +117,7 @@ sub focus($self) {
 
     # TODO implement focus for several screens: check current focus, check focus for screens, select random one
     my @focus_screens = $self->screens;
-    croak "Unimplemented focus for several screens: @focus_screens" unless @focus_screens == 1;
+    croak "Unimplemented focus for multiple screens: @focus_screens" unless @focus_screens == 1;
 
     my @visible_tags = $self->tags_visible();
     my $tag = $visible_tags[0];

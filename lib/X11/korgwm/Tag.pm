@@ -29,10 +29,14 @@ sub new($class, $screen) {
     }, $class;
 }
 
+sub windows($self) {
+    grep defined, $self->{max_window}, @{ $self->{windows_float} }, @{ $self->{windows_tiled} };
+}
+
 sub destroy($self, $new_screen) {
     # Move windows to some other place
     my $new_tag = $new_screen->{tags}->[0];
-    for my $win (grep defined, $self->{max_window}, @{ $self->{windows_float} }, @{ $self->{windows_tiled} }) {
+    for my $win ($self->windows()) {
         $new_tag->win_add($win);
         $self->win_remove($win);
     }
@@ -41,13 +45,10 @@ sub destroy($self, $new_screen) {
 
 sub hide($self) {
     # Remove layout if we're hiding empty tag
-    $self->{layout} = undef unless
-        defined $self->{max_window} or
-        @{ $self->{windows_float} } or
-        @{ $self->{windows_tiled} };
+    $self->{layout} = undef unless $self->first_window();
 
     # Hide all windows
-    $_->hide for grep defined, $self->{max_window}, @{ $self->{windows_float} }, @{ $self->{windows_tiled} };
+    $_->hide() for $self->windows();
     $X->flush();
 }
 
@@ -141,58 +142,24 @@ sub next_window($self, $backward = undef) {
     # There is no point in next window when user sees only the maximized one
     return $self->{max_window} if defined $self->{max_window};
 
-    # Ok, so firstly we want to look up focused window
-    my $win_curr = $self->{screen}->{focus};
-    return unless defined $win_curr;
+    # Look up the focused one
+    my $win_curr = $self->{screen}->{focus} or return;
 
-    # Check floating first
-    my $arr = $self->{windows_float};
-    my ($idx) = grep { $arr->[$_] == $win_curr } 0..$#{ $arr };
-    if (defined $idx) {
-        # Try to guess next window
-        if ($backward) {
-            if ($idx == 0) {
-                # Previous window will be either last tiled, or last float
-                return first { defined } $self->{windows_tiled}->[-1], $self->{windows_float}->[-1];
-            } else {
-                # Previous window is previous float
-                return $self->{windows_float}->[$idx - 1];
-            }
-        } else {
-            if ($idx == $#{ $arr }) {
-                # Next window will be either first tiled, or first float
-                return first { defined } $self->{windows_tiled}->[0], $self->{windows_float}->[0];
-            } else {
-                # Next window is next float
-                return $self->{windows_float}->[$idx + 1];
-            }
-        }
+    # Prepare list for search
+    my ($idx, $found) = $backward ? -1 : 0;
+    my @win_float = @{ $self->{windows_float} };
+    my @win_tiled = @{ $self->{windows_tiled} };
+
+    # Reverse them if searching backward
+    if ($backward) {
+        @win_float = reverse @win_float;
+        @win_tiled = reverse @win_tiled;
     }
 
-    # Then check tiled
-    $arr = $self->{windows_tiled};
-    ($idx) = grep { $arr->[$_] == $win_curr } 0..$#{ $arr };
-
-    # Looks like there is no focused window among current tag, so just drop next_window request
-    return unless defined $idx;
-
-    # Again: guess next window
-    if ($backward) {
-        if ($idx == 0) {
-            # Previous window will be either last float, or last tiled
-            return first { defined } $self->{windows_float}->[-1], $self->{windows_tiled}->[-1];
-        } else {
-            # Previous window is previous tiled
-            return $self->{windows_tiled}->[$idx - 1];
-        }
-    } else {
-        if ($idx == $#{ $arr }) {
-            # Next window will be either first float, or first tiled
-            return first { defined } $self->{windows_float}->[0], $self->{windows_tiled}->[0];
-        } else {
-            # Next window is next float
-            return $self->{windows_tiled}->[$idx + 1];
-        }
+    # Do actual search
+    for my $win (grep defined, @win_float, @win_tiled, $win_float[$idx], $win_tiled[$idx]) {
+        return $win if $found;
+        $found = 1 if $win == $win_curr;
     }
 }
 

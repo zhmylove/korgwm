@@ -1,5 +1,0 @@
-#!/bin/sh
-
-xterm -font 'xft:DejaVu Sans Mono' -fs 14 -g 150x10+10+50 &
-xterm -font 'xft:DejaVu Sans Mono' -fs 14 -g 150x10+10+350 &
-xterm -font 'xft:DejaVu Sans Mono' -fs 14 -g 150x10+10+650 &
