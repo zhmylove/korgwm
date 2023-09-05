@@ -153,10 +153,15 @@ sub focus($self) {
 
         # Fist element of the @stack should be raised above others
         $stack[0]->_stack_above();
+        my $last = $stack[0];
+        my %seen = ($stack[0] => undef);
 
         # Other elements should be chained below
         for (my $i = 1; $i < @stack; $i++) {
-            $stack[$i]->_stack_below($stack[$i - 1]);
+            next if exists $seen{$stack[$i]};
+            $seen{$stack[$i]} = undef;
+            $stack[$i]->_stack_below($last);
+            $last = $stack[$i];
         }
     }
 
@@ -210,6 +215,7 @@ sub screens($self) {
 
 # Recursively return all transient windows
 sub transients($self) {
+    # TODO maybe sort them?
     my @siblings_xid = keys %{ $self->{siblings} };
     return () unless @siblings_xid;
     my $known = $X11::korgwm::windows;
