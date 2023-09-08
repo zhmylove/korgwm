@@ -264,6 +264,18 @@ our $exit_trigger = 0;
 # Init our extensions
 $_->() for our @extensions;
 
+# Set the initial pointer position, if needed
+if (my $pos = $cfg->{initial_pointer_position}) {
+    if ($pos eq "center") {
+        my $screen = $screens[0];
+        $r->warp_pointer(map { int($screen->{$_} / 2) } qw( w h ));
+    } elsif ($pos eq "hidden") {
+        $r->warp_pointer($r->_rect->width, $r->_rect->height);
+    } else {
+        croak "Unknown initial_pointer_position: $pos";
+    }
+}
+
 # Main event loop
 for(;;) {
     die "Exit requested" if $exit_trigger;

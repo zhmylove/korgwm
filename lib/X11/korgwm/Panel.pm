@@ -160,7 +160,7 @@ sub new($class, $panel_id, $panel_width, $panel_x, $ws_cb) {
 
     # Map window
     $window->add($hdbar);
-    $window->show_all;
+    $window->show_all unless $cfg->{panel_hide};
 
     # Hide empty tags if needed
     if ($cfg->{hide_empty_tags}) {
