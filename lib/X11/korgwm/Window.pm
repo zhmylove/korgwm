@@ -182,6 +182,12 @@ sub reset_border($self) {
     $X->change_window_attributes($self->{id}, CW_BORDER_PIXEL, $cfg->{color_border});
 }
 
+sub update_title($self) {
+    for my $screen ($self->screens) {
+        $screen->{panel}->title($self->title // "") if $screen->{focus} == $self;
+    }
+}
+
 sub hide($self) {
     $X11::korgwm::unmap_prevent->{$self->{id}} = 1;
     for my $screen ($self->screens) {
@@ -232,21 +238,44 @@ sub toggle_floating($self) {
     my ($x, $y, $w, $h) = map { defined ? $_ : 0 } @{ $self }{qw( x y w h )};
     $y = $cfg->{panel_height} if $y < $cfg->{panel_height};
 
+    warn "WIN: x($x) y($y) h($h) w($w) rx ry rh rw " . join " ", @{ $self }{qw( x y w h real_x real_y real_h real_w )};
+
+    # Select screen on which this window is visible
+    my @visible_tags = $self->tags_visible();
+    croak "Making a window float on several visible tags is not implemented" if @visible_tags > 1;
+
+    # Select any tag if the window is invisible
+    my $tag = $visible_tags[0] || ($self->tags())[0];
+
     # Fix window size and/or position
     if ($w < 1 or $h < 1 or $x < 1 or $y < 1) {
+        # Get the smallest screen size
         my ($screen_min_w, $screen_min_h);
         for my $screen ($self->screens()) {
             $screen_min_h = $screen->{h} if $screen->{h} < ($screen_min_h // 10**6);
             $screen_min_w = $screen->{w} if $screen->{w} < ($screen_min_w // 10**6);
         }
         die unless $screen_min_w and $screen_min_h;
+
+        # Window looks unconfigured, so move it to the center
         if ($w < 1 or $h < 1) {
-            # Window looks uncofigured, so move it to the center
             $x = int($screen_min_w / 4);
             $y = int($screen_min_h / 4);
+
+            # Select any screen on which window is visible
+            $x += $tag->{screen}->{x};
+            $y += $tag->{screen}->{y};
         }
+
+        # Fix width and height
         $w = int($screen_min_w / 2) if $w < 1;
         $h = int($screen_min_h / 2) if $h < 1;
+    } else {
+        # Verify that the window belongs to the selected tag
+        my $screen = $tag->{screen};
+        $x = $screen->{x} if $x < $screen->{x} || $x > $screen->{x} + $screen->{w};
+        $y = $screen->{y} + $cfg->{panel_height} if
+            $y < $screen->{y} + $cfg->{panel_height} || $y > $screen->{y} + $screen->{h};
     }
 
     @{ $self }{qw( x y w h )} = ($x, $y, $w, $h);
@@ -255,11 +284,28 @@ sub toggle_floating($self) {
     $_->win_float($self, $self->{floating}) for $self->tags();
 }
 
-sub toggle_maximize($self) {
-    # TODO implement toggle_maximize
-    croak "Unimplemented";
+sub toggle_maximize($self, $action = undef) {
+    # Parse action: 0 => normal, 1 => fullscreen, undef => toggle
+    $action = $self->{maximized} ? 0 : 1 unless defined $action;
 
-    $self->{maximized} = ! $self->{maximized};
+    # Set self property
+    $self->{maximized} = !! $action;
+
+    # Check condition and get the tag
+    my @visible_tags = $self->tags_visible();
+    croak "Maximizing a window on several visible tags is not implemented" if @visible_tags > 1;
+    return unless @visible_tags; # ignore maximize requests for invisibe windows
+    my $tag = $visible_tags[0];
+
+    # Execute toggle
+    if ($action) {
+        $tag->{max_window} = $self;
+        @{ $self }{qw( x y w h )} = @{ $self }{qw( real_x real_y real_w real_h )};
+    } else {
+        $tag->{max_window} = undef;
+        $self->resize_and_move(@{ $self }{qw( x y w h )});
+    }
+    $tag->show();
 }
 
 sub toggle_always_on($self) {

@@ -34,10 +34,10 @@ sub init {
     croak "Unable to init Xkb" unless $XKB_EVENT_BASE;
 
     # Set up event handler
-    $X11::korgwm::xcb_events{$XKB_EVENT_BASE} = sub($evt) {
+    &X11::korgwm::add_event_cb($XKB_EVENT_BASE, sub($evt) {
         # We ignore pad0 and update notifier on any xkb event
         lang_update();
-    };
+    });
 
     # Subscribe for events
     my $mask = XKB_EVENT_TYPE_INDICATOR_STATE_NOTIFY;

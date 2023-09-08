@@ -31,6 +31,7 @@ use X11::korgwm::Panel;
 use X11::korgwm::Layout;
 use X11::korgwm::Window;
 use X11::korgwm::Screen;
+use X11::korgwm::EWMH;
 use X11::korgwm::Xkb;
 use X11::korgwm::Hotkeys;
 
@@ -251,6 +252,12 @@ our %xcb_events = (
     },
 );
 
+# Helper for extensions
+sub add_event_cb($id, $sub) {
+    croak "Redefined event handler for $id" if defined $xcb_events{$id};
+    $xcb_events{$id} = $sub;
+}
+
 # Prepare manual exit switch
 our $exit_trigger = 0;
 
@@ -263,10 +270,14 @@ for(;;) {
 
     while (my $evt = $X->poll_for_event()) {
         warn Dumper $evt;
-        if (defined(my $evt_cb = $xcb_events{$evt->{response_type}})) {
+
+        # Highest bit indicates that the source is another client
+        my $type = $evt->{response_type} & 0x7F;
+
+        if (defined(my $evt_cb = $xcb_events{$type})) {
             $evt_cb->($evt);
         } else {
-            warn "... MISSING handler for event " . $evt->{response_type};
+            warn "... MISSING handler for event " . $type;
         }
     }
 

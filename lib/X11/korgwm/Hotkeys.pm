@@ -67,7 +67,7 @@ sub init {
     hotkey($_, $cfg->{hotkeys}->{$_}) for keys %{ $cfg->{hotkeys} };
 
     # Register event handler
-    $X11::korgwm::xcb_events{KEY_PRESS()} = sub($evt) {
+    &X11::korgwm::add_event_cb(KEY_PRESS(), sub($evt) {
         my $key = $keymap->[$evt->detail]->[0];
         my $mask = $evt->state;
 
@@ -77,7 +77,7 @@ sub init {
         my $handler = $hotkeys->{$key}->{$mask};
         croak "Caught unexpected key: $key mask: $mask" unless $handler;
         $handler->();
-    };
+    });
 
     # Grab keys
     my $root_id = $X->root->id;
