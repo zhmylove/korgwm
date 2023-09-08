@@ -34,6 +34,12 @@ use X11::korgwm::Screen;
 use X11::korgwm::Xkb;
 use X11::korgwm::Hotkeys;
 
+# Should you want understand this, first read carefully:
+# - libxcb source code
+# - X11::XCB source code
+# - https://www.x.org/releases/X11R7.7/doc/xproto/x11protocol.txt
+# - https://specifications.freedesktop.org/wm-spec/wm-spec-latest.html
+
 our $cfg;
 $SIG{CHLD} = "IGNORE";
 
