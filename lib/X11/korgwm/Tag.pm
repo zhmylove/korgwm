@@ -63,6 +63,7 @@ sub show($self) {
         # if we have maximized window, just place it over the screen
         # I believe there is no need to process focus here, right?
         $self->{max_window}->resize_and_move(@{ $self->{screen} }{qw( x y w h )}, 0);
+        $self->{max_window}->show();
     } else {
         for my $win (grep defined,
             @{ $self->{screen}->{always_on} },
