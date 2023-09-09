@@ -61,7 +61,6 @@ if ($cfg->{set_root_color}) {
     warn Dumper $X->clear_area(0, $r->id, 0, 0, $r->_rect->width, $r->_rect->height);
 }
 
-# $r->warp_pointer(50, 150);
 $X->flush();
 
 # Initialize RANDR
@@ -268,7 +267,7 @@ $_->() for our @extensions;
 if (my $pos = $cfg->{initial_pointer_position}) {
     if ($pos eq "center") {
         my $screen = $screens[0];
-        $r->warp_pointer(map { int($screen->{$_} / 2) } qw( w h ));
+        $r->warp_pointer(map { int($screen->{$_} / 2) - 1 } qw( w h ));
     } elsif ($pos eq "hidden") {
         $r->warp_pointer($r->_rect->width, $r->_rect->height);
     } else {

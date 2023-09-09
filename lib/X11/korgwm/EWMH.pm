@@ -28,6 +28,22 @@ sub icccm_update_title($evt) {
     $win->update_title();
 }
 
+# React only on urgency
+sub icccm_update_wm_hints($evt) {
+    my $win = $windows->{$evt->window} or return;
+
+    # Short path if nothing changed
+    my $urgency_old = $win->{urgent} // -1;
+    my $urgency_new = $win->urgency_get() // -1;
+    return if $urgency_new == $urgency_old;
+
+    # The state has changed
+    $win->urgency_clear() if $urgency_old > 0;
+    $win->urgency_raise() if $urgency_new > 0;
+
+    $win->{urgent} = $urgency_new > 0;
+}
+
 # Fullscreen handlers
 my $atom_fullscreen;
 sub icccm_update_maximize($evt) {
@@ -51,6 +67,7 @@ sub icccm_update_maximize($evt) {
 
 our $icccm_atoms = {};
 our $icccm_handlers = {
+    "WM_HINTS" => \&icccm_update_wm_hints,
     "WM_NAME" => \&icccm_update_title,
     "_NET_WM_NAME" => \&icccm_update_title,
     "_NET_WM_STATE" => \&icccm_update_maximize,

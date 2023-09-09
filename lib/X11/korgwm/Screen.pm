@@ -20,6 +20,7 @@ our ($X, $cfg);
 *cfg = *X11::korgwm::cfg;
 
 sub new($class, $x, $y, $w, $h) {
+    my $idx = 0;
     my $self = bless {}, $class;
     $self->{id} = "$x,$y,$w,$h";
     $self->{always_on} = [];
@@ -27,6 +28,7 @@ sub new($class, $x, $y, $w, $h) {
     $self->{tag_curr} = 0;
     $self->{tag_prev} = 0;
     $self->{tags} = [ map { X11::korgwm::Tag->new($self) } @{ $cfg->{ws_names} } ];
+    $_->{idx} = $idx++ for @{ $self->{tags} };
     $self->{panel} = X11::korgwm::Panel->new(0, $w, $x, sub ($btn, $ws) { $self->tag_set_active($ws - 1) });
     $self->{x} = $x;
     $self->{y} = $y;

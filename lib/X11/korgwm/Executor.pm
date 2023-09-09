@@ -79,6 +79,7 @@ our @parser = (
         croak "No screens found" unless defined $screens[0];
         $screens[0]->set_active();
     }}],
+    [qr/iddqd|idkfa/i, sub { print "I love KorG!\n" }],
 
     # Window move to particular screen
     [qr/win_move_screen\((\d+)\)/, sub ($arg) { return sub {

@@ -167,6 +167,8 @@ sub focus($self) {
 
     $X->set_input_focus(INPUT_FOCUS_POINTER_ROOT, $self->{id}, TIME_CURRENT_TIME);
 
+    $self->urgency_clear() if $self->{urgent};
+
     # Update focus structure and panel title
     $tag->{screen}->{focus} = $self;
     $tag->{screen}->{panel}->title($self->title // "");
@@ -193,6 +195,7 @@ sub hide($self) {
     for my $screen ($self->screens) {
         $screen->{panel}->title() if $screen->{focus} == $self;
     }
+    $X11::korgwm::focus->{window} = undef if $self == ($X11::korgwm::focus->{window} // 0);
     $X->unmap_window($self->{id});
 }
 
@@ -338,6 +341,55 @@ sub close($self) {
         $X->kill_client($self->{id});
     }
     $X->flush();
+}
+
+sub wm_hints_flags($self) {
+    my ($value, $prop) = _get_property($self->{id}, "WM_HINTS", "WM_HINTS", 1);
+    my ($flags) = unpack 'L', $value;
+    return $flags;
+}
+
+# X11 getter interface
+sub urgency_get($self) {
+    $self->wm_hints_flags() & (1 << 8) ? 1 : undef;
+}
+
+# X11 setter interface
+sub urgency_set($self, $urgency = 1) {
+    my $flags = $self->wm_hints_flags();
+    if ($urgency) {
+        $flags |= (1 << 8);
+    } else {
+        $flags &= ~(1 << 8);
+    }
+
+    # TODO maybe respect other than flags fields?
+    my $hints = X11::XCB::ICCCM::WMHints->new();
+    $hints->set_flags($flags);
+    $X->X11::XCB::ICCCM::set_wm_hints($self->{id}, $hints);
+    $X->flush();
+}
+
+# High-level wrapper
+sub urgency_clear($self) {
+    $self->urgency_set(0);
+    for my $tag ($self->tags()) {
+        delete $tag->{urgent_windows}->{$self};
+        $tag->{screen}->{panel}->ws_set_urgent($tag->{idx} + 1, 0) unless keys %{ $tag->{urgent_windows} };
+    }
+}
+
+# High-level wrapper
+sub urgency_raise($self, $set_hint = undef) {
+    if ($X11::korgwm::focus->{window} == $self) {
+        return $self->urgency_clear();
+    }
+
+    $self->urgency_set(1) if $set_hint;
+    for my $tag ($self->tags()) {
+        $tag->{urgent_windows}->{$self} = undef;
+        $tag->{screen}->{panel}->ws_set_urgent($tag->{idx} + 1, 1);
+    }
 }
 
 sub warp_pointer($self) {

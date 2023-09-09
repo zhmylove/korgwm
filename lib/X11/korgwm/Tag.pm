@@ -21,6 +21,7 @@ our ($X, $cfg);
 
 sub new($class, $screen) {
     bless {
+        idx => undef,
         screen => $screen,
         layout => undef,
         max_window => undef,
@@ -47,7 +48,7 @@ sub hide($self) {
     # Remove layout if we're hiding empty tag
     $self->{layout} = undef unless $self->first_window();
 
-    # Hide all windows
+    # Hide all windows and drop focus
     $_->hide() for $self->windows();
     $X->flush();
 }
@@ -97,12 +98,14 @@ sub show($self) {
 
 sub win_add($self, $win) {
     $win->{on_tags}->{$self} = $self;
+    $self->{urgent_windows}->{$win} = undef if $win->urgency_get();
 
     unshift @{ $win->{floating} ? $self->{windows_float} : $self->{windows_tiled} }, $win;
 }
 
 sub win_remove($self, $win) {
     delete $win->{on_tags}->{$self};
+    delete $self->{urgent_windows}->{$win};
 
     $self->{max_window} = undef if $win == ($self->{max_window} // 0);
 

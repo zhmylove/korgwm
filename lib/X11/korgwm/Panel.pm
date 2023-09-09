@@ -65,17 +65,17 @@ sub ws_set_visible($self, $id, $new_visible = 1) {
 sub ws_set_active($self, $new_active) {
     for my $ws (@{ $self->{ws} }) {
         if ($ws->{active}) {
-            if ($ws->{id} == $new_active) {
-                $ws->{urgent} = undef;
-                return;
-            }
+            return if $ws->{id} == $new_active;
             $ws->{active} = undef;
-            $self->ws_set_color($ws->{id}, $color_bg, $color_fg);
+            if ($ws->{urgent}) {
+                $self->ws_set_color($ws->{id}, $color_urgent_bg, $color_urgent_fg);
+            } else {
+                $self->ws_set_color($ws->{id}, $color_bg, $color_fg);
+            }
         }
 
         if ($ws->{id} == $new_active) {
             $ws->{active} = 1;
-            $ws->{urgent} = undef;
             $self->ws_set_color($new_active, $color_fg, $color_bg);
         }
     }
@@ -84,9 +84,10 @@ sub ws_set_active($self, $new_active) {
 # Set workspace urgency
 sub ws_set_urgent($self, $ws_id, $urgent = 1) {
     my $ws = $self->{ws}->[$ws_id - 1];
-    return if $ws->{active};
     $ws->{urgent} = $urgent ? 1 : undef;
-    $self->ws_set_color($ws_id, $urgent ? ($color_urgent_bg, $color_urgent_fg) : ($color_bg, $color_fg));
+    return if $urgent and $ws->{active};
+    $self->ws_set_color($ws_id, $urgent ?  ($color_urgent_bg, $color_urgent_fg) :
+        $ws->{active} ? ($color_fg, $color_bg) : ($color_bg, $color_fg));
 }
 
 # Create new workspace during initialization phase
@@ -102,7 +103,6 @@ sub ws_create($self, $title = "", $ws_cb = sub {1}) {
     $label->set_yalign(0.9);
 
     my $ebox = Gtk3::EventBox->new();
-    # $ebox->override_background_color(normal => Gtk3::Gdk::RGBA::parse("#464729"));
     $ebox->signal_connect('button-press-event', sub ($obj, $e) {
         return unless $e->button == 1;
         $ws_cb->($e->button, $my_id);
@@ -117,6 +117,7 @@ sub ws_create($self, $title = "", $ws_cb = sub {1}) {
 # Hash for sanity of Panel:: modules (see Panel::Lang for example)
 my %elements;
 sub add_element($name, $watcher = undef) {
+    croak "Redefined Panel element $name" if defined $elements{$name};
     $elements{$name} = $watcher;
 }
 

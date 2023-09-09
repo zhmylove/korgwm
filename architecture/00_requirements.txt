@@ -19,7 +19,7 @@
 [ ]  Поддержка запуска приложений на заданном тэге -- чтобы почтовик сам летел куда нужно
 
 [+]  Поддержка window urgency
-[ ]  Добавить обработчик события urgency
+[+]  Добавить обработчик события urgency
 
 [+]  Нужна панелька, на которой будет время, статус wifi, индикатор языка, заголовок текущего окна (по центру), список тэгов с окнами, на которых подсвечены urgent (слева)
 [ ]  Подумать про отображение статуса wifi и языка, мб трей?
@@ -35,7 +35,7 @@
 [ ]  Поддержка конфиг файла, в котором можно будет настраивать хоткеи и команды, которые их запускают; а также коды цветов
 
 
-[ ]  Прочитать документацию на возможные ивенты
+[+]  Прочитать документацию на возможные ивенты
 [ ]  Посмотреть, можно ли в Gtk Pango указать два шрифта
 [+]  Понять, что происходит при reparenting
 [+]  Продумать алгоритм тайлинга
@@ -47,6 +47,7 @@ windows => {
         on_tags => {},              # hash of tags on which this window is shown
         always_on => Bool,          # flag if window is always_on
         floating => Bool,           # flag if window is floating
+        urgent => Bool,             # flag if window is floating
         siblings => {},             # hash keys = transient_for windows, values
         transient_for => Int,       # wid of transient_for window, or undef
         (x, y, w, h),               # geometry of window requested in configure (or set to some defaults); used only for floating windows
@@ -58,9 +59,12 @@ screens => {
     0 => {
         tags => {
             1 => {
+                screen => Ptr,      # reference to screen
+                idx => Int,         # position in the @screen->tags
                 max_window => xid,  # if defined, hide panel and maximize window
                 windows_tiled => [],# list (performance bye-bye) of windows attached to this tag, also affects Panel tag visibility
                 windows_float => [],# list of floating windows on the tag
+                urgent_windows => {},   # hash of windows with urgency flag
                 layout => Ref,      # reference to Layout object, or undef (when there is no tiled windows on tag)
             },
         },
@@ -73,5 +77,5 @@ screens => {
 
 focus => {
     screen => ScreenId,             # id of focused screen
-    focus => Int,                   # wid of focused windows
+    window => Int,                  # wid of focused windows
 }
