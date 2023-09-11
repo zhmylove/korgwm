@@ -196,6 +196,7 @@ sub hide($self) {
         $screen->{panel}->title() if $screen->{focus} == $self;
     }
     $X11::korgwm::focus->{window} = undef if $self == ($X11::korgwm::focus->{window} // 0);
+    $_->($self) for @X11::korgwm::Window::hooks_hide;
     $X->unmap_window($self->{id});
 }
 

@@ -27,7 +27,7 @@ our @parser = (
         die "Cannot fork(2)" unless defined $pid;
         return if $pid;
         exec $arg;
-        die "Cannont execute $arg";
+        die "Cannot execute $arg";
     }}],
 
     # Set active tag
@@ -119,6 +119,11 @@ our @parser = (
         my $win = $tag->next_window($arg eq "backward");
         return unless defined $win;
         $win->focus();
+    }}],
+
+    # Expose windows
+    [qr/expose\(\)/, sub ($arg) { return sub {
+        &X11::korgwm::Expose::win_dump_all();
     }}],
 
     # Exit from WM

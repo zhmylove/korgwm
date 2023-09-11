@@ -33,6 +33,7 @@ use X11::korgwm::Window;
 use X11::korgwm::Screen;
 use X11::korgwm::EWMH;
 use X11::korgwm::Xkb;
+use X11::korgwm::Expose;
 use X11::korgwm::Hotkeys;
 
 # Should you want understand this, first read carefully:
