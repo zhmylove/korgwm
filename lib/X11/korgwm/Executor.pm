@@ -123,7 +123,7 @@ our @parser = (
 
     # Expose windows
     [qr/expose\(\)/, sub ($arg) { return sub {
-        &X11::korgwm::Expose::win_dump_all();
+        &X11::korgwm::Expose::expose();
     }}],
 
     # Exit from WM

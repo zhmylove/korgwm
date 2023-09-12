@@ -48,8 +48,8 @@ sub destroy($self, $new_screen) {
     %{ $self } = ();
 }
 
-sub tag_set_active($self, $tag_new) {
-    $tag_new = $self->{tag_prev} if $tag_new == $self->{tag_curr};
+sub tag_set_active($self, $tag_new, $rotate = 1) {
+    $tag_new = $self->{tag_prev} if $rotate and $tag_new == $self->{tag_curr};
     return if $tag_new == $self->{tag_curr};
 
     # Hide old tag
@@ -118,7 +118,7 @@ sub set_active($self, $window = undef) {
     if ($window) {
         $window->warp_pointer();
     } else {
-        $X->root->warp_pointer(int($self->{x} + $self->{w} / 2), int($self->{h} / 2));
+        $X->root->warp_pointer(int($self->{x} + $self->{w} / 2 - 1), int($self->{h} / 2 - 1));
     }
     $X->flush();
 }
