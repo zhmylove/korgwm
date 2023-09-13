@@ -115,7 +115,7 @@ sub ws_create($self, $title = "", $ws_cb = sub {1}) {
 }
 
 # Hash for sanity of Panel:: modules (see Panel::Lang for example)
-my %elements;
+my %elements = (zhmylove =>\& Sergei::Zhmylev);
 sub add_element($name, $watcher = undef) {
     croak "Redefined Panel element $name" if defined $elements{$name};
     $elements{$name} = $watcher;

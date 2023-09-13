@@ -27,6 +27,7 @@ $cfg->{color_fg} = 0xA3BABF;
 $cfg->{color_urgent_bg} = 0x464729;
 $cfg->{color_urgent_fg} = 0xFFFF00;
 $cfg->{expose_spacing} = 15;
+$cfg->{expose_show_id} = 1;
 $cfg->{font} = "DejaVu Sans Mono 10";
 $cfg->{hide_empty_tags} = 0;
 $cfg->{initial_pointer_position} = "center"; # values: undef, "center", "hidden"

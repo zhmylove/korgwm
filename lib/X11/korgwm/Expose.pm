@@ -28,7 +28,7 @@ my $font;
 my ($color_fg, $color_bg, $color_expose);
 my ($color_gdk_fg, $color_gdk_bg, $color_gdk_expose);
 
-sub _create_thumbnail($scale, $pixbuf, $title, $cb) {
+sub _create_thumbnail($scale, $pixbuf, $title, $id, $cb) {
     my $vbox = Gtk3::Box->new(vertical => 0);
     my $vbox_inner = Gtk3::Box->new(vertical => 0);
 
@@ -55,7 +55,13 @@ sub _create_thumbnail($scale, $pixbuf, $title, $cb) {
     $label->set_margin_top(5);
     $label->set_ellipsize('middle');
 
+    # Prepare id label
+    my $label_id = Gtk3::Label->new();
+    $label_id->txt($id); # this imlicitly depends on the hack from X11::korgwm::Panel
+    $label_id->set_margin_bottom(5);
+
     # Place elements
+    $vbox_inner->pack_start($label_id, 0, 0, 0) if $cfg->{expose_show_id};
     $vbox_inner->pack_start($hbox, 0, 0, 0);
     $vbox_inner->pack_start($label, 0, 0, 0);
     $vbox->set_center_widget($vbox_inner);
@@ -113,18 +119,33 @@ sub expose {
     return unless $windows;
     my $rownum = _get_rownum($windows, @{ $screen_curr }{qw( w h )});
     my $scale = 0.9 * $screen_curr->{h} / $rownum;
+    my $id_len = 1 + int($windows / 10);
+    my %callbacks;
+    my $shortcut_str = "";
+    my $shortcut = Gtk3::Label->new();
 
     # Draw the windows
     for my $screen (values %screens) {
         for my $tag (@{ $screen->{tags} }) {
             for my $win ($tag->windows()) {
-                my $ebox = _create_thumbnail($scale, $win->{pixbuf}, $win->title(), sub ($obj, $e) {
-                    return unless $e->button == 1;
+                # Event-independent callback
+                my $cb = sub {
                     $screen->tag_set_active($tag->{idx}, 0);
                     $screen->set_active($win);
                     $win_expose->destroy();
                     $win_expose = undef;
                     $screen->refresh();
+                };
+
+                # Form an id for quick access if $cfg->{expose_show_id}
+                my $id = sprintf "%0${id_len}d", 10 ** ($id_len - 1) + keys %callbacks;
+                my $id_str = "[$id]"; # should be string to avoid {0} === {"0"}
+                $callbacks{$id_str} = $cb if $cfg->{expose_show_id};
+
+                # Create thumbnail
+                my $ebox = _create_thumbnail($scale, $win->{pixbuf}, $win->title(), $id_str, sub ($obj, $e) {
+                    return unless $e->button == 1;
+                    $cb->();
                 });
 
                 $x++, $y = 0 if $y >= $rownum;
@@ -133,10 +154,44 @@ sub expose {
         }
     }
 
+    # Append simple keyboard handlers
+    $win_expose->signal_connect('key-press-event', sub ($obj, $e) {
+        if ($e->keyval() == 0xff1b) { # XK_Escape from <X11/keysymdef.h>
+            $win_expose->destroy();
+            $win_expose = undef;
+        } elsif ($e->keyval() == 0xff08) { # XK_Backspace
+            $shortcut_str = substr $shortcut_str, 0, -1;
+            $shortcut->txt($shortcut_str);
+        } elsif ($e->keyval() >= 0x30 and $e->keyval() <= 0x39) {
+            $shortcut_str .= chr($e->keyval());
+            $shortcut->txt($shortcut_str);
+            $callbacks{"[$shortcut_str]"}->() if $callbacks{"[$shortcut_str]"};
+        } elsif ($e->keyval() == 0x20 or $e->keyval() == 0xff0d) { # XK_Space or XK_Return
+            $shortcut_str = "";
+            $shortcut->txt($shortcut_str);
+        }
+    });
+
+    # Compose window elements
+    if ($cfg->{expose_show_id}) {
+        # Add shortcut label
+        my $vbox = Gtk3::Box->new(vertical => 0);
+        $vbox->pack_start($shortcut, 0, 0, $cfg->{expose_spacing});
+        $vbox->set_center_widget($grid);
+        $win_expose->add($vbox);
+    } else {
+        $win_expose->add($grid);
+    }
+
     # Map the window
-    $win_expose->add($grid);
     $win_expose->show_all();
-    $display->get_default_seat()->grab($win_expose->get_window(), "keyboard", 0, undef, undef, undef, undef);
+
+    # Grab keyboard
+    my $grab_status;
+    my $grab_tries = 2**10;
+    do {
+        $grab_status = $display->get_default_seat()->grab($win_expose->get_window(), "keyboard", 0, (undef) x 4);
+    } while ($grab_tries-- and $grab_status eq 'already-grabbed');
 }
 
 # TODO consider adding this right into Window.pm

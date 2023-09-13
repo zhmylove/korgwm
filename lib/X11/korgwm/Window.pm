@@ -191,12 +191,19 @@ sub update_title($self) {
 }
 
 sub hide($self) {
+    # Ignore notifications from our actions
     $X11::korgwm::unmap_prevent->{$self->{id}} = 1;
-    for my $screen ($self->screens) {
-        $screen->{panel}->title() if $screen->{focus} == $self;
-    }
+
+    # Drop panel title
+    $_->{panel}->title() for grep { $_->{focus} == $self } $self->screens();
+
+    # Drop focus
     $X11::korgwm::focus->{window} = undef if $self == ($X11::korgwm::focus->{window} // 0);
+
+    # Execute hooks, see Expose.pm
     $_->($self) for @X11::korgwm::Window::hooks_hide;
+
+    # Do actual unmap
     $X->unmap_window($self->{id});
 }
 
@@ -241,8 +248,6 @@ sub toggle_floating($self) {
     # Deal with geometry
     my ($x, $y, $w, $h) = map { defined ? $_ : 0 } @{ $self }{qw( x y w h )};
     $y = $cfg->{panel_height} if $y < $cfg->{panel_height};
-
-    warn "WIN: x($x) y($y) h($h) w($w) rx ry rh rw " . join " ", @{ $self }{qw( x y w h real_x real_y real_h real_w )};
 
     # Select screen on which this window is visible
     my @visible_tags = $self->tags_visible();
