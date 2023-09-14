@@ -17,6 +17,11 @@ my $keys = {
             "CR"    => 0xFF0D,              # XK_Return
             "TAB"   => 0xFF09,              # XK_Tab
     (map {; "F$_"   => 0xFFBD + $_ } 1..9), # XK_Fx
+    "XF86MonBrightnessUp"   => 0x1008FF02,
+    "XF86MonBrightnessDown" => 0x1008FF03,
+    "XF86AudioLowerVolume"  => 0x1008FF11,
+    "XF86AudioMute"         => 0x1008FF12,
+    "XF86AudioRaiseVolume"  => 0x1008FF13,
 };
 
 # xcb modifiers
@@ -66,7 +71,10 @@ sub init {
         return carp "X11 sent us a modifier key $key mask $mask" if $key >= 0xffe1 and $key <= 0xffee;
 
         my $handler = $hotkeys->{$key}->{$mask};
-        croak "Caught unexpected key: $key mask: $mask" unless $handler;
+        unless ($handler) {
+            return carp "X11 sent us XK_Escape, but didn't even think to call us Godfather" if $key == 0xff1b;
+            croak "Caught unexpected key: $key mask: $mask";
+        }
         $handler->();
     });
 

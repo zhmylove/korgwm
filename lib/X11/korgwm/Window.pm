@@ -51,6 +51,11 @@ sub _attributes($wid) {
     $X->get_window_attributes_reply($X->get_window_attributes($wid)->{sequence});
 }
 
+sub _class($wid) {
+    my @class = split /\0/, scalar _get_property($wid, "WM_NAME", "STRING", 16);
+    return wantarray ? @class : $class[0];
+}
+
 sub _title($wid) {
     my $title = _get_property($wid, "_NET_WM_NAME", "UTF8_STRING", int($cfg->{title_max_len} / 4));
     $title = _get_property($wid, "WM_NAME", "STRING", int($cfg->{title_max_len} / 4)) unless length $title;
@@ -66,6 +71,7 @@ INIT {
     no strict 'refs';
     for my $func (qw(
         attributes
+        class
         configure_notify
         get_property
         title
@@ -389,7 +395,7 @@ sub urgency_raise($self, $set_hint = undef) {
 }
 
 sub warp_pointer($self) {
-    $X->warp_pointer(0, $self->{id}, 0, 0, 0, 0, int($self->{real_w} / 2), int($self->{real_h} / 2));
+    $X->warp_pointer(0, $self->{id}, 0, 0, 0, 0, int($self->{real_w} / 2) - 1, int($self->{real_h} / 2) - 1);
     $X->flush();
 }
 

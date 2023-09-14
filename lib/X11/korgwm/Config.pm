@@ -29,7 +29,7 @@ $cfg->{color_urgent_fg} = 0xFFFF00;
 $cfg->{expose_spacing} = 15;
 $cfg->{expose_show_id} = 1;
 $cfg->{font} = "DejaVu Sans Mono 10";
-$cfg->{hide_empty_tags} = 0;
+$cfg->{hide_empty_tags} = 1;
 $cfg->{initial_pointer_position} = "center"; # values: undef, "center", "hidden"
 $cfg->{lang_format} = " %s ";
 $cfg->{lang_names} = { 0 => chr(0x00a3), 1 => chr(0x20bd) };
@@ -41,7 +41,7 @@ $cfg->{set_root_color} = 0;
 $cfg->{title_max_len} = 64;
 $cfg->{ws_names} = [qw( T W M C 5 6 7 8 9 )];
 
-# TODO brightness, galculator, wifi, volume, media buttons
+# Default keyboard layout
 $cfg->{hotkeys} = {
     (map {; "mod_$_"            => "focus_move($_)"         } qw(h j k l)), # TODO
     (map {; "mod_$_"            => "tag_select($_)"         } 1..9),
@@ -66,7 +66,20 @@ $cfg->{hotkeys} = {
             "mod_r"             => "exec(dmenu_run -i -nb #262729 -nf #A3BABF -sb #464729 -sf #FFFF00)",
             "mod_w"             => "exec(firefox --new-instance --private-window)",
             "mod_shift_w"       => "exec(firefox --new-instance)",
+            "mod_="             => "exec(galculator)",
             "mod_ctrl_shift_q"  => "exit()",
+            "XF86MonBrightnessDown" => "exec(light -U 20)",
+            "XF86MonBrightnessUp"   => "exec(light -A 20)",
+            "XF86AudioLowerVolume"  => "exec(pactl set-sink-volume 0 -10%)",
+            "XF86AudioRaiseVolume"  => "exec(pactl set-sink-volume 0 +10%)",
+            "XF86AudioMute"         => "exec(pactl set-sink-mute 0 toggle)",
+};
+
+$cfg->{rules} = {
+    "mattermost" => undef, # move to screen #2 or #1 tag #4
+    "evolution" => undef, # move to screen #1 tag #3
+    "galculator" => undef, # make floating
+    "urxvt-float" => undef, # make floating
 };
 
 1;

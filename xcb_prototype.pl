@@ -6,7 +6,7 @@ use strict;
 use warnings;
 use feature 'signatures';
 use lib 'lib', '../X11-XCB/lib', '../X11-XCB/blib/arch';
-use X11::XCB ':all';
+use X11::XCB 0.20 ':all';
 use X11::XCB::Connection;
 use X11::XCB::Window;
 use X11::XCB::Event::ConfigureRequest;
@@ -15,7 +15,6 @@ use X11::XCB::Event::EnterLeaveNotify;
 use X11::XCB::Event::MapRequest;
 use X11::XCB::Event::UnmapNotify;
 use X11::XCB::Event::DestroyNotify;
-die "X11::XCB minimum version 0.20 required" if 0.20 > X11::XCB->VERSION();
 use Carp;
 use AnyEvent;
 
@@ -156,23 +155,28 @@ our %xcb_events = (
         warn "Mapping...";
         my $wid = $evt->window;
 
+        # Set event mask (TODO on each MAP?)
         $X->change_window_attributes($wid, CW_EVENT_MASK,
             EVENT_MASK_ENTER_WINDOW | EVENT_MASK_LEAVE_WINDOW | EVENT_MASK_PROPERTY_CHANGE
         );
-        $windows->{$wid} = X11::korgwm::Window->new($wid) unless defined $windows->{$wid};
 
-        my $transient_for = $windows->{$wid}->transient_for() // -1;
+        # Create a window if needed
+        my $win = ($windows->{$wid} //= X11::korgwm::Window->new($wid));
+
+        # Process transients
+        my $transient_for = $win->transient_for() // -1;
         $transient_for = undef unless defined $windows->{$transient_for};
         if ($transient_for) {
-            $windows->{$wid}->{floating} = 1;
-            $windows->{$wid}->{transient_for} = $windows->{$transient_for};
+            $win->{floating} = 1;
+            $win->{transient_for} = $windows->{$transient_for};
             $windows->{$transient_for}->{siblings}->{$wid} = undef;
             # TODO implement screen change and win->move here
         }
 
-        $windows->{$wid}->show();
-        $focus->{screen}->win_add($windows->{$wid});
-        $windows->{$wid}->focus();
+        # Place it in proper place
+        $win->show();
+        $focus->{screen}->win_add($win);
+        $win->focus();
         $focus->{screen}->refresh();
         $X->flush();
     },

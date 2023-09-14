@@ -53,7 +53,6 @@ sub ws_set_color($self, $ws, $new_color_bg, $new_color_fg) {
 sub ws_set_visible($self, $id, $new_visible = 1) {
     my $meth = $new_visible ? "show" : "hide";
     my $ws = $self->{ws}->[$id - 1];
-    return if $ws->{active} and not $new_visible;
     $ws->{ebox}->$meth;
 }
 
@@ -161,7 +160,7 @@ sub new($class, $panel_id, $panel_width, $panel_x, $ws_cb) {
 
     # Hide empty tags if needed
     if ($cfg->{hide_empty_tags}) {
-        $panel->ws_set_visible($_, 0) for 1..@ws_names;
+        $panel->ws_set_visible($_, 0) for 2..@ws_names;
     }
 
     $panel->{window} = $window;

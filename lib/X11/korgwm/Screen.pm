@@ -41,24 +41,22 @@ sub destroy($self, $new_screen) {
     %{ $self } = ();
 }
 
-sub tag_set_active($self, $tag_new, $rotate = 1) {
-    $tag_new = $self->{tag_prev} if $rotate and $tag_new == $self->{tag_curr};
-    return if $tag_new == $self->{tag_curr};
-
-    # Hide old tag
-    my $tag_curr = $self->current_tag();
-    $tag_curr->hide() if defined $tag_curr;
+sub tag_set_active($self, $tag_new_id, $rotate = 1) {
+    $tag_new_id = $self->{tag_prev} if $rotate and $tag_new_id == $self->{tag_curr};
+    return if $tag_new_id == $self->{tag_curr};
 
     # Remember previous tag
+    my $tag_old = $self->current_tag();
     $self->{tag_prev} = $self->{tag_curr};
-    $self->{tag_curr} = $tag_new;
+    $self->{tag_curr} = $tag_new_id;
 
-    # Show new tag
-    $tag_curr = $self->current_tag();
-    $tag_curr->show() if defined $tag_curr;
+    # Show new tag and hide the old one
+    my $tag_new = $self->current_tag();
+    $tag_new->show() if defined $tag_new;
+    $tag_old->hide() if defined $tag_old;
 
     # Update panel view
-    $self->{panel}->ws_set_active(1 + $tag_new);
+    $self->{panel}->ws_set_active(1 + $tag_new_id);
 }
 
 # Return current tag

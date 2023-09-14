@@ -38,8 +38,11 @@ sub destroy($self, $new_screen) {
 }
 
 sub hide($self) {
-    # Remove layout if we're hiding empty tag
-    $self->{layout} = undef unless $self->first_window();
+    # Remove layout and hide on panel if we're hiding an empty tag
+    unless ($self->first_window()) {
+        $self->{layout} = undef;
+        $self->{screen}->{panel}->ws_set_visible($self->{idx} + 1, 0) if $cfg->{hide_empty_tags};
+    }
 
     # Hide all windows and drop focus
     $_->hide() for $self->windows();
@@ -58,6 +61,7 @@ sub show($self) {
         $self->{max_window}->resize_and_move(@{ $self->{screen} }{qw( x y w h )}, 0);
         $self->{max_window}->show();
     } else {
+        $self->{screen}->{panel}->ws_set_visible($self->{idx} + 1, 1) if $cfg->{hide_empty_tags};
         for my $win (grep defined,
             @{ $self->{screen}->{always_on} },
             @{ $self->{windows_float} },
