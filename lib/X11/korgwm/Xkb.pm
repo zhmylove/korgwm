@@ -5,19 +5,11 @@ package X11::korgwm::Xkb;
 use strict;
 use warnings;
 use feature 'signatures';
-use open ':std', ':encoding(UTF-8)';
-use utf8;
+
 use Carp;
 use X11::XCB ':all';
+use X11::korgwm::Common;
 require X11::korgwm::Panel::Lang;
-
-use Data::Dumper;
-$Data::Dumper::Sortkeys = 1;
-
-our ($X, $cfg, %screens);
-*X = *X11::korgwm::X;
-*cfg = *X11::korgwm::cfg;
-*screens = *X11::korgwm::screens;
 
 # Update language on the panel
 sub lang_update {

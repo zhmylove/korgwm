@@ -5,22 +5,12 @@ package X11::korgwm::Expose;
 use strict;
 use warnings;
 use feature 'signatures';
-use open ':std', ':encoding(UTF-8)';
-use utf8;
+
 use Carp;
 use X11::XCB ':all';
-
-use Data::Dumper;
-$Data::Dumper::Sortkeys = 1;
-
+use X11::korgwm::Common;
 use Glib::Object::Introspection;
 use Gtk3 -init;
-
-our ($X, $cfg, $windows, %screens);
-*X = *X11::korgwm::X;
-*cfg = *X11::korgwm::cfg;
-*windows = *X11::korgwm::windows;
-*screens = *X11::korgwm::screens;
 
 my $display;
 my $win_expose;
@@ -91,7 +81,7 @@ sub expose {
     $_->_update_pixbuf() for map { $_->current_tag()->windows() } values %screens;
 
     # Select current screen
-    my $screen_curr = $X11::korgwm::focus->{screen};
+    my $screen_curr = $focus->{screen};
 
     # Create a window for expose
     $win_expose = Gtk3::Window->new('popup');

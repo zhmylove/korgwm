@@ -5,19 +5,12 @@ package X11::korgwm::Screen;
 use strict;
 use warnings;
 use feature 'signatures';
-use open ':std', ':encoding(UTF-8)';
-use utf8;
+
 use Carp;
 use List::Util qw( first );
 use X11::XCB ':all';
 use X11::korgwm::Tag;
-
-use Data::Dumper;
-$Data::Dumper::Sortkeys = 1;
-
-our ($X, $cfg);
-*X = *X11::korgwm::X;
-*cfg = *X11::korgwm::cfg;
+use X11::korgwm::Common;
 
 sub new($class, $x, $y, $w, $h) {
     my $idx = 0;
@@ -107,7 +100,7 @@ sub focus($self) {
     if (defined $self->{focus}) {
         $self->{focus}->focus();
     } else {
-        $X11::korgwm::focus->{screen} = $self;
+        $focus->{screen} = $self;
         $self->{panel}->title();
     }
 }

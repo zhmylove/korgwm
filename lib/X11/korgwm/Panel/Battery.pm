@@ -5,17 +5,10 @@ package X11::korgwm::Panel::Battery;
 use strict;
 use warnings;
 use feature 'signatures';
-use open ':std', ':encoding(UTF-8)';
-use utf8;
-use Carp;
+
 use AnyEvent;
+use X11::korgwm::Common;
 use X11::korgwm::Panel;
-
-use Data::Dumper;
-$Data::Dumper::Sortkeys = 1;
-
-our $cfg;
-*cfg = *X11::korgwm::cfg;
 
 # Add panel element
 &X11::korgwm::Panel::add_element("battery", sub($el) {

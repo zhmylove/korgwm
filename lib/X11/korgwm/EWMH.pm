@@ -5,22 +5,14 @@ package X11::korgwm::EWMH;
 use strict;
 use warnings;
 use feature 'signatures';
-use open ':std', ':encoding(UTF-8)';
-use utf8;
+
 use Carp;
 use X11::XCB ':all';
 use X11::XCB::Event::PropertyNotify;
 use X11::XCB::Event::ClientMessage;
 
+use X11::korgwm::Common;
 use X11::korgwm::Window;
-
-use Data::Dumper;
-$Data::Dumper::Sortkeys = 1;
-
-our ($X, $cfg, $windows);
-*X = *X11::korgwm::X;
-*cfg = *X11::korgwm::cfg;
-*windows = *X11::korgwm::windows;
 
 # Unconditionally update a title
 sub icccm_update_title($evt) {

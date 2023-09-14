@@ -5,18 +5,12 @@ package X11::korgwm::Layout;
 use strict;
 use warnings;
 use feature 'signatures';
-use open ':std', ':encoding(UTF-8)';
-use utf8;
+
 use Carp;
 use POSIX qw( ceil floor round );
 use Storable qw( dclone );
+use X11::korgwm::Common;
 use X11::korgwm::Window;
-
-our $X;
-*X = *X11::korgwm::X;
-
-use Data::Dumper;
-$Data::Dumper::Sortkeys = 1;
 
 =head1 DESCRIPTION
 

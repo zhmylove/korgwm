@@ -5,21 +5,12 @@ package X11::korgwm::Hotkeys;
 use strict;
 use warnings;
 use feature 'signatures';
-use open ':std', ':encoding(UTF-8)';
-use utf8;
+
 use Carp;
 use X11::XCB ':all';
+use X11::korgwm::Common;
 require X11::korgwm::Config;
 require X11::korgwm::Executor;
-
-use Data::Dumper;
-$Data::Dumper::Sortkeys = 1;
-
-our ($X, $cfg, %screens);
-*X = *X11::korgwm::X;
-*cfg = *X11::korgwm::cfg;
-*screens = *X11::korgwm::screens;
-# *focus = *X11::korgwm::focus;
 
 # <X11/keysymdef.h>
 my $keys = {

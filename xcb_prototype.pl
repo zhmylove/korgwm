@@ -23,6 +23,7 @@ use Devel::SimpleTrace;
 use Data::Dumper;
 $Data::Dumper::Sortkeys = 1;
 
+use X11::korgwm::Common;
 use X11::korgwm::Config;
 use X11::korgwm::Panel::Battery;
 use X11::korgwm::Panel::Clock;
@@ -42,10 +43,9 @@ use X11::korgwm::Hotkeys;
 # - https://www.x.org/releases/X11R7.7/doc/xproto/x11protocol.txt
 # - https://specifications.freedesktop.org/wm-spec/wm-spec-latest.html
 
-our $cfg;
 $SIG{CHLD} = "IGNORE";
 
-our $X = X11::XCB::Connection->new;
+$X = X11::XCB::Connection->new;
 die "Errors connecting to X11" if $X->has_error();
 warn Dumper $X->screens;
 warn Dumper my $r = $X->root;
@@ -78,9 +78,6 @@ sub init_extension($name, $first_event) {
 my ($RANDR_EVENT_BASE);
 init_extension("RANDR", \$RANDR_EVENT_BASE);
 
-our $windows = {};
-my $focused;
-
 sub win_get_property($conn, $win, $prop_name, $prop_type='UTF8_STRING', $ret_length=8) {
     my $aname = $X->atom(name => $prop_name)->id;
     my $atype = $X->atom(name => $prop_type)->id;
@@ -88,8 +85,6 @@ sub win_get_property($conn, $win, $prop_name, $prop_type='UTF8_STRING', $ret_len
     $X->get_property_reply($cookie->{sequence});
 }
 
-our %screens;
-our @screens;
 sub handle_screens {
     my @xscreens = @{ $X->screens() };
 
@@ -131,7 +126,7 @@ sub handle_screens {
 handle_screens();
 die "No screens found" unless keys %screens;
 
-our $focus = {
+$focus = {
     screen => $screens{(sort keys %screens)[0]},
     window => undef,
 };
@@ -155,8 +150,6 @@ sub hide_window($wid, $delete=undef) {
         delete $win->{transient_for}->{siblings}->{$wid};
     }
 }
-
-our $unmap_prevent;
 
 our %xcb_events = (
     MAP_REQUEST, sub($evt) {

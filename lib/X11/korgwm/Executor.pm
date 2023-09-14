@@ -5,19 +5,10 @@ package X11::korgwm::Executor;
 use strict;
 use warnings;
 use feature 'signatures';
-use open ':std', ':encoding(UTF-8)';
-use utf8;
+
 use Carp;
 use X11::XCB ':all';
-
-use Data::Dumper;
-$Data::Dumper::Sortkeys = 1;
-
-our ($X, $cfg, $focus, %screens, @screens);
-*X = *X11::korgwm::X;
-*cfg = *X11::korgwm::cfg;
-*focus = *X11::korgwm::focus;
-*screens = *X11::korgwm::screens;
+use X11::korgwm::Common;
 
 # Implementation of all the commands (unless some module push here additional funcs)
 our @parser = (
@@ -89,6 +80,7 @@ our @parser = (
         my $new_screen = $screens[$arg - 1] or return;
         my $old_screen = $focus->{screen};
         return if $new_screen == $old_screen;
+        return if $new_screen->current_tag->{max_window} and $win->{maximized};
 
         $old_screen->win_remove($win);
         $new_screen->win_add($win);
@@ -96,8 +88,6 @@ our @parser = (
         # Follow focus
         $new_screen->{focus} = $win;
         $focus->{screen} = $new_screen;
-
-        # TODO handle maximized
 
         if ($win->{floating}) {
             my ($new_x, $new_y) = @{ $win }{qw( real_x real_y )};

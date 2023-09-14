@@ -5,19 +5,12 @@ package X11::korgwm::Tag;
 use strict;
 use warnings;
 use feature 'signatures';
-use open ':std', ':encoding(UTF-8)';
-use utf8;
+
 use List::Util qw( first );
 use Carp;
 use X11::XCB ':all';
+use X11::korgwm::Common;
 use X11::korgwm::Layout;
-
-use Data::Dumper;
-$Data::Dumper::Sortkeys = 1;
-
-our ($X, $cfg);
-*X = *X11::korgwm::X;
-*cfg = *X11::korgwm::cfg;
 
 sub new($class, $screen) {
     bless {
@@ -81,7 +74,6 @@ sub show($self) {
     }
 
     # Handle focus change
-    my $focus = $X11::korgwm::focus;
     $focus->{screen} = $self->{screen};
     my $focus_win = $self->{screen}->{focus};
     if (defined $focus_win and exists $focus_win->{on_tags}->{$self} ) {
@@ -101,6 +93,7 @@ sub win_add($self, $win) {
     $win->{on_tags}->{$self} = $self;
     $self->{urgent_windows}->{$win} = undef if $win->urgency_get();
 
+    $self->{max_window} = $win if $win->{maximized};
     unshift @{ $win->{floating} ? $self->{windows_float} : $self->{windows_tiled} }, $win;
 }
 

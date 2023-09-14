@@ -5,12 +5,12 @@ package X11::korgwm::Config;
 use strict;
 use warnings;
 use feature 'signatures';
+
+# TODO cleanup
 use open ':std', ':encoding(UTF-8)';
 use utf8;
 use Carp;
-
-our $cfg;
-*cfg = *X11::korgwm::cfg;
+use X11::korgwm::Common;
 
 # TODO get from some config file
 

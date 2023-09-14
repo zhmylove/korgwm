@@ -5,19 +5,12 @@ package X11::korgwm::Window;
 use strict;
 use warnings;
 use feature 'signatures';
-use open ':std', ':encoding(UTF-8)';
-use utf8;
+
 use Carp;
 use List::Util qw( first );
 use Encode qw( encode decode );
 use X11::XCB ':all';
-
-use Data::Dumper;
-$Data::Dumper::Sortkeys = 1;
-
-our ($X, $cfg);
-*X = *X11::korgwm::X;
-*cfg = *X11::korgwm::cfg;
+use X11::korgwm::Common;
 
 sub new($class, $id) {
     bless { id => $id, on_tags => {} }, $class;
@@ -110,7 +103,6 @@ sub focus($self) {
     croak "Undefined window" unless $self->{id};
 
     # Get focus pointer and reset focus for previously focused window, if any
-    my $focus = $X11::korgwm::focus;
     $focus->{window}->reset_border() if $focus->{window} and $self != ($focus->{window} // 0);
 
     $X->change_window_attributes($self->{id}, CW_BORDER_PIXEL, $cfg->{color_border_focus});
@@ -192,16 +184,16 @@ sub update_title($self) {
 
 sub hide($self) {
     # Ignore notifications from our actions
-    $X11::korgwm::unmap_prevent->{$self->{id}} = 1;
+    $unmap_prevent->{$self->{id}} = 1;
 
     # Drop panel title
     $_->{panel}->title() for grep { $_->{focus} == $self } $self->screens();
 
     # Drop focus
-    $X11::korgwm::focus->{window} = undef if $self == ($X11::korgwm::focus->{window} // 0);
+    $focus->{window} = undef if $self == ($focus->{window} // 0);
 
     # Execute hooks, see Expose.pm
-    $_->($self) for @X11::korgwm::Window::hooks_hide;
+    $_->($self) for our @hooks_hide;
 
     # Do actual unmap
     $X->unmap_window($self->{id});
@@ -235,8 +227,7 @@ sub transients($self) {
     # TODO maybe sort them?
     my @siblings_xid = keys %{ $self->{siblings} };
     return () unless @siblings_xid;
-    my $known = $X11::korgwm::windows;
-    map { ($known->{$_}->transients(), $known->{$_}) } @siblings_xid;
+    map { ($windows->{$_}->transients(), $windows->{$_}) } @siblings_xid;
 }
 
 sub toggle_floating($self) {
@@ -319,7 +310,6 @@ sub toggle_maximize($self, $action = undef) {
 
 sub toggle_always_on($self) {
     return unless $self->{floating};
-    my $focus = $X11::korgwm::focus; # due to sub focus()
 
     if ($self->{always_on} = ! $self->{always_on}) {
         # Remove window from all tags and store it in always_on of current screen
@@ -387,7 +377,7 @@ sub urgency_clear($self) {
 
 # High-level wrapper
 sub urgency_raise($self, $set_hint = undef) {
-    if ($X11::korgwm::focus->{window} == $self) {
+    if ($focus->{window} == $self) {
         return $self->urgency_clear();
     }
 

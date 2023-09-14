@@ -5,15 +5,11 @@ package X11::korgwm::Panel;
 use strict;
 use warnings;
 use feature 'signatures';
-use open ':std', ':encoding(UTF-8)';
-use utf8;
+
 use Carp;
 use Gtk3 -init;
 use AnyEvent;
-
-# Import config
-our $cfg;
-*cfg = *X11::korgwm::cfg;
+use X11::korgwm::Common;
 
 # Prepare internal variables
 my ($ready, $font, $color_fg , $color_bg , $color_urgent_bg, $color_urgent_fg, @ws_names);
