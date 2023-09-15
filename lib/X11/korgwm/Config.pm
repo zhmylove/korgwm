@@ -76,8 +76,8 @@ $cfg->{hotkeys} = {
 };
 
 $cfg->{rules} = {
-    "mattermost" => undef, # move to screen #2 or #1 tag #4
-    "evolution" => undef, # move to screen #1 tag #3
+    "mattermost" => undef, # move to screen #2 or #1 tag #4 follow:no
+    "evolution" => undef, # move to screen #1 tag #3 follow:no
     "galculator" => undef, # make floating
     "urxvt-float" => undef, # make floating
 };

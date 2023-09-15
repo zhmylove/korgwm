@@ -16,13 +16,13 @@ use X11::korgwm::Window;
 
 # Unconditionally update a title
 sub icccm_update_title($evt) {
-    my $win = $windows->{$evt->window} or return;
+    my $win = $windows->{$evt->{window}} or return;
     $win->update_title();
 }
 
 # React only on urgency
 sub icccm_update_wm_hints($evt) {
-    my $win = $windows->{$evt->window} or return;
+    my $win = $windows->{$evt->{window}} or return;
 
     # Short path if nothing changed
     my $urgency_old = $win->{urgent} // -1;
@@ -39,10 +39,10 @@ sub icccm_update_wm_hints($evt) {
 # Fullscreen handlers
 my $atom_fullscreen;
 sub icccm_update_maximize($evt) {
-    my $win = $windows->{$evt->window} or return;
+    my $win = $windows->{$evt->{window}} or return;
 
     # Ignore irrelevant events
-    my ($action, $first, $second, $source_indication) = unpack "LLLL", $evt->data;
+    my ($action, $first, $second, $source_indication) = unpack "LLLL", $evt->{data};
     return unless $first == $atom_fullscreen or $second == $atom_fullscreen;
 
     # Ok, now we're sure we were requested to change the fullscreen hint

@@ -5,22 +5,19 @@ package X11::korgwm;
 use strict;
 use warnings;
 use feature 'signatures';
+
 use lib 'lib', '../X11-XCB/lib', '../X11-XCB/blib/arch';
+
 use X11::XCB 0.20 ':all';
 use X11::XCB::Connection;
-use X11::XCB::Window;
-use X11::XCB::Event::ConfigureRequest;
-use X11::XCB::Event::KeyPress;
-use X11::XCB::Event::EnterLeaveNotify;
-use X11::XCB::Event::MapRequest;
-use X11::XCB::Event::UnmapNotify;
-use X11::XCB::Event::DestroyNotify;
 use Carp;
 use AnyEvent;
 
+# TODO remove
 use Devel::SimpleTrace;
 use Data::Dumper;
 $Data::Dumper::Sortkeys = 1;
+#$Data::Dumper::Indent = 0;
 
 use X11::korgwm::Common;
 use X11::korgwm::Config;
@@ -49,7 +46,7 @@ die "Errors connecting to X11" if $X->has_error();
 warn Dumper $X->screens;
 warn Dumper my $r = $X->root;
 warn Dumper $X->get_window_attributes($r->id);
-warn Dumper my $wm = $X->change_window_attributes_checked($r->id, CW_EVENT_MASK, EVENT_MASK_SUBSTRUCTURE_REDIRECT | EVENT_MASK_SUBSTRUCTURE_NOTIFY);
+warn Dumper my $wm = $X->change_window_attributes_checked($r->id, CW_EVENT_MASK, EVENT_MASK_SUBSTRUCTURE_REDIRECT | EVENT_MASK_SUBSTRUCTURE_NOTIFY | EVENT_MASK_POINTER_MOTION);
 #warn Dumper $X->change_window_attributes($r->id, CW_EVENT_MASK, EVENT_MASK_BUTTON_1_MOTION|EVENT_MASK_BUTTON_2_MOTION|EVENT_MASK_BUTTON_3_MOTION|EVENT_MASK_BUTTON_4_MOTION|EVENT_MASK_BUTTON_5_MOTION|EVENT_MASK_BUTTON_MOTION|EVENT_MASK_BUTTON_PRESS|EVENT_MASK_BUTTON_RELEASE|EVENT_MASK_COLOR_MAP_CHANGE|EVENT_MASK_ENTER_WINDOW|EVENT_MASK_EXPOSURE|EVENT_MASK_FOCUS_CHANGE|EVENT_MASK_KEYMAP_STATE|EVENT_MASK_KEY_PRESS|EVENT_MASK_KEY_RELEASE|EVENT_MASK_LEAVE_WINDOW|EVENT_MASK_NO_EVENT|EVENT_MASK_OWNER_GRAB_BUTTON|EVENT_MASK_POINTER_MOTION|EVENT_MASK_POINTER_MOTION_HINT|EVENT_MASK_PROPERTY_CHANGE|EVENT_MASK_RESIZE_REDIRECT|EVENT_MASK_STRUCTURE_NOTIFY|EVENT_MASK_SUBSTRUCTURE_NOTIFY|EVENT_MASK_SUBSTRUCTURE_REDIRECT|EVENT_MASK_VISIBILITY_CHANGE);
 # warn Dumper $X->change_window_attributes($r->id, CW_CURSOR, ...);
 warn Dumper my $wm_error = $X->request_check($wm->{sequence});
@@ -130,6 +127,46 @@ $focus = {
     window => undef,
 };
 
+sub handle_existing_windows {
+    # Query for windows and process them
+    my %transients;
+    for my $wid (
+        map { $_->[0] }
+        grep { $_->[1]->{map_state} == MAP_STATE_VIEWABLE and not $_->[1]->{override_redirect} }
+        map { [ $_ => $X->get_window_attributes_reply($X->get_window_attributes($_)->{sequence}) ] }
+        @{ $X->get_query_tree_children($r->id) }
+    ) {
+        if (my $transient_for = X11::korgwm::Window::_transient_for($wid)) {
+            $transients{$wid} = $transient_for;
+            next;
+        }
+        my $win = ($windows->{$wid} = X11::korgwm::Window->new($wid));
+    }
+
+    # Process transients
+    for my $wid (keys %transients) {
+        my $win = ($windows->{$wid} = X11::korgwm::Window->new($wid));
+        $win->{transient_for} = $windows->{$transients{$wid}};
+        $windows->{$transients{$wid}}->{siblings}->{$wid} = undef;
+    }
+
+    # Set proper window information
+    for my $win (values %{ $windows }) {
+        $win->{floating} = 1;
+        $X->change_window_attributes($win->{id}, CW_EVENT_MASK, EVENT_MASK_ENTER_WINDOW | EVENT_MASK_PROPERTY_CHANGE);
+
+        my ($x, $y, $w, $h) = $win->query_geometry();
+        $y = $cfg->{panel_height} if $y < $cfg->{panel_height};
+        my $bw = $cfg->{border_width};
+        @{ $win }{qw( x y w h )} = ($x, $y, $w, $h);
+
+        $win->resize_and_move($x, $y, $w + 2 * $bw, $h + 2 * $bw);
+        $focus->{screen}->win_add($win)
+    }
+    $focus->{screen}->refresh();
+}
+handle_existing_windows();
+
 sub hide_window($wid, $delete=undef) {
     my $win = $delete ? delete $windows->{$wid} : $windows->{$wid};
     return unless $win;
@@ -153,23 +190,29 @@ sub hide_window($wid, $delete=undef) {
 our %xcb_events = (
     MAP_REQUEST, sub($evt) {
         warn "Mapping...";
-        my $wid = $evt->window;
-
-        # Set event mask (TODO on each MAP?)
-        $X->change_window_attributes($wid, CW_EVENT_MASK,
-            EVENT_MASK_ENTER_WINDOW | EVENT_MASK_LEAVE_WINDOW | EVENT_MASK_PROPERTY_CHANGE
-        );
+        my $wid = $evt->{window};
 
         # Create a window if needed
-        my $win = ($windows->{$wid} //= X11::korgwm::Window->new($wid));
+        unless (defined $windows->{$wid}) {
+            $windows->{$wid} = X11::korgwm::Window->new($wid);
+
+            $X->change_window_attributes($wid, CW_EVENT_MASK, EVENT_MASK_ENTER_WINDOW | EVENT_MASK_PROPERTY_CHANGE);
+        }
+
+        # Get object and fix geometry if needed
+        my $win = $windows->{$wid};
+        @{ $win }{qw( x y w h )} = $win->query_geometry() unless defined $win->{x};
+
+        # TODO process rules here
 
         # Process transients
         my $transient_for = $win->transient_for() // -1;
         $transient_for = undef unless defined $windows->{$transient_for};
         if ($transient_for) {
+            my $parent = $windows->{$transient_for};
             $win->{floating} = 1;
-            $win->{transient_for} = $windows->{$transient_for};
-            $windows->{$transient_for}->{siblings}->{$wid} = undef;
+            $win->{transient_for} = $parent;
+            $parent->{siblings}->{$wid} = undef;
             # TODO implement screen change and win->move here
         }
 
@@ -181,25 +224,13 @@ our %xcb_events = (
         $X->flush();
     },
     DESTROY_NOTIFY, sub($evt) {
-        hide_window($evt->window, 1);
+        hide_window($evt->{window}, 1);
     },
     UNMAP_NOTIFY, sub($evt) {
         # The problem here is to distinguish between unmap due to $tag->hide() and unmap request from client
-        hide_window($evt->window) unless delete $unmap_prevent->{$evt->window};
+        hide_window($evt->{window}) unless delete $unmap_prevent->{$evt->{window}};
     },
     CONFIGURE_REQUEST, sub($evt) {
-        # Order of the fields from xproto.h:
-        #   XCB_CONFIG_WINDOW_X = 1,
-        #   XCB_CONFIG_WINDOW_Y = 2,
-        #   XCB_CONFIG_WINDOW_WIDTH = 4,
-        #   XCB_CONFIG_WINDOW_HEIGHT = 8,
-        #   XCB_CONFIG_WINDOW_BORDER_WIDTH = 16,
-        #   XCB_CONFIG_WINDOW_SIBLING = 32,
-        #   XCB_CONFIG_WINDOW_STACK_MODE = 64
-        #
-        # On any configure request we disrespect most parameters.
-        # TODO should we handle 'sibling' field?
-
         # Configure window on the server
         my $win_id = $evt->{window};
 
@@ -213,7 +244,6 @@ our %xcb_events = (
                 # For floating we need fixup border
                 my $bw = $cfg->{border_width};
                 $win->resize_and_move($x, $y, $w + 2 * $bw, $h + 2 * $bw);
-                $win->configure_notify($evt->{sequence}, $x, $y, $w, $h);
             } else {
                 # If window is tiled or maximized, tell it it's real size
                 ($x, $y, $w, $h) = @{ $win }{qw( real_x real_y real_w real_h )};
@@ -242,10 +272,23 @@ our %xcb_events = (
         handle_screens();
     },
     ENTER_NOTIFY, sub($evt) {
-        # TODO Do we really need to ignore EnterNotifies on unknown windows? I'll leave it here waiting for bugs.
-        return unless exists $windows->{$evt->event};
-        my $win = $windows->{$evt->event};
+        # XXX Do we really need to ignore EnterNotifies on unknown windows? I'll leave it here waiting for bugs.
+        return unless exists $windows->{$evt->{event}};
+        my $win = $windows->{$evt->{event}};
         $win->focus();
+    },
+    MOTION_NOTIFY, sub($evt) {
+        return if $evt->{child};
+        for my $screen (@screens) {
+            next unless (
+                $screen->{x} < $evt->{event_x} and
+                $screen->{x} + $screen->{w} > $evt->{event_x} and
+                $screen->{y} < $evt->{event_y} and
+                $screen->{y} + $screen->{h} > $evt->{event_y}
+            );
+
+            $screen->focus() if $focus->{screen} != $screen;
+        }
     },
 );
 
@@ -275,7 +318,7 @@ if (my $pos = $cfg->{initial_pointer_position}) {
 
 # Main event loop
 for(;;) {
-    die "Exit requested" if $exit_trigger;
+    die "Segmentation fault (core dumped)\n" if $exit_trigger;
 
     while (my $evt = $X->poll_for_event()) {
         warn Dumper $evt;
@@ -289,8 +332,6 @@ for(;;) {
             warn "... MISSING handler for event " . $type;
         }
     }
-
-    # TODO should handle Gtk / AE events here
 
     my $pause = AE::cv;
     my $w = AE::timer 0.1, 0, sub { $pause->send };

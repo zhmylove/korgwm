@@ -66,6 +66,10 @@ sub _transient_for($wid) {
     _get_property($wid, "WM_TRANSIENT_FOR", "WINDOW", 16);
 }
 
+sub _query_geometry($wid) {
+    map { @{$_}{qw( x y width height )} } $X->get_geometry_reply($X->get_geometry($wid)->{sequence});
+}
+
 # Generate accessors by object
 INIT {
     no strict 'refs';
@@ -76,6 +80,7 @@ INIT {
         get_property
         title
         transient_for
+        query_geometry
         )) {
         *{__PACKAGE__ . "::$func"} = sub {
             my $self = shift;

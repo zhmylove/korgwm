@@ -64,8 +64,8 @@ sub init {
 
     # Register event handler
     &X11::korgwm::add_event_cb(KEY_PRESS(), sub($evt) {
-        my $key = $keymap->[$evt->detail]->[0];
-        my $mask = $evt->state;
+        my $key = $keymap->[$evt->{detail}]->[0];
+        my $mask = $evt->{state};
 
         # Sometimes we get modifiers itself from X11, so ignore them (constants took from <X11/keysymdef.h>)
         return carp "X11 sent us a modifier key $key mask $mask" if $key >= 0xffe1 and $key <= 0xffee;
