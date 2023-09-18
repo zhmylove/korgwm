@@ -67,7 +67,7 @@ sub show($self) {
             @{ $self->{windows_float} },
             @{ $self->{windows_tiled} }) {
             $win->show();
-            $win->reset_border() if $win != $self->{screen}->{focus} // 0;
+            $win->reset_border() if $win != ($self->{screen}->{focus} // 0);
         }
         $h -= $cfg->{panel_height};
         $y += $cfg->{panel_height};

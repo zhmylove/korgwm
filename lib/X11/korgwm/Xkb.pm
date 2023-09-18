@@ -22,11 +22,11 @@ sub init {
     # Set up extension
     my $XKB_EVENT_BASE;
     $X->xkb_use_extension(1, 1);
-    &X11::korgwm::init_extension("XKEYBOARD", \$XKB_EVENT_BASE);
+    init_extension("XKEYBOARD", \$XKB_EVENT_BASE);
     croak "Unable to init Xkb" unless $XKB_EVENT_BASE;
 
     # Set up event handler
-    &X11::korgwm::add_event_cb($XKB_EVENT_BASE, sub($evt) {
+    add_event_cb($XKB_EVENT_BASE, sub($evt) {
         # We ignore pad0 and update notifier on any xkb event
         lang_update();
     });

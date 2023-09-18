@@ -63,7 +63,7 @@ sub init {
     hotkey($_, $cfg->{hotkeys}->{$_}) for keys %{ $cfg->{hotkeys} };
 
     # Register event handler
-    &X11::korgwm::add_event_cb(KEY_PRESS(), sub($evt) {
+    add_event_cb(KEY_PRESS(), sub($evt) {
         my $key = $keymap->[$evt->{detail}]->[0];
         my $mask = $evt->{state};
 

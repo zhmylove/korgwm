@@ -7,7 +7,7 @@ use warnings;
 use feature 'signatures';
 
 use AnyEvent;
-use POSIX qw(strftime);
+use POSIX qw( strftime );
 use X11::korgwm::Common;
 use X11::korgwm::Panel;
 

@@ -38,6 +38,10 @@ sub _move($wid, $x, $y) {
     $X->configure_window($wid, CONFIG_WINDOW_X | CONFIG_WINDOW_Y, $x, $y);
 }
 
+sub _resize($wid, $w, $h) {
+    $X->configure_window($wid, CONFIG_WINDOW_WIDTH | CONFIG_WINDOW_HEIGHT, $w, $h);
+}
+
 sub _configure_notify($wid, $sequence, $x, $y, $w, $h, $above_sibling=0, $override_redirect=0,
         $bw=$cfg->{border_width}) {
     my $packed = pack('CCSLLLssSSSC', CONFIGURE_NOTIFY, 0, $sequence,
@@ -100,6 +104,12 @@ sub move($self, $x, $y) {
     croak "Undefined window" unless $self->{id};
     @{ $self }{qw( real_x real_y )} = ($x, $y);
     $X->configure_window($self->{id}, CONFIG_WINDOW_X | CONFIG_WINDOW_Y, $x, $y);
+}
+
+sub resize($self, $w, $h) {
+    croak "Undefined window" unless $self->{id};
+    @{ $self }{qw( real_w real_h )} = ($w, $h);
+    $X->configure_window($self->{id}, CONFIG_WINDOW_WIDTH | CONFIG_WINDOW_HEIGHT, $w, $h);
 }
 
 sub _stack_above($self) {

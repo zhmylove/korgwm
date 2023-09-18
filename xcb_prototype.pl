@@ -31,6 +31,7 @@ use X11::korgwm::Screen;
 use X11::korgwm::EWMH;
 use X11::korgwm::Xkb;
 use X11::korgwm::Expose;
+use X11::korgwm::Mouse;
 use X11::korgwm::Hotkeys;
 
 # Should you want understand this, first read carefully:
@@ -38,6 +39,7 @@ use X11::korgwm::Hotkeys;
 # - X11::XCB source code
 # - https://www.x.org/releases/X11R7.7/doc/xproto/x11protocol.txt
 # - https://specifications.freedesktop.org/wm-spec/wm-spec-latest.html
+# ... though this code is written once to read never.
 
 $SIG{CHLD} = "IGNORE";
 
@@ -63,13 +65,6 @@ $X->flush();
 # Initialize RANDR
 qx($cfg->{randr_cmd});
 $X->randr_select_input($r->id, RANDR_NOTIFY_MASK_SCREEN_CHANGE);
-
-sub init_extension($name, $first_event) {
-    my $ext = $X->query_extension_reply($X->query_extension(length($name), $name)->{sequence});
-    die "$name not available" unless $ext->{present};
-    $$first_event = $ext->{first_event};
-    die "Could not get $name first_event" unless $$first_event;
-}
 
 my ($RANDR_EVENT_BASE);
 init_extension("RANDR", \$RANDR_EVENT_BASE);
@@ -187,7 +182,7 @@ sub hide_window($wid, $delete=undef) {
     }
 }
 
-our %xcb_events = (
+%xcb_events = (
     MAP_REQUEST, sub($evt) {
         warn "Mapping...";
         my $wid = $evt->{window};
@@ -215,6 +210,8 @@ our %xcb_events = (
             $parent->{siblings}->{$wid} = undef;
             # TODO implement screen change and win->move here
         }
+
+        # TODO win->move here in case of improper geometry
 
         # Place it in proper place
         $win->show();
@@ -277,26 +274,7 @@ our %xcb_events = (
         my $win = $windows->{$evt->{event}};
         $win->focus();
     },
-    MOTION_NOTIFY, sub($evt) {
-        return if $evt->{child};
-        for my $screen (@screens) {
-            next unless (
-                $screen->{x} < $evt->{event_x} and
-                $screen->{x} + $screen->{w} > $evt->{event_x} and
-                $screen->{y} < $evt->{event_y} and
-                $screen->{y} + $screen->{h} > $evt->{event_y}
-            );
-
-            $screen->focus() if $focus->{screen} != $screen;
-        }
-    },
 );
-
-# Helper for extensions
-sub add_event_cb($id, $sub) {
-    croak "Redefined event handler for $id" if defined $xcb_events{$id};
-    $xcb_events{$id} = $sub;
-}
 
 # Prepare manual exit switch
 our $exit_trigger = 0;

@@ -71,14 +71,14 @@ sub init {
     $atom_fullscreen = $X->atom(name => "_NET_WM_STATE_FULLSCREEN")->id();
 
     # Set up event handlers
-    &X11::korgwm::add_event_cb(CLIENT_MESSAGE(), sub ($evt) {
+    add_event_cb(CLIENT_MESSAGE(), sub ($evt) {
         my $atomname = $icccm_atoms->{$evt->type} or return;
         my $handler = $icccm_handlers->{$atomname} or return;
         warn "... running handler for $atomname";
         $handler->($evt);
     });
 
-    &X11::korgwm::add_event_cb(PROPERTY_NOTIFY(), sub ($evt) {
+    add_event_cb(PROPERTY_NOTIFY(), sub ($evt) {
         my $atomname = $icccm_atoms->{$evt->{atom}} or return;
         my $handler = $icccm_handlers->{$atomname} or return;
         warn "... running handler for $atomname";
