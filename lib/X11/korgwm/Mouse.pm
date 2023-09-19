@@ -11,10 +11,9 @@ use List::Util qw( first );
 use X11::XCB ':all';
 use X11::korgwm::Common;
 require X11::korgwm::Config;
+my $_motion_win;
+my %_motion_start;
 
-sub screen_by_xy($x, $y, ) {
-    first { $_->{x} < $x and $_->{x} + $_->{w} > $x and $_->{y} < $y and $_->{y} + $_->{h} > $y } @screens;
-}
 
 # Regular motion notify, used to track inter-screen movements
 sub _motion_regular($evt) {
@@ -25,9 +24,6 @@ sub _motion_regular($evt) {
     $screen->focus();
     $X->flush();
 }
-
-my $_motion_win;
-my %_motion_start;
 
 # This is called during movement
 sub _motion_resize($evt) {
@@ -60,11 +56,10 @@ sub _motion_move($evt) {
     @{ $_motion_win }{qw( x y )} = ($new_x, $new_y);
     $_motion_win->move($new_x, $new_y);
 
-    # TODO temporary lift the window up
-
     # Check if the pointer went outside the screen
-    if (my $new_screen = screen_by_xy($evt->{event_x}, $evt->{event_y})) {
-        $focus->{screen}->win_remove($_motion_win);
+    my $new_screen;
+    if ($new_screen = screen_by_xy($evt->{event_x}, $evt->{event_y}) and $focus->{screen} != $new_screen) {
+        $focus->{screen}->win_remove($_motion_win, 1);
         $focus->{screen}->{panel}->title();
         $new_screen->win_add($_motion_win);
         $focus->{screen} = $new_screen;
@@ -76,7 +71,10 @@ sub init {
     # Motion notifies are handled differently, here we're setting the default handler
     add_event_cb(MOTION_NOTIFY, \&_motion_regular);
 
-    add_event_cb(BUTTON_RELEASE, sub($evt) { replace_event_cb(MOTION_NOTIFY, \&_motion_regular) });
+    add_event_cb(BUTTON_RELEASE, sub($evt) {
+        replace_event_cb(MOTION_NOTIFY, \&_motion_regular);
+        $_motion_win = undef;
+    });
 
     add_event_cb(BUTTON_PRESS, sub($evt) {
         # Skip clicks on root and non-floating windows
@@ -101,6 +99,13 @@ sub init {
         } else {
             croak "We got unexpected mouse event, detail:" . $evt->{detail};
         }
+    });
+
+    add_event_cb(ENTER_NOTIFY, sub($evt) {
+        return if $_motion_win;
+        # XXX Do we really need to ignore EnterNotifies on unknown windows? I'll leave it here waiting for bugs.
+        return unless exists $windows->{$evt->{event}};
+        $windows->{$evt->{event}}->focus();
     });
 
     # Grab pointer

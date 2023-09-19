@@ -52,6 +52,7 @@ $cfg->{hotkeys} = {
     (map {; "mod_shift_F$_"     => "win_move_screen($_)"    } 1..9),
             "alt_F4"            => "win_close()",
             "mod_shift_c"       => "win_close()",
+            "mod_TAB"           => "focus_prev()",
             "alt_TAB"           => "focus_cycle(forward)",
             "alt_shift_TAB"     => "focus_cycle(backward)",
             "mod_CR"            => "exec(urxvt)",
@@ -60,8 +61,8 @@ $cfg->{hotkeys} = {
             "mod_ctrl_l"        => "exec(lock)",
             "mod_e"             => "expose()",
             "mod_f"             => "win_toggle_floating()",
-            "mod_g"             => "exec(google-chrome --new-window --incognito)",
-            "mod_shift_g"       => "exec(google-chrome --new-window)",
+            "mod_g"             => "exec(google-chrome --simulate-outdated-no-au --new-window --incognito)",
+            "mod_shift_g"       => "exec(google-chrome --simulate-outdated-no-au --new-window)",
             "mod_m"             => "win_toggle_maximize()",
             "mod_r"             => "exec(dmenu_run -i -nb #262729 -nf #A3BABF -sb #464729 -sf #FFFF00)",
             "mod_w"             => "exec(firefox --new-instance --private-window)",
@@ -80,6 +81,7 @@ $cfg->{rules} = {
     "evolution" => undef, # move to screen #1 tag #3 follow:no
     "galculator" => undef, # make floating
     "urxvt-float" => undef, # make floating
+    "xeyes" => undef, # make floating
 };
 
 1;

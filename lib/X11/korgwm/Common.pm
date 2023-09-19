@@ -7,9 +7,11 @@ use warnings;
 use feature 'signatures';
 use Carp;
 use Exporter 'import';
+use List::Util qw( first );
 
+# TODO sort exports list
 our @EXPORT = qw( $X $cfg $focus $unmap_prevent $windows %screens @screens add_event_cb replace_event_cb %xcb_events
-    init_extension );
+    init_extension screen_by_xy );
 
 our $X;
 our $cfg;
@@ -35,6 +37,11 @@ sub init_extension($name, $first_event) {
     my $ext = $X->query_extension_reply($X->query_extension(length($name), $name)->{sequence});
     die "$name extension not available" unless $ext->{present};
     die "Could not get $name first_event" unless $$first_event = $ext->{first_event};
+}
+
+# Other helpers
+sub screen_by_xy($x, $y) {
+    first { $_->{x} < $x and $_->{x} + $_->{w} > $x and $_->{y} < $y and $_->{y} + $_->{h} > $y } @screens;
 }
 
 1;

@@ -7,12 +7,14 @@ use warnings;
 use feature 'signatures';
 
 use List::Util qw( first );
+use Scalar::Util qw( weaken );
 use Carp;
 use X11::XCB ':all';
 use X11::korgwm::Common;
 use X11::korgwm::Layout;
 
 sub new($class, $screen) {
+    weaken($screen);
     bless {
         idx => undef,
         screen => $screen,
@@ -96,12 +98,13 @@ sub show($self) {
 sub win_add($self, $win) {
     $win->{on_tags}->{$self} = $self;
     $self->{urgent_windows}->{$win} = undef if $win->urgency_get();
+    $self->{screen}->{panel}->ws_set_visible($self->{idx} + 1);
 
     $self->{max_window} = $win if $win->{maximized};
     unshift @{ $win->{floating} ? $self->{windows_float} : $self->{windows_tiled} }, $win;
 }
 
-sub win_remove($self, $win) {
+sub win_remove($self, $win, $norefresh = undef) {
     delete $win->{on_tags}->{$self};
     delete $self->{urgent_windows}->{$win};
 
@@ -115,7 +118,7 @@ sub win_remove($self, $win) {
     splice @{ $arr }, $_, 1 for reverse grep { $arr->[$_] == $win } 0..$#{ $arr };
 
     # If this tag is visible, call screen refresh
-    $self->{screen}->refresh() if $self == $self->{screen}->current_tag();
+    $self->{screen}->refresh() if not $norefresh and $self == $self->{screen}->current_tag();
 }
 
 sub win_float($self, $win, $floating=undef) {

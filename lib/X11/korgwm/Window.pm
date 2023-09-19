@@ -12,8 +12,14 @@ use Encode qw( encode decode );
 use X11::XCB ':all';
 use X11::korgwm::Common;
 
+our $focus_prev;
+
 sub new($class, $id) {
     bless { id => $id, on_tags => {} }, $class;
+}
+
+sub DESTROY($self) {
+    $focus_prev = undef if $self == ($focus_prev // 0);
 }
 
 sub _get_property($wid, $prop_name, $prop_type='UTF8_STRING', $ret_length=8) {
@@ -135,7 +141,7 @@ sub focus($self) {
     my @visible_tags = $self->tags_visible();
     my $tag = $visible_tags[0];
 
-    if (0 == @visible_tags) {
+    if (0 == @visible_tags and not $self->{always_on}) {
         # We were asked to focus invisible window, do nothing?
         carp "Trying to focus an invisible window " . $self->{id};
 
@@ -145,7 +151,7 @@ sub focus($self) {
     } elsif (@visible_tags > 1) {
         # Focusing window residing on multiple visible tags is not implemented yet
         croak "Focusing window on multiple visible tags is not supported";
-    } elsif ($self->{maximized} or 0 == @{ $tag->{windows_float} }) {
+    } elsif ($self->{maximized} or $self->{always_on} or 0 == @{ $tag->{windows_float} }) {
         # Just raise the window if it is maximized or there are no floating windows on current tag
         $self->_stack_above();
     } else {
@@ -183,10 +189,12 @@ sub focus($self) {
     $self->urgency_clear() if $self->{urgent};
 
     # Update focus structure and panel title
-    $tag->{screen}->{focus} = $self;
-    $tag->{screen}->{panel}->title($self->title // "");
+    my $screen = $self->{always_on} || $tag->{screen};
+    $screen->{focus} = $self;
+    $screen->{panel}->title($self->title // "");
+    $focus_prev = $focus->{window} unless $focus->{window} == $self;
     $focus->{window} = $self;
-    $focus->{screen} = $focus_screens[0];
+    $focus->{screen} = $self->{always_on} || $focus_screens[0];
 
     $X->flush();
 }
@@ -212,6 +220,7 @@ sub hide($self) {
 
     # Drop focus
     $focus->{window} = undef if $self == ($focus->{window} // 0);
+    $focus_prev = undef if $self == ($focus_prev // 0);
 
     # Execute hooks, see Expose.pm
     $_->($self) for our @hooks_hide;
@@ -225,6 +234,7 @@ sub show($self) {
 }
 
 sub tags($self) {
+    # XXX this thing will return undef if the window is always_on
     values %{ $self->{on_tags} // {} };
 }
 
@@ -239,7 +249,7 @@ sub tags_visible($self) {
 
 sub screens($self) {
     my %screens;
-    $screens{$_} = $_ for map { $_->{screen} } $self->tags();
+    $screens{$_} = $_ for $self->{always_on} ? $self->{always_on} : (),  map { $_->{screen} } $self->tags();
     values %screens;
 }
 
@@ -276,7 +286,7 @@ sub toggle_floating($self) {
             $screen_min_h = $screen->{h} if $screen->{h} < ($screen_min_h // 10**6);
             $screen_min_w = $screen->{w} if $screen->{w} < ($screen_min_w // 10**6);
         }
-        die unless $screen_min_w and $screen_min_h;
+        croak "Unable to find screen minimums ($screen_min_w x $screen_min_h)" unless $screen_min_w and $screen_min_h;
 
         # Window looks unconfigured, so move it to the center
         if ($w < 1 or $h < 1) {
@@ -336,6 +346,7 @@ sub toggle_always_on($self) {
         # Remove window from all tags and store it in always_on of current screen
         $_->win_remove($self) for $self->tags();
         push @{ $focus->{screen}->{always_on} }, $self;
+        $self->{always_on} = $focus->{screen};
     } else {
         # Remove window from always_on and store it in current tag
         my $arr = $focus->{screen}->{always_on};
@@ -410,7 +421,9 @@ sub urgency_raise($self, $set_hint = undef) {
 }
 
 sub warp_pointer($self) {
-    $X->warp_pointer(0, $self->{id}, 0, 0, 0, 0, int($self->{real_w} / 2) - 1, int($self->{real_h} / 2) - 1);
+    $X->warp_pointer(0, $self->{id}, 0, 0, 0, 0, map {
+            int($self->{$_} / 2) - $cfg->{border_width} - 1
+        } qw( real_w real_h ));
     $X->flush();
 }
 

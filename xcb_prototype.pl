@@ -156,27 +156,35 @@ sub handle_existing_windows {
         @{ $win }{qw( x y w h )} = ($x, $y, $w, $h);
 
         $win->resize_and_move($x, $y, $w + 2 * $bw, $h + 2 * $bw);
-        $focus->{screen}->win_add($win)
+        my $screen = screen_by_xy($x, $y) || $focus->{screen};
+        $screen->win_add($win)
     }
-    $focus->{screen}->refresh();
+    $_->refresh() for reverse @screens;
 }
 handle_existing_windows();
 
 sub hide_window($wid, $delete=undef) {
     my $win = $delete ? delete $windows->{$wid} : $windows->{$wid};
     return unless $win;
+
     for my $tag (values %{ $win->{on_tags} // {} }) {
         $tag->win_remove($win);
         if ($win == ($tag->{screen}->{focus} // 0)) {
             $tag->{screen}->{focus} = undef;
-            warn "Setting title to zero";
             $tag->{screen}->{panel}->title();
         }
     }
+
+    if ($win->{always_on} and $win->{always_on}->{focus} == $win) {
+        $win->{always_on}->{focus} = undef;
+        $win->{always_on}->{panel}->title();
+    }
+
     if ($win == ($focus->{window} // 0)) {
         $focus->{focus} = undef;
         $focus->{screen}->focus();
     }
+
     if ($delete and $win->{transient_for}) {
         delete $win->{transient_for}->{siblings}->{$wid};
     }
@@ -184,7 +192,6 @@ sub hide_window($wid, $delete=undef) {
 
 %xcb_events = (
     MAP_REQUEST, sub($evt) {
-        warn "Mapping...";
         my $wid = $evt->{window};
 
         # Create a window if needed
@@ -224,7 +231,7 @@ sub hide_window($wid, $delete=undef) {
         hide_window($evt->{window}, 1);
     },
     UNMAP_NOTIFY, sub($evt) {
-        # The problem here is to distinguish between unmap due to $tag->hide() and unmap request from client
+        # This condition is to distinguish between unmap due to $tag->hide() and unmap request from client
         hide_window($evt->{window}) unless delete $unmap_prevent->{$evt->{window}};
     },
     CONFIGURE_REQUEST, sub($evt) {
@@ -240,6 +247,7 @@ sub hide_window($wid, $delete=undef) {
             if ($win->{floating}) {
                 # For floating we need fixup border
                 my $bw = $cfg->{border_width};
+                # TODO check if it moved to another screen
                 $win->resize_and_move($x, $y, $w + 2 * $bw, $h + 2 * $bw);
             } else {
                 # If window is tiled or maximized, tell it it's real size
@@ -254,25 +262,11 @@ sub hide_window($wid, $delete=undef) {
 
         # Send xcb_configure_notify_event_t to the window's client
         X11::korgwm::Window::_configure_notify($win_id, @{ $evt }{qw( sequence x y w h )});
-
         $X->flush();
     },
     $RANDR_EVENT_BASE => sub($evt) {
-        warn "RANDR screen change notify";
         qx($cfg->{randr_cmd});
-        warn "Xinerama query screens:";
-        # TODO check if it's really needed
-        warn Dumper $X->xinerama_query_screens_reply($X->xinerama_query_screens()->{sequence});
-        $X->flush();
-        warn "New screens:";
-        warn Dumper $X->screens();
         handle_screens();
-    },
-    ENTER_NOTIFY, sub($evt) {
-        # XXX Do we really need to ignore EnterNotifies on unknown windows? I'll leave it here waiting for bugs.
-        return unless exists $windows->{$evt->{event}};
-        my $win = $windows->{$evt->{event}};
-        $win->focus();
     },
 );
 

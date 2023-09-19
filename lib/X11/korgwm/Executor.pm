@@ -103,6 +103,13 @@ our @parser = (
         $X->flush();
     }}],
 
+    # Focus previous window (screen independent)
+    [qr/focus_prev\(\)/, sub ($arg) { return sub {
+        my $win = $X11::korgwm::Window::focus_prev;
+        return unless defined $win;
+        $win->warp_pointer();
+    }}],
+
     # Cycle focus
     [qr/focus_cycle\((.+)\)/, sub ($arg) { return sub {
         my $tag = $focus->{screen}->current_tag();

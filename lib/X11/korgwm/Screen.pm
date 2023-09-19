@@ -76,10 +76,10 @@ sub win_add($self, $win) {
     $tag->win_add($win);
 }
 
-sub win_remove($self, $win) {
+sub win_remove($self, $win, $norefresh = undef) {
     my $tag = $self->current_tag();
     croak "Unhandled undefined tag situation" unless defined $tag;
-    $tag->win_remove($win);
+    $tag->win_remove($win, $norefresh);
 }
 
 sub focus($self) {

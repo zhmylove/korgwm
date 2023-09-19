@@ -40,7 +40,7 @@ windows => {
     wid => {
         id => wid,                  # ID of the window
         on_tags => {},              # hash of tags on which this window is shown
-        always_on => Bool,          # flag if window is always_on
+        always_on => undef / Screen,# screen on which the window is always_on
         floating => Bool,           # flag if window is floating
         urgent => Bool,             # flag if window is floating
         siblings => {},             # hash keys = transient_for windows, values
