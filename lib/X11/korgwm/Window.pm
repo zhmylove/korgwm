@@ -53,7 +53,7 @@ sub _configure_notify($wid, $sequence, $x, $y, $w, $h, $above_sibling=0, $overri
     my $packed = pack('CCSLLLssSSSC', CONFIGURE_NOTIFY, 0, $sequence,
         $wid, # event
         $wid, # window
-        $above_sibling, $x, $y, $w - 2 * $bw, $h - 2 * $bw, $bw, $override_redirect);
+        $above_sibling, $x, $y, $w, $h, $bw, $override_redirect);
     $X->send_event(0, $wid, EVENT_MASK_STRUCTURE_NOTIFY, $packed);
 }
 
