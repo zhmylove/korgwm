@@ -31,6 +31,7 @@ use X11::korgwm::Screen;
 use X11::korgwm::EWMH;
 use X11::korgwm::Xkb;
 use X11::korgwm::Expose;
+use X11::korgwm::API;
 use X11::korgwm::Mouse;
 use X11::korgwm::Hotkeys;
 

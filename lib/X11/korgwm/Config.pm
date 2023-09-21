@@ -15,6 +15,9 @@ use X11::korgwm::Common;
 # TODO get from some config file
 
 # Default values
+$cfg->{api_host} = "127.0.0.1";
+$cfg->{api_port} = 27015;
+$cfg->{api_timeout} = 5;
 $cfg->{battery_format} = "%s";
 $cfg->{border_width} = 1;
 $cfg->{clock_format} = " %a, %e %B %H:%M";
