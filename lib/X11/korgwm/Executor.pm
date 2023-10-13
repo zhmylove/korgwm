@@ -7,6 +7,7 @@ use warnings;
 use feature 'signatures';
 
 use Carp;
+use POSIX qw( setsid );
 use X11::XCB ':all';
 use X11::korgwm::Common;
 
@@ -17,6 +18,8 @@ our @parser = (
         my $pid = fork;
         die "Cannot fork(2)" unless defined $pid;
         return if $pid;
+        close $_ for *STDOUT, *STDERR, *STDIN;
+        setsid();
         exec $arg;
         die "Cannot execute $arg";
     }}],
@@ -44,7 +47,7 @@ our @parser = (
         $X->flush();
     }}],
 
-    # Window move to particular tag
+    # Window move to a particular tag
     [qr/win_move_tag\((\d+)\)/, sub ($arg) { return sub {
         my $win = $focus->{window};
         return unless defined $win;
@@ -118,6 +121,26 @@ our @parser = (
         $win->focus();
     }}],
 
+    # Focus move
+    [qr/focus_move\(([hjkl])\)/, sub ($arg) { return sub {
+        my $win = $focus->{window};
+        return unless defined $win;
+
+        my $new = $win->win_by_direction({ h => "left", j => "down", k => "up", l => "right" }->{$arg});
+        return unless defined $new;
+        $new->focus();
+    }}],
+
+    # Focus swap
+    [qr/focus_swap\(([hjkl])\)/, sub ($arg) { return sub {
+        my $win = $focus->{window};
+        return unless defined $win;
+
+        my $new = $win->win_by_direction({ h => "left", j => "down", k => "up", l => "right" }->{$arg});
+        return unless defined $new;
+        $win->swap($new);
+    }}],
+
     # Expose windows
     [qr/expose\(\)/, sub ($arg) { return sub {
         &X11::korgwm::Expose::expose();
@@ -134,8 +157,8 @@ sub parse($cmd) {
     for my $known (@parser) {
         return $known->[1]->($1) if $cmd =~ m{^$known->[0]$}s;
     }
-    # TODO change to croak
-    carp "Don't know how to parse $cmd";
+    croak "Don't know how to parse $cmd";
+    # In case I decide to move back to carp here
     sub { warn "Unimplemented cmd for key pressed: $cmd" };
 }
 

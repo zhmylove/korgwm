@@ -238,6 +238,7 @@ sub tags($self) {
     values %{ $self->{on_tags} // {} };
 }
 
+# returns only tags, on which this window is currently visible
 sub tags_visible($self) {
     my @rc;
     for my $screen ($self->screens()) {
@@ -249,7 +250,7 @@ sub tags_visible($self) {
 
 sub screens($self) {
     my %screens;
-    $screens{$_} = $_ for $self->{always_on} ? $self->{always_on} : (),  map { $_->{screen} } $self->tags();
+    $screens{$_} = $_ for $self->{always_on} ? $self->{always_on} : (), map { $_->{screen} } $self->tags();
     values %screens;
 }
 
@@ -425,6 +426,82 @@ sub warp_pointer($self) {
             int($self->{$_} / 2) - $cfg->{border_width} - 1
         } qw( real_w real_h ));
     $X->flush();
+}
+
+# Complex function to find neighbours in some $direction
+sub win_by_direction($self, $direction) {
+    # Select proper tag; croak if this window belongs to multiple tags
+    my @visible_tags = $self->tags_visible();
+    croak "Moving a focus for windows on several visible tags is not implemented" if @visible_tags > 1;
+    return unless @visible_tags; # ignore focus move requests for invisibe windows
+    my $tag = $visible_tags[0];
+
+    # Set direction to avoid 4x implementations
+    my (@first, @second, %delta_base, %delta_comp);
+    my ($base, $base_size, $comp, $comp_size, $cmp, $new) = ("real_y", "real_h", "real_x", "real_w");
+    if ($direction eq "up" or $direction eq "down") {
+        # Case for readability
+    } elsif ($direction eq "left" or $direction eq "right") {
+        ($base, $base_size, $comp, $comp_size) = ($comp, $comp_size, $base, $base_size);
+    } else {
+        croak "focus_move() to direction [$direction] not implemented";
+    }
+
+    # Set comparison function
+    if ($direction eq "up" or $direction eq "left") {
+        $cmp = sub ($a, $b) { $a->{$base} > $b->{$base} };
+    } else {
+        $cmp = sub ($a, $b) { $b->{$base} > $a->{$base} };
+    }
+
+    # Select candidates for new focus, filtering out certainly non-relative
+    my @windows = grep { $self != $_ and $cmp->($self, $_) } $self->{floating} ?
+            (@{ $tag->{screen}->{always_on} }, @{ $tag->{windows_float} }) : @{ $tag->{windows_tiled} };
+    return unless @windows;
+
+    # Sort them in priority order
+    for my $win (@windows) {
+        if ($self->{$comp} <= $win->{$comp} and $win->{$comp} <= $self->{$comp} + $self->{$comp_size}) {
+            # Window is strictly intersects with us
+            push @first, $win;
+        } elsif ($win->{$comp} <= $self->{$comp} and $self->{$comp} <= $win->{$comp} + $win->{$comp_size}) {
+            # Window is loosely intersects us
+            push @second, $win;
+        } else {
+            # Window is not intersects with us, so minimize delta_$comp
+            push @{ $delta_comp{abs($win->{$comp} - $self->{$comp})} }, $win;
+        }
+    }
+
+    # Minimize delta_$base
+    push @{ $delta_base{abs($_->{$base} - $self->{$base})} }, $_ for @first ? @first : @second ? @second :
+        @{ $delta_comp{ (sort { $a <=> $b } keys %delta_comp)[0] } };
+
+    # Select any relevant window
+    my $new = $delta_base{ (sort { $a <=> $b } keys %delta_base)[0] }->[0];
+    croak "Something went wrong in focus_move()" unless $new;
+    $new;
+}
+
+# Exchange positions with $new window. Only for tiled windows
+sub swap($self, $new) {
+    return if $self->{floating} or $new->{floating};
+
+    # Select proper tag; croak if this window belongs to multiple tags
+    my @visible_tags = $self->tags_visible();
+    croak "Moving a focus for windows on several visible tags is not implemented" if @visible_tags > 1;
+    return unless @visible_tags; # ignore focus move requests for invisibe windows
+    my $tag = $visible_tags[0];
+
+    # Find their positions
+    my $arr = $tag->{windows_tiled};
+    my @pos = grep { $arr->[$_] == $self or $arr->[$_] == $new } 0..$#{ $arr };
+    croak "Something went wrong in focus_swap()" unless @pos == 2;
+
+    # Swap them
+    ($arr->[$pos[0]], $arr->[$pos[1]]) = ($arr->[$pos[1]], $arr->[$pos[0]]);
+    $tag->show();
+    $self->warp_pointer();
 }
 
 1;

@@ -46,11 +46,11 @@ $cfg->{ws_names} = [qw( T W M C 5 6 7 8 9 )];
 
 # Default keyboard layout
 $cfg->{hotkeys} = {
-    (map {; "mod_$_"            => "focus_move($_)"         } qw(h j k l)), # TODO
+    (map {; "mod_$_"            => "focus_move($_)"         } qw(h j k l)),
     (map {; "mod_$_"            => "tag_select($_)"         } 1..9),
     (map {; "mod_F$_"           => "screen_select($_)"      } 1..9),
-    (map {; "mod_ctrl_$_"       => "tag_append($_)"         } 1..9), # TODO
-    (map {; "mod_shift_$_"      => "focus_swap($_)"         } qw(h j k l)), # TODO
+#   (map {; "mod_ctrl_$_"       => "tag_append($_)"         } 1..9), # TODO nice to have, but too much for now
+    (map {; "mod_shift_$_"      => "focus_swap($_)"         } qw(h j k l)),
     (map {; "mod_shift_$_"      => "win_move_tag($_)"       } 1..9),
     (map {; "mod_shift_F$_"     => "win_move_screen($_)"    } 1..9),
             "alt_F4"            => "win_close()",
