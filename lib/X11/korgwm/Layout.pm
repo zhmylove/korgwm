@@ -111,29 +111,49 @@ sub _new_layout($windows) {
 }
 
 sub arrange_windows($self, $windows, $dpy_width, $dpy_height, $x_offset=0, $y_offset=0) {
+    # Validate parameters
     croak "Cannot arrange non-windows" unless ref $windows eq "ARRAY";
     return if @{ $windows } < 1;
     croak "Trying to use non-initialized layout" unless defined $self->{grid};
+
+    # dpy_* means display_
     my $nwindows = @{ $windows };
     my ($dpy_width_orig, $dpy_height_orig) = ($dpy_width, $dpy_height);
+
+    # Create layout if needed
     my $grid = dclone($self->{grid}->[$nwindows - 1] //= _new_layout($nwindows));
+
+    # Prepare windows and grid to zip them
     my @cols = reverse @{ $grid };
     my @windows = reverse @{ $windows };
     my $hide_border = (1 == @windows and 1 == @screens);
+
+    # Prepare $i, $j to save actual position
+    my ($i, $j) = 0 + @cols;
     for my $col (@cols) {
+        $i--;
+        $j = @{ $col } - 1;
         my $col_w = shift @{ $col };
         my $width = floor($dpy_width_orig * $col_w);
         my $x = $dpy_width - $width;
         $x--, $width++ if $x == 1;
 
-        for my $row_w (@{ $col }) {
+        for my $row_w (reverse @{ $col }) {
+            $j--;
             my $height = floor($dpy_height_orig * $row_w);
             my $y = $dpy_height - $height;
             $y--, $height++ if $y == 1;
 
+            # Extract next window
             my $win = shift @windows;
+            use Data::Dumper;
+            die Dumper $self unless defined $win;
             croak "Window cannot be undef" unless defined $win;
             $win->resize_and_move($x + $x_offset, $y + $y_offset, $width, $height, $hide_border ? 0 : ());
+
+            # Save real layout position in the window
+            $win->{real_i} = $i;
+            $win->{real_j} = $j;
 
             $dpy_height = $y;
         }
@@ -142,6 +162,37 @@ sub arrange_windows($self, $windows, $dpy_width, $dpy_height, $x_offset=0, $y_of
         $dpy_width = $x;
     }
     $X->flush();
+}
+
+sub resize($self, $nwindows, $i, $j, $delta_x, $delta_y) {
+    return if $i < 0 or $j < 0 or $nwindows < 0;
+
+    my $grid = $self->{grid}->[$nwindows - 1];
+    return unless defined $grid and @{ $grid } > $i + ($delta_x ? 1 : 0);
+
+    my $col = $grid->[$i];
+    return unless defined $col and @{ $col } > $j + ($delta_y ? 2 : 1);
+
+    # left/right: just change col's weight
+    if ($delta_x) {
+        # Ignore change if columns are already too small
+        next unless ($delta_x > 0 ? $grid->[$i + 1] : $grid->[$i])->[0] >= 0.2;
+
+        $grid->[$i]->[0] += $delta_x;
+        $grid->[$i + 1]->[0] -= $delta_x;
+    }
+
+    # up/down: change weight for all similar cols
+    if ($delta_y) {
+        my $col_size = @{ $col };
+
+        for my $col (grep { $col_size == @{ $_ } } @{ $grid }) {
+            next unless ($delta_y > 0 ? $col->[$j + 2] : $col->[$j + 1]) >= 0.2;
+
+            $col->[$j + 1] += $delta_y;
+            $col->[$j + 2] -= $delta_y;
+        }
+    }
 }
 
 sub new($self) {

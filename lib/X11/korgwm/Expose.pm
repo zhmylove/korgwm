@@ -115,6 +115,8 @@ sub expose {
     my $shortcut = Gtk3::Label->new();
 
     # Draw the windows
+    my $total_windows = 0;
+    my $last_cb;
     for my $screen (values %screens) {
         for my $tag (@{ $screen->{tags} }) {
             for my $win ($tag->windows()) {
@@ -126,6 +128,10 @@ sub expose {
                     $win_expose = undef;
                     $screen->refresh();
                 };
+
+                # Count them for quick path
+                $total_windows++;
+                $last_cb = $cb;
 
                 # Form an id for quick access if $cfg->{expose_show_id}
                 my $id = sprintf "%0${id_len}d", 10 ** ($id_len - 1) + keys %callbacks;
@@ -143,6 +149,8 @@ sub expose {
             }
         }
     }
+
+    return $last_cb->() if $total_windows == 1;
 
     # Append simple keyboard handlers
     $win_expose->signal_connect('key-press-event', sub ($obj, $e) {

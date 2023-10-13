@@ -141,9 +141,41 @@ our @parser = (
         $win->swap($new);
     }}],
 
+    # Resize the layout
+    [qr/layout_resize\(([hjkl])\)/, sub ($arg) { return sub {
+        my $win = $focus->{window};
+        return unless defined $win and not $win->{floating};
+
+        my ($delta_x, $delta_y) =
+        $arg eq "h" ? (-0.1, 0) :
+        $arg eq "j" ? (0, 0.1) :
+        $arg eq "k" ? (0, -0.1) :
+        $arg eq "l" ? (0.1, 0) : (0, 0);
+
+        # Select proper tag; croak if this window belongs to multiple tags
+        my @visible_tags = $win->tags_visible();
+        croak "Resizing layout for windows on several visible tags is not implemented" if @visible_tags > 1;
+        return unless @visible_tags; # ignore requests for invisibe windows
+        my $tag = $visible_tags[0];
+
+        # Call actual resize
+        $tag->{layout}->resize(0 + @{ $tag->{windows_tiled} }, @{ $win }{qw( real_i real_j )}, $delta_x, $delta_y);
+        $tag->show();
+        $win->warp_pointer();
+    }}],
+
     # Expose windows
     [qr/expose\(\)/, sub ($arg) { return sub {
         &X11::korgwm::Expose::expose();
+    }}],
+
+    # Resize the layout from API
+    [qr/layout_resize\((\d+\s*,\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,\s*-?0\.\d+\s*,\s*-?0\.\d+)\)/, sub ($arg) { return sub {
+        my ($arg_screen, $arg_tag, $arg_i, $arg_j, $arg_delta_x, $arg_delta_y) = split /\s*,\s*/, $arg;
+        my $screen = $screens[$arg_screen] // return;
+        my $tag = $screen->{tags}->[$arg_tag] // return;
+        $tag->{layout}->resize(0 + @{ $tag->{windows_tiled} }, $arg_i, $arg_j, $arg_delta_x, $arg_delta_y);
+        $tag->show();
     }}],
 
     # Exit from WM
