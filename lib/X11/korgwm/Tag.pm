@@ -127,11 +127,11 @@ sub win_float($self, $win, $floating=undef) {
     if ($floating) {
         $arr = $self->{windows_tiled};
         splice @{ $arr }, $_, 1 for reverse grep { $arr->[$_] == $win } 0..$#{ $arr };
-        unshift @{ $self->{windows_float} }, $win;
+        unshift @{ $self->{windows_float} }, $win unless first { $_ == $win } @{ $self->{windows_float} };
     } else {
         $arr = $self->{windows_float};
         splice @{ $arr }, $_, 1 for reverse grep { $arr->[$_] == $win } 0..$#{ $arr };
-        unshift @{ $self->{windows_tiled} }, $win;
+        unshift @{ $self->{windows_tiled} }, $win unless first { $_ == $win } @{ $self->{windows_tiled} };
     }
 }
 

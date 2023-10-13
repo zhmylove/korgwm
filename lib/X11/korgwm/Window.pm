@@ -62,7 +62,7 @@ sub _attributes($wid) {
 }
 
 sub _class($wid) {
-    my @class = split /\0/, scalar _get_property($wid, "WM_NAME", "STRING", 16);
+    my @class = split /\0/, scalar _get_property($wid, "WM_CLASS", "STRING", 16);
     return wantarray ? @class : $class[0];
 }
 
@@ -192,7 +192,7 @@ sub focus($self) {
     my $screen = $self->{always_on} || $tag->{screen};
     $screen->{focus} = $self;
     $screen->{panel}->title($self->title // "");
-    $focus_prev = $focus->{window} unless $focus->{window} == $self;
+    $focus_prev = $focus->{window} unless ($focus->{window} // 0) == $self;
     $focus->{window} = $self;
     $focus->{screen} = $self->{always_on} || $focus_screens[0];
 
@@ -262,11 +262,12 @@ sub transients($self) {
     map { ($windows->{$_}->transients(), $windows->{$_}) } @siblings_xid;
 }
 
-sub toggle_floating($self) {
+sub toggle_floating($self, $set_floating = undef) {
     # There is no way to disable floating for transient windows
     return if $self->{transient_for};
 
-    $self->{floating} = ! $self->{floating};
+    return if defined $set_floating and $set_floating == ($self->{floating} // 0);
+    $self->{floating} = defined $set_floating ? 1 : ! $self->{floating};
 
     # Deal with geometry
     my ($x, $y, $w, $h) = map { defined ? $_ : 0 } @{ $self }{qw( x y w h )};

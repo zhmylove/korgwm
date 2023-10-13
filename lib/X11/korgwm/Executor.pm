@@ -129,6 +129,7 @@ our @parser = (
         my $new = $win->win_by_direction({ h => "left", j => "down", k => "up", l => "right" }->{$arg});
         return unless defined $new;
         $new->focus();
+        $new->warp_pointer() if $cfg->{mouse_follow};
     }}],
 
     # Focus swap

@@ -11,9 +11,8 @@ use List::Util qw( first );
 use X11::XCB ':all';
 use X11::korgwm::Common;
 require X11::korgwm::Config;
-my $_motion_win;
-my %_motion_start;
-
+my ($_motion_win, %_motion_start);
+my (%_on_hold, $_on_hold_w);
 
 # Regular motion notify, used to track inter-screen movements
 sub _motion_regular($evt) {
@@ -103,9 +102,16 @@ sub init {
 
     add_event_cb(ENTER_NOTIFY, sub($evt) {
         return if $_motion_win;
+        my $wid = $evt->{event};
+
         # XXX Do we really need to ignore EnterNotifies on unknown windows? I'll leave it here waiting for bugs.
-        return unless exists $windows->{$evt->{event}};
-        $windows->{$evt->{event}}->focus();
+        return unless exists $windows->{$wid};
+
+        return if $_on_hold{$wid};
+        $_on_hold{$wid} = AE::timer 0, 0.09, sub { exists $_on_hold{$wid} and delete $_on_hold{$wid} };
+
+        my $win = $windows->{$wid};
+        $win->focus() if ($focus->{window} // 0) != $win;
     });
 
     # Grab pointer

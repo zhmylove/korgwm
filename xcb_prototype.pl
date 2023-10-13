@@ -193,20 +193,28 @@ sub hide_window($wid, $delete=undef) {
 
 %xcb_events = (
     MAP_REQUEST, sub($evt) {
-        my $wid = $evt->{window};
+        my ($wid, $follow, $win, $screen, $tag, $floating) = ($evt->{window}, 1);
 
         # Create a window if needed
-        unless (defined $windows->{$wid}) {
-            $windows->{$wid} = X11::korgwm::Window->new($wid);
+        $win = $windows->{$wid};
+        unless (defined $win) {
+            $win = $windows->{$wid} = X11::korgwm::Window->new($wid);
 
             $X->change_window_attributes($wid, CW_EVENT_MASK, EVENT_MASK_ENTER_WINDOW | EVENT_MASK_PROPERTY_CHANGE);
+
+            # Fix geometry if needed
+            @{ $win }{qw( x y w h )} = $win->query_geometry() unless defined $win->{x};
         }
 
-        # Get object and fix geometry if needed
-        my $win = $windows->{$wid};
-        @{ $win }{qw( x y w h )} = $win->query_geometry() unless defined $win->{x};
-
-        # TODO process rules here
+        # Apply rules
+        my $rule = $cfg->{rules}->{$win->class()};
+        if ($rule) {
+            # XXX awaiting bugs with idx 0
+            defined $rule->{screen} and $screen = $screens[$rule->{screen} - 1] // $screens[0];
+            defined $rule->{tag} and $tag = $screen->{tags}->[$rule->{tag} - 1];
+            defined $rule->{follow} and $follow = $rule->{follow};
+            defined $rule->{floating} and $floating = $rule->{floating};
+        }
 
         # Process transients
         my $transient_for = $win->transient_for() // -1;
@@ -216,16 +224,33 @@ sub hide_window($wid, $delete=undef) {
             $win->{floating} = 1;
             $win->{transient_for} = $parent;
             $parent->{siblings}->{$wid} = undef;
-            # TODO implement screen change and win->move here
+
+            $tag = ($parent->tags_visible())[0] // ($parent->tags())[0];
+            $screen = $tag->{screen};
+            $follow = 0; # TODO consider if I really want this
         }
 
-        # TODO win->move here in case of improper geometry
+        # Set default screen & tag, and fix position
+        $screen //= $focus->{screen};
+        $tag //= $screen->current_tag();
+        $win->{x} += $screen->{x} if $win->{x} < $screen->{x};
 
         # Place it in proper place
-        $win->show();
-        $focus->{screen}->win_add($win);
-        $win->focus();
-        $focus->{screen}->refresh();
+        $win->show() if $screen->current_tag() == $tag;
+        $tag->win_add($win);
+        $win->toggle_floating(1) if $floating;
+        if ($follow) {
+            $screen->tag_set_active($tag->{idx}, 0);
+            $screen->refresh();
+            $win->focus();
+            $win->warp_pointer() if $rule->{follow};
+        } else {
+            if ($screen->current_tag() == $tag) {
+                $screen->refresh();
+            } else {
+                $win->urgency_raise(1);
+            }
+        }
         $X->flush();
     },
     DESTROY_NOTIFY, sub($evt) {

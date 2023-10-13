@@ -138,6 +138,9 @@ sub expose {
                 my $id_str = "[$id]"; # should be string to avoid {0} === {"0"}
                 $callbacks{$id_str} = $cb if $cfg->{expose_show_id};
 
+                # If we never created a pixbuf for it
+                $win->_update_pixbuf() unless $win->{pixbuf};
+
                 # Create thumbnail
                 my $ebox = _create_thumbnail($scale, $win->{pixbuf}, $win->title(), $id_str, sub ($obj, $e) {
                     return unless $e->button == 1;
@@ -197,6 +200,8 @@ sub expose {
 BEGIN {
     # Insert some pixbuf-specific methods 
     sub X11::korgwm::Window::_update_pixbuf($self) {
+        return $self->{pixbuf} = Gtk3::GdkPixbuf::Pixbuf->new_from_xpm_data(['1 1 1 1', 'a c #000000', 'a'])
+            unless $self->{real_w} and $self->{real_h};
         my $win = Gtk3::Gdk::X11Window->foreign_new_for_display($display, $self->{id});
         $self->{pixbuf} = Gtk3::Gdk::pixbuf_get_from_window($win, 0, 0, @{ $self }{qw( real_w real_h )});
     }
@@ -208,6 +213,7 @@ BEGIN {
 sub init {
     # Set up extension
     Glib::Object::Introspection->setup(basename => "GdkX11", version  => "3.0", package  => "Gtk3::Gdk");
+    Glib::Object::Introspection->setup(basename => "GdkPixbuf", version  => "2.0", package  => "Gtk3::GdkPixbuf");
     $display = Gtk3::Gdk::Display::get_default();
     $font = Pango::FontDescription::from_string($cfg->{font});
     $color_fg = sprintf "#%x", $cfg->{color_fg};

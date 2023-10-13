@@ -36,6 +36,7 @@ $cfg->{hide_empty_tags} = 1;
 $cfg->{initial_pointer_position} = "center"; # values: undef, "center", "hidden"
 $cfg->{lang_format} = " %s ";
 $cfg->{lang_names} = { 0 => chr(0x00a3), 1 => chr(0x20bd) };
+$cfg->{mouse_follow} = 1;
 $cfg->{panel_end} = [qw( battery clock lang )];
 $cfg->{panel_height} = 20;
 $cfg->{panel_hide} = undef;
@@ -81,11 +82,11 @@ $cfg->{hotkeys} = {
 };
 
 $cfg->{rules} = {
-    "mattermost" => undef, # move to screen #2 or #1 tag #4 follow:no
-    "evolution" => undef, # move to screen #1 tag #3 follow:no
-    "galculator" => undef, # make floating
-    "urxvt-float" => undef, # make floating
-    "xeyes" => undef, # make floating
+    "mattermost" => { screen => 2, tag => 4, follow => 0, },
+    "evolution" => { screen => 1, tag => 3, follow => 0, },
+    "galculator" => { floating => 1 },
+    "urxvt-float" => { floating => 1 },
+    "xeyes" => { floating => 1 },
 };
 
 1;
