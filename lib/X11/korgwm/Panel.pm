@@ -8,13 +8,14 @@ use feature 'signatures';
 
 use Carp;
 use Gtk3 -init;
+use Glib::Object::Introspection;
 use AnyEvent;
 use X11::korgwm::Common;
 
 # Prepare internal variables
-my ($ready, $font, $color_fg , $color_bg , $color_urgent_bg, $color_urgent_fg, @ws_names);
+my ($ready, $color_fg , $color_bg , $color_urgent_bg, $color_urgent_fg, @ws_names);
 sub _init {
-    $font = Pango::FontDescription::from_string($cfg->{font});
+    Glib::Object::set_property(Gtk3::Settings::get_default(), "gtk-font-name", $cfg->{font});
     $color_fg = sprintf "#%x", $cfg->{color_fg};
     $color_bg = sprintf "#%x", $cfg->{color_bg};
     $color_urgent_bg = sprintf "#%x", $cfg->{color_urgent_fg};
@@ -122,7 +123,6 @@ sub new($class, $panel_id, $panel_width, $panel_x, $ws_cb) {
     bless $panel, $class;
     # Prepare main window
     $window = Gtk3::Window->new('popup');
-    $window->modify_font($font);
     $window->set_default_size($panel_width, $cfg->{panel_height});
     $window->move($panel_x, 0);
     $window->set_decorated(Gtk3::false);
