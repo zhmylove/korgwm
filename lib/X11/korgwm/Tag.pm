@@ -101,7 +101,10 @@ sub win_add($self, $win) {
     $self->{screen}->{panel}->ws_set_visible($self->{idx} + 1);
 
     $self->{max_window} = $win if $win->{maximized};
-    unshift @{ $win->{floating} ? $self->{windows_float} : $self->{windows_tiled} }, $win;
+
+    my $arr = $win->{floating} ? $self->{windows_float} : $self->{windows_tiled};
+    # For windows calling map multiple times
+    unshift @{ $arr }, $win unless first { $_ == $win } @{ $arr };
 }
 
 sub win_remove($self, $win, $norefresh = undef) {
@@ -110,12 +113,9 @@ sub win_remove($self, $win, $norefresh = undef) {
 
     $self->{max_window} = undef if $win == ($self->{max_window} // 0);
 
-    my $arr;
-    $arr = $self->{windows_float};
-    splice @{ $arr }, $_, 1 for reverse grep { $arr->[$_] == $win } 0..$#{ $arr };
-
-    $arr = $self->{windows_tiled};
-    splice @{ $arr }, $_, 1 for reverse grep { $arr->[$_] == $win } 0..$#{ $arr };
+    for my $arr (map { $self->{$_} } qw( windows_float windows_tiled )) {
+        splice @{ $arr }, $_, 1 for reverse grep { $arr->[$_] == $win } 0..$#{ $arr };
+    }
 
     # If this tag is visible, call screen refresh
     $self->{screen}->refresh() if not $norefresh and $self == $self->{screen}->current_tag();
@@ -123,16 +123,11 @@ sub win_remove($self, $win, $norefresh = undef) {
 
 sub win_float($self, $win, $floating=undef) {
     # Move $win to appropriate array
-    my $arr;
-    if ($floating) {
-        $arr = $self->{windows_tiled};
-        splice @{ $arr }, $_, 1 for reverse grep { $arr->[$_] == $win } 0..$#{ $arr };
-        unshift @{ $self->{windows_float} }, $win unless first { $_ == $win } @{ $self->{windows_float} };
-    } else {
-        $arr = $self->{windows_float};
-        splice @{ $arr }, $_, 1 for reverse grep { $arr->[$_] == $win } 0..$#{ $arr };
-        unshift @{ $self->{windows_tiled} }, $win unless first { $_ == $win } @{ $self->{windows_tiled} };
-    }
+    my ($arr_from, $arr_to) = map { $self->{$_} } "windows_float", "windows_tiled";
+    ($arr_from, $arr_to) = ($arr_to, $arr_from) if $floating;
+
+    splice @{ $arr_from }, $_, 1 for reverse grep { $arr_from->[$_] == $win } 0..$#{ $arr_from };
+    unshift @{ $arr_to }, $win;
 }
 
 # Select some window, if any

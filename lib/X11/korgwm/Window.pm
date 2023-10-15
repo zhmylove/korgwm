@@ -201,7 +201,7 @@ sub focus($self) {
 
 sub reset_border($self) {
     croak "Undefined window" unless $self->{id};
-    # TODO update panel on focused screen..?
+    # TODO consider if I want to update panel on focused screen
     $X->change_window_attributes($self->{id}, CW_BORDER_PIXEL, $cfg->{color_border});
 }
 
@@ -256,10 +256,9 @@ sub screens($self) {
 
 # Recursively return all transient windows
 sub transients($self) {
-    # TODO maybe sort them?
     my @siblings_xid = keys %{ $self->{siblings} };
     return () unless @siblings_xid;
-    map { ($windows->{$_}->transients(), $windows->{$_}) } @siblings_xid;
+    map { ($windows->{$_}->transients(), $windows->{$_}) } sort @siblings_xid;
 }
 
 sub toggle_floating($self, $set_floating = undef) {

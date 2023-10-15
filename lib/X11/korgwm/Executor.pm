@@ -185,6 +185,42 @@ our @parser = (
     }}],
 );
 
+# Define some debug internals
+DEBUG and push @parser,
+    [qr/dump_windows\(\)/, sub ($arg) { return sub ($hdl) {
+        {
+            require Data::Dumper;
+            local $Data::Dumper::Sortkeys = 1;
+            local $Data::Dumper::Maxdepth = 3;
+            $hdl->push_write(Data::Dumper::Dumper($windows));
+        }
+    }}],
+    [qr/dump_screen\((\d+)\)/, sub ($arg) { return sub ($hdl) {
+        {
+            my $screen = @screens[$arg];
+            return $hdl->push_write("No such screen: $arg\n") unless $screen;
+            require Data::Dumper;
+            local $Data::Dumper::Sortkeys = 1;
+            $hdl->push_write(Data::Dumper::Dumper($screen));
+        }
+    }}],
+    [qr/dump_tag\((\d+\s*,\s*\d+)\)/, sub ($arg) { return sub ($hdl) {
+        {
+            my ($arg_screen, $arg_tag) = split /\s*,\s*/, $arg;
+            my $screen = @screens[$arg_screen];
+            return $hdl->push_write("No such screen: $arg_screen\n") unless $screen;
+            my $tag = $screen->{tags}->[$arg_tag];
+            return $hdl->push_write("No such tag: $arg_tag\n") unless $tag;
+            require Storable;
+            require Data::Dumper;
+            local $Data::Dumper::Sortkeys = 1;
+            my $ttag = Storable::dclone($tag);
+            $ttag->{screen} = "<truncated screen> " . $tag->{screen}->{id};
+            $hdl->push_write(Data::Dumper::Dumper($ttag));
+        }
+    }}],
+;
+
 # Parses $cmd and returns corresponding \&sub
 sub parse($cmd) {
     for my $known (@parser) {
@@ -192,7 +228,7 @@ sub parse($cmd) {
     }
     croak "Don't know how to parse $cmd";
     # In case I decide to move back to carp here
-    sub { warn "Unimplemented cmd for key pressed: $cmd" };
+    # sub { warn "Unimplemented cmd for key pressed: $cmd" };
 }
 
 1;

@@ -11,8 +11,10 @@ use Exporter 'import';
 use List::Util qw( first );
 use Scalar::Util qw( looks_like_number );
 
-our @EXPORT = qw( $X $cfg $focus $unmap_prevent $windows %screens %xcb_events @screens
+our @EXPORT = qw( DEBUG $X $cfg $focus $unmap_prevent $windows %screens %xcb_events @screens
     add_event_cb hexnum init_extension replace_event_cb screen_by_xy );
+
+sub DEBUG() { 1 }
 
 our $X;
 our $cfg;

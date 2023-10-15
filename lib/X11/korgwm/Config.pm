@@ -64,7 +64,7 @@ BEGIN {
                 "mod_g"                 => "exec(google-chrome --simulate-outdated-no-au --new-window --incognito)",
                 "mod_shift_g"           => "exec(google-chrome --simulate-outdated-no-au --new-window)",
                 "mod_m"                 => "win_toggle_maximize()",
-                "mod_r"                 => "exec(dmenu_run -i -nb #262729 -nf #A3BABF -sb #464729 -sf #FFFF00)",
+                "mod_r"                 => "exec(rofi -show drun)",
                 "mod_w"                 => "exec(firefox --new-instance --private-window)",
                 "mod_shift_w"           => "exec(firefox --new-instance)",
                 "mod_="                 => "exec(galculator)",
@@ -89,7 +89,7 @@ BEGIN {
         next unless -f $file;
         my $rcfg;
         eval { $rcfg = YAML::Tiny->read($file) and $rcfg = $rcfg->[0]; 1; } or do {
-            warn "Error parsing config file: $@";
+            print STDERR "Error parsing config file: $@ ";
             exit 2;
         };
         %{ $cfg } = (%{ $cfg }, %{ $rcfg });

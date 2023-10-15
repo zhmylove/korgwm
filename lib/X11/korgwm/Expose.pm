@@ -105,7 +105,8 @@ sub expose {
     my ($x, $y) = (0, 0);
 
     # Estimate sizes
-    my $windows = keys %{ $windows }; # TODO it is incorrect as one window could belong to several tags
+    # XXX it is incorrect as one window could belong to several tags, dont know how to represent it so left it for now
+    my $windows = keys %{ $windows };
     return unless $windows;
     my $rownum = _get_rownum($windows, @{ $screen_curr }{qw( w h )});
     my $scale = 0.9 * $screen_curr->{h} / $rownum;

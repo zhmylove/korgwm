@@ -221,24 +221,41 @@ sub hide_window($wid, $delete=undef) {
         $transient_for = undef unless defined $windows->{$transient_for};
         if ($transient_for) {
             my $parent = $windows->{$transient_for};
+            # toggle_floating() won't do for transient, so do some things manually
             $win->{floating} = 1;
+            $rule->{follow} //= $cfg->{mouse_follow};
             $win->{transient_for} = $parent;
             $parent->{siblings}->{$wid} = undef;
 
             $tag = ($parent->tags_visible())[0] // ($parent->tags())[0];
             $screen = $tag->{screen};
-            $follow = 0; # TODO consider if I really want this
+            $follow = 0 unless $tag == $screen->current_tag();
         }
 
         # Set default screen & tag, and fix position
         $screen //= $focus->{screen};
         $tag //= $screen->current_tag();
-        $win->{x} += $screen->{x} if $win->{x} < $screen->{x};
+        if ($win->{x} == 0) {
+            $win->{x} = $screen->{x} + int(($screen->{w} - $win->{w}) / 2);
+            $win->{y} = $screen->{y} + int(($screen->{h} - $win->{h}) / 2);
+        } elsif ($win->{x} < $screen->{x}) {
+            $win->{x} += $screen->{x};
+        }
 
         # Place it in proper place
         $win->show() if $screen->current_tag() == $tag;
         $tag->win_add($win);
+
+        if ($win->{transient_for}) {
+            if ($win->{w} and $win->{h}) {
+                $win->resize_and_move(@{ $win }{qw( x y w h )});
+            } else {
+                $win->move(@{ $win }{qw( x y )});
+            }
+        }
+
         $win->toggle_floating(1) if $floating;
+
         if ($follow) {
             $screen->tag_set_active($tag->{idx}, 0);
             $screen->refresh();
@@ -251,6 +268,7 @@ sub hide_window($wid, $delete=undef) {
                 $win->urgency_raise(1);
             }
         }
+
         $X->flush();
     },
     DESTROY_NOTIFY, sub($evt) {

@@ -37,7 +37,7 @@ sub init {
                         $cb = X11::korgwm::Executor::parse($_[1]);
                         1;
                     } or return $close->();
-                    ref $cb eq "CODE" and $cb->();
+                    ref $cb eq "CODE" and $cb->($hdl);
                 })
             },
         );

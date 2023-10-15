@@ -114,7 +114,7 @@ hotkeys:
   mod_k: 'focus_move(k)'
   mod_l: 'focus_move(l)'
   mod_m: 'win_toggle_maximize()'
-  mod_r: 'exec(dmenu_run -i -nb #262729 -nf #A3BABF -sb #464729 -sf #FFFF00)'
+  mod_r: 'exec(rofi -show drun)'
   mod_shift_1: 'win_move_tag(1)'
   mod_shift_2: 'win_move_tag(2)'
   mod_shift_3: 'win_move_tag(3)'

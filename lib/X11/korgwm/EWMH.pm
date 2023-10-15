@@ -74,14 +74,12 @@ sub init {
     add_event_cb(CLIENT_MESSAGE(), sub ($evt) {
         my $atomname = $icccm_atoms->{$evt->type} or return;
         my $handler = $icccm_handlers->{$atomname} or return;
-        warn "... running handler for $atomname";
         $handler->($evt);
     });
 
     add_event_cb(PROPERTY_NOTIFY(), sub ($evt) {
         my $atomname = $icccm_atoms->{$evt->{atom}} or return;
         my $handler = $icccm_handlers->{$atomname} or return;
-        warn "... running handler for $atomname";
         $handler->($evt);
     });
 }
