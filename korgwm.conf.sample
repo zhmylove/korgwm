@@ -1,0 +1,167 @@
+# Default configuration is as follows.
+---
+## API parameters
+# Set api_port = 0 to disable API server
+api_host: 127.0.0.1
+api_port: 27015
+# Inactivity timeout for API to close the connection
+api_timeout: 5
+
+## Generic parameters
+# Window border width in pixels
+border_width: 1
+# Enable keyboard selection for Expose
+expose_show_id: 1
+# Modifier to set margins
+expose_spacing: 15
+# Indicates the pointer should be moved somewhere. One of: undef (~), center, and hidden
+initial_pointer_position: center
+# Should mouse follow the focus under certain circumstances (RTFS)
+mouse_follow: 1
+# Command which is used to set relevant screen positions on each RandR event
+randr_cmd: 'xrandr --output HDMI-A-0 --left-of eDP --auto --output DisplayPort-0 --right-of eDP --auto'
+# Enable/disable setting the colour for root window
+set_root_color: 0
+
+## Bar settings
+# Font specification to use on the bar
+font: DejaVu Sans Mono 10
+# Height of the panel in pixels
+panel_height: 20
+# Set this to true if the panel should be hidden
+panel_hide: ~
+# Widgets that should be enabled for bar
+panel_end:
+  - battery
+  - clock
+  - lang
+# Hide tags with no windows on the panel
+hide_empty_tags: 1
+battery_format: '%s'
+# Format strings for bar widgets
+clock_format: ' %a, %e %B %H:%M'
+lang_format: ' %s '
+# Mapping of the languages to strings on the panel
+lang_names:
+  '0': £
+  '1': ₽
+# Max length of the title before ellipsis comes into play
+title_max_len: 64
+# How many tags to create and their names
+ws_names:
+  - 'T'
+  - 'W'
+  - 'M'
+  - 'C'
+  - '5'
+  - '6'
+  - '7'
+  - '8'
+  - '9'
+
+## Colours
+color_battery_low: 0xFF0000
+color_bg: 0x262729
+color_border: 0x232426
+color_border_focus: 0xA3BABF
+color_expose: 0x232426
+color_fg: 0xA3BABF
+color_urgent_bg: 0x464729
+color_urgent_fg: 0xFFFF00
+
+## Hotkeys, see API.pm for description of possible functions
+hotkeys:
+  XF86AudioLowerVolume: 'exec(pactl set-sink-volume 0 -10%)'
+  XF86AudioMute: 'exec(pactl set-sink-mute 0 toggle)'
+  XF86AudioRaiseVolume: 'exec(pactl set-sink-volume 0 +10%)'
+  XF86MonBrightnessDown: 'exec(light -U 20)'
+  XF86MonBrightnessUp: 'exec(light -A 20)'
+  alt_F4: 'win_close()'
+  alt_TAB: 'focus_cycle(forward)'
+  alt_shift_TAB: 'focus_cycle(backward)'
+  mod_1: 'tag_select(1)'
+  mod_2: 'tag_select(2)'
+  mod_3: 'tag_select(3)'
+  mod_4: 'tag_select(4)'
+  mod_5: 'tag_select(5)'
+  mod_6: 'tag_select(6)'
+  mod_7: 'tag_select(7)'
+  mod_8: 'tag_select(8)'
+  mod_9: 'tag_select(9)'
+  mod_=: 'exec(galculator)'
+  mod_CR: 'exec(urxvt)'
+  mod_F1: 'screen_select(1)'
+  mod_F2: 'screen_select(2)'
+  mod_F3: 'screen_select(3)'
+  mod_F4: 'screen_select(4)'
+  mod_F5: 'screen_select(5)'
+  mod_F6: 'screen_select(6)'
+  mod_F7: 'screen_select(7)'
+  mod_F8: 'screen_select(8)'
+  mod_F9: 'screen_select(9)'
+  mod_TAB: 'focus_prev()'
+  mod_a: 'win_toggle_always_on()'
+  mod_ctrl_h: 'layout_resize(h)'
+  mod_ctrl_j: 'layout_resize(j)'
+  mod_ctrl_k: 'layout_resize(k)'
+  mod_ctrl_l: 'layout_resize(l)'
+  mod_ctrl_shift_q: 'exit()'
+  mod_e: 'expose()'
+  mod_f: 'win_toggle_floating()'
+  mod_g: 'exec(google-chrome --simulate-outdated-no-au --new-window --incognito)'
+  mod_h: 'focus_move(h)'
+  mod_j: 'focus_move(j)'
+  mod_k: 'focus_move(k)'
+  mod_l: 'focus_move(l)'
+  mod_m: 'win_toggle_maximize()'
+  mod_r: 'exec(dmenu_run -i -nb #262729 -nf #A3BABF -sb #464729 -sf #FFFF00)'
+  mod_shift_1: 'win_move_tag(1)'
+  mod_shift_2: 'win_move_tag(2)'
+  mod_shift_3: 'win_move_tag(3)'
+  mod_shift_4: 'win_move_tag(4)'
+  mod_shift_5: 'win_move_tag(5)'
+  mod_shift_6: 'win_move_tag(6)'
+  mod_shift_7: 'win_move_tag(7)'
+  mod_shift_8: 'win_move_tag(8)'
+  mod_shift_9: 'win_move_tag(9)'
+  mod_shift_CR: 'exec(urxvt -name urxvt-float)'
+  mod_shift_F1: 'win_move_screen(1)'
+  mod_shift_F2: 'win_move_screen(2)'
+  mod_shift_F3: 'win_move_screen(3)'
+  mod_shift_F4: 'win_move_screen(4)'
+  mod_shift_F5: 'win_move_screen(5)'
+  mod_shift_F6: 'win_move_screen(6)'
+  mod_shift_F7: 'win_move_screen(7)'
+  mod_shift_F8: 'win_move_screen(8)'
+  mod_shift_F9: 'win_move_screen(9)'
+  mod_shift_c: 'win_close()'
+  mod_shift_ctrl_l: 'exec(lock)'
+  mod_shift_g: 'exec(google-chrome --simulate-outdated-no-au --new-window)'
+  mod_shift_h: 'focus_swap(h)'
+  mod_shift_j: 'focus_swap(j)'
+  mod_shift_k: 'focus_swap(k)'
+  mod_shift_l: 'focus_swap(l)'
+  mod_shift_w: 'exec(firefox --new-instance)'
+  mod_w: 'exec(firefox --new-instance --private-window)'
+
+## Rules applied to new windows by WM_CLASS
+# floating  -- should the window be tiled (by default for non-transient) or floating
+# follow    -- focus new window and switch to it's screen&tag
+# screen    -- preferred screen to attach the window to (starts with 1)
+# tag       -- preferred tag to attach the window to (starts with 1)
+rules:
+  evolution:
+    follow: 0
+    screen: 1
+    tag: 3
+  galculator:
+    floating: 1
+  mattermost:
+    follow: 0
+    screen: 2
+    tag: 4
+  urxvt-float:
+    floating: 1
+  xeyes:
+    floating: 1
+# vim: ft=yaml ts=2 sw=2 :

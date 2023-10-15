@@ -19,7 +19,7 @@ my $server;
 
 # Establish API server
 sub init {
-    return unless defined $cfg->{api_host} and defined $cfg->{api_port};
+    return unless defined $cfg->{api_host} and ($cfg->{api_port} // 0) > 0;
     $server = tcp_server $cfg->{api_host}, $cfg->{api_port}, sub($fh, @) {
         my $hdl;
         my $close = sub { $hdl->destroy(); undef $fh; delete $clients{$hdl}; };

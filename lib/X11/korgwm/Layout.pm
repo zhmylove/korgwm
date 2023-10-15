@@ -146,8 +146,6 @@ sub arrange_windows($self, $windows, $dpy_width, $dpy_height, $x_offset=0, $y_of
 
             # Extract next window
             my $win = shift @windows;
-            use Data::Dumper;
-            die Dumper $self unless defined $win;
             croak "Window cannot be undef" unless defined $win;
             $win->resize_and_move($x + $x_offset, $y + $y_offset, $width, $height, $hide_border ? 0 : ());
 

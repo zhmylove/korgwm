@@ -4,6 +4,7 @@
 package X11::korgwm::Common;
 use strict;
 use warnings;
+no warnings 'experimental::signatures';
 use feature 'signatures';
 use Carp;
 use Exporter 'import';
