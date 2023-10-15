@@ -94,6 +94,9 @@ BEGIN {
         };
         %{ $cfg } = (%{ $cfg }, %{ $rcfg });
     }
+
+    # Normalize numeric values
+    $_ = hexnum for @{ $cfg }{grep /^color_/, keys %{ $cfg }};
 }
 
 1;

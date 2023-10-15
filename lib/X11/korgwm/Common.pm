@@ -9,10 +9,10 @@ use feature 'signatures';
 use Carp;
 use Exporter 'import';
 use List::Util qw( first );
+use Scalar::Util qw( looks_like_number );
 
-# TODO sort exports list
-our @EXPORT = qw( $X $cfg $focus $unmap_prevent $windows %screens @screens add_event_cb replace_event_cb %xcb_events
-    init_extension screen_by_xy );
+our @EXPORT = qw( $X $cfg $focus $unmap_prevent $windows %screens %xcb_events @screens
+    add_event_cb hexnum init_extension replace_event_cb screen_by_xy );
 
 our $X;
 our $cfg;
@@ -43,6 +43,10 @@ sub init_extension($name, $first_event) {
 # Other helpers
 sub screen_by_xy($x, $y) {
     first { $_->{x} < $x and $_->{x} + $_->{w} > $x and $_->{y} < $y and $_->{y} + $_->{h} > $y } @screens;
+}
+
+sub hexnum($str = $_) {
+    looks_like_number $str ? $str : hex($str);
 }
 
 1;
