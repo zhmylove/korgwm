@@ -78,6 +78,9 @@ sub init {
         $handler->();
     });
 
+    # We are not interested in KeyRelease events, so ignore it
+    add_event_ignore(KEY_RELEASE());
+
     # Grab keys
     my $root_id = $X->root->id;
     for my $key (keys %{ $hotkeys }) {

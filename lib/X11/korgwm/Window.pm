@@ -119,18 +119,23 @@ sub resize($self, $w, $h) {
 }
 
 sub _stack_above($self) {
+    return if $self->{_hidden};
     $X->configure_window($self->{id}, CONFIG_WINDOW_STACK_MODE, STACK_MODE_ABOVE);
 }
 
-sub _stack_below($self, $upper) {
-    $X->configure_window($self->{id}, CONFIG_WINDOW_SIBLING | CONFIG_WINDOW_STACK_MODE, $upper->{id}, STACK_MODE_BELOW);
+sub _stack_below($self, $top) {
+    return if $self->{_hidden};
+    $X->configure_window($self->{id}, CONFIG_WINDOW_SIBLING | CONFIG_WINDOW_STACK_MODE, $top->{id}, STACK_MODE_BELOW);
 }
 
 sub focus($self) {
     croak "Undefined window" unless $self->{id};
 
     # Get focus pointer and reset focus for previously focused window, if any
-    $focus->{window}->reset_border() if $focus->{window} and $self != ($focus->{window} // 0);
+    if ($focus->{window} and $self != ($focus->{window} // 0)) {
+        $focus_prev = $focus->{window};
+        $focus_prev->reset_border();
+    }
 
     $X->change_window_attributes($self->{id}, CW_BORDER_PIXEL, $cfg->{color_border_focus});
 
@@ -201,6 +206,7 @@ sub focus($self) {
 
 sub reset_border($self) {
     croak "Undefined window" unless $self->{id};
+    return if $self->{_hidden};
     # TODO consider if I want to update panel on focused screen
     $X->change_window_attributes($self->{id}, CW_BORDER_PIXEL, $cfg->{color_border});
 }
@@ -359,9 +365,10 @@ sub toggle_always_on($self) {
 sub close($self) {
     my $icccm_del_win = $X->atom(name => 'WM_DELETE_WINDOW')->id;
     my ($value, $prop) = _get_property($self->{id}, "WM_PROTOCOLS", "ATOM", 16);
+    my $len = $prop->{value_len};
 
     # Use ICCCM to gently ask client to close the window
-    if (first { $_ == $icccm_del_win } unpack "L" x $prop->{value_len}, $value) {
+    if ($len and first { $_ == $icccm_del_win } unpack "L" x $len, $value) {
         my $packed = pack('CCSLLLL', CLIENT_MESSAGE, 32, 0, $self->{id}, $X->atom(name => 'WM_PROTOCOLS')->id,
             $X->atom(name => 'WM_DELETE_WINDOW')->id, TIME_CURRENT_TIME);
         $X->send_event(0, $self->{id}, EVENT_MASK_STRUCTURE_NOTIFY, $packed);
@@ -374,7 +381,12 @@ sub close($self) {
 
 sub wm_hints_flags($self) {
     my ($value, $prop) = _get_property($self->{id}, "WM_HINTS", "WM_HINTS", 1);
-    my ($flags) = unpack 'L', $value;
+    my $flags;
+    if (defined $value) {
+        ($flags) = unpack 'L', $value;
+    } else {
+        $flags = 0; # to make it usable with bitwise operations
+    }
     return $flags;
 }
 
@@ -478,7 +490,7 @@ sub win_by_direction($self, $direction) {
         @{ $delta_comp{ (sort { $a <=> $b } keys %delta_comp)[0] } };
 
     # Select any relevant window
-    my $new = $delta_base{ (sort { $a <=> $b } keys %delta_base)[0] }->[0];
+    $new = $delta_base{ (sort { $a <=> $b } keys %delta_base)[0] }->[0];
     croak "Something went wrong in focus_move()" unless $new;
     $new;
 }

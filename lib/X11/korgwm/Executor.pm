@@ -197,7 +197,7 @@ DEBUG and push @parser,
     }}],
     [qr/dump_screen\((\d+)\)/, sub ($arg) { return sub ($hdl) {
         {
-            my $screen = @screens[$arg];
+            my $screen = $screens[$arg];
             return $hdl->push_write("No such screen: $arg\n") unless $screen;
             require Data::Dumper;
             local $Data::Dumper::Sortkeys = 1;
@@ -207,7 +207,7 @@ DEBUG and push @parser,
     [qr/dump_tag\((\d+\s*,\s*\d+)\)/, sub ($arg) { return sub ($hdl) {
         {
             my ($arg_screen, $arg_tag) = split /\s*,\s*/, $arg;
-            my $screen = @screens[$arg_screen];
+            my $screen = $screens[$arg_screen];
             return $hdl->push_write("No such screen: $arg_screen\n") unless $screen;
             my $tag = $screen->{tags}->[$arg_tag];
             return $hdl->push_write("No such tag: $arg_tag\n") unless $tag;

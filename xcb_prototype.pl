@@ -13,14 +13,21 @@ use X11::XCB::Connection;
 use Carp;
 use AnyEvent;
 
-# TODO remove
-use Devel::SimpleTrace;
-use Data::Dumper;
-$Data::Dumper::Sortkeys = 1;
-#$Data::Dumper::Indent = 0;
-
 use X11::korgwm::Common;
 use X11::korgwm::Config;
+
+# Early initialize debug output, if needed. Should run after Common & Config
+BEGIN {
+    DEBUG and do {
+        require Devel::SimpleTrace;
+        Devel::SimpleTrace->import();
+        require Data::Dumper;
+        Data::Dumper->import();
+        $Data::Dumper::Sortkeys = 1;
+        #$Data::Dumper::Indent = 0;
+    };
+}
+
 use X11::korgwm::Panel::Battery;
 use X11::korgwm::Panel::Clock;
 use X11::korgwm::Panel::Lang;
@@ -44,21 +51,21 @@ use X11::korgwm::Hotkeys;
 
 $SIG{CHLD} = "IGNORE";
 
+# Establish X11 connection and check for another WM
 $X = X11::XCB::Connection->new;
 die "Errors connecting to X11" if $X->has_error();
-warn Dumper $X->screens;
-warn Dumper my $r = $X->root;
-warn Dumper $X->get_window_attributes($r->id);
-warn Dumper my $wm = $X->change_window_attributes_checked($r->id, CW_EVENT_MASK, EVENT_MASK_SUBSTRUCTURE_REDIRECT | EVENT_MASK_SUBSTRUCTURE_NOTIFY | EVENT_MASK_POINTER_MOTION);
-#warn Dumper $X->change_window_attributes($r->id, CW_EVENT_MASK, EVENT_MASK_BUTTON_1_MOTION|EVENT_MASK_BUTTON_2_MOTION|EVENT_MASK_BUTTON_3_MOTION|EVENT_MASK_BUTTON_4_MOTION|EVENT_MASK_BUTTON_5_MOTION|EVENT_MASK_BUTTON_MOTION|EVENT_MASK_BUTTON_PRESS|EVENT_MASK_BUTTON_RELEASE|EVENT_MASK_COLOR_MAP_CHANGE|EVENT_MASK_ENTER_WINDOW|EVENT_MASK_EXPOSURE|EVENT_MASK_FOCUS_CHANGE|EVENT_MASK_KEYMAP_STATE|EVENT_MASK_KEY_PRESS|EVENT_MASK_KEY_RELEASE|EVENT_MASK_LEAVE_WINDOW|EVENT_MASK_NO_EVENT|EVENT_MASK_OWNER_GRAB_BUTTON|EVENT_MASK_POINTER_MOTION|EVENT_MASK_POINTER_MOTION_HINT|EVENT_MASK_PROPERTY_CHANGE|EVENT_MASK_RESIZE_REDIRECT|EVENT_MASK_STRUCTURE_NOTIFY|EVENT_MASK_SUBSTRUCTURE_NOTIFY|EVENT_MASK_SUBSTRUCTURE_REDIRECT|EVENT_MASK_VISIBILITY_CHANGE);
-# warn Dumper $X->change_window_attributes($r->id, CW_CURSOR, ...);
-warn Dumper my $wm_error = $X->request_check($wm->{sequence});
-die "Looks like another WM is in use" if $wm_error;
+my $r = $X->root;
+my $wm = $X->change_window_attributes_checked($r->id, CW_EVENT_MASK,
+    EVENT_MASK_SUBSTRUCTURE_REDIRECT |
+    EVENT_MASK_SUBSTRUCTURE_NOTIFY |
+    EVENT_MASK_POINTER_MOTION
+);
+die "Looks like another WM is in use" if $X->request_check($wm->{sequence});
 
 # Set root color
 if ($cfg->{set_root_color}) {
-    warn Dumper $X->change_window_attributes($r->id, CW_BACK_PIXEL, $cfg->{color_bg});
-    warn Dumper $X->clear_area(0, $r->id, 0, 0, $r->_rect->width, $r->_rect->height);
+    $X->change_window_attributes($r->id, CW_BACK_PIXEL, $cfg->{color_bg});
+    $X->clear_area(0, $r->id, 0, 0, $r->_rect->width, $r->_rect->height);
 }
 
 $X->flush();
@@ -102,8 +109,7 @@ sub handle_screens {
     $screen_for_abandoned_windows = $screens{$screen_for_abandoned_windows};
     croak "Unable to get the screen for abandoned windows" unless defined $screen_for_abandoned_windows;
 
-    # TODO remove
-    warn "Moving stale windows to screen: $screen_for_abandoned_windows";
+    DEBUG and warn "Moving stale windows to screen: $screen_for_abandoned_windows";
 
     # Call destroy on old screens and remove them
     for my $s (@del_screens) {
@@ -167,6 +173,7 @@ handle_existing_windows();
 sub hide_window($wid, $delete=undef) {
     my $win = $delete ? delete $windows->{$wid} : $windows->{$wid};
     return unless $win;
+    $win->{_hidden} = 1;
 
     for my $tag (values %{ $win->{on_tags} // {} }) {
         $tag->win_remove($win);
@@ -191,128 +198,145 @@ sub hide_window($wid, $delete=undef) {
     }
 }
 
-%xcb_events = (
-    MAP_REQUEST, sub($evt) {
-        my ($wid, $follow, $win, $screen, $tag, $floating) = ($evt->{window}, 1);
+# We do not want these events to be processed
+add_event_ignore(CREATE_NOTIFY());
+add_event_ignore(MAP_NOTIFY());
+add_event_ignore(CONFIGURE_NOTIFY());
 
-        # Create a window if needed
-        $win = $windows->{$wid};
-        unless (defined $win) {
-            $win = $windows->{$wid} = X11::korgwm::Window->new($wid);
+# Add several important event handlers
+add_event_cb(MAP_REQUEST(), sub($evt) {
+    my ($wid, $follow, $win, $screen, $tag, $floating) = ($evt->{window}, 1);
 
-            $X->change_window_attributes($wid, CW_EVENT_MASK, EVENT_MASK_ENTER_WINDOW | EVENT_MASK_PROPERTY_CHANGE);
+    # Create a window if needed
+    $win = $windows->{$wid};
+    if (defined $win) {
+        delete $win->{_hidden};
+    } else {
+        $win = $windows->{$wid} = X11::korgwm::Window->new($wid);
 
-            # Fix geometry if needed
-            @{ $win }{qw( x y w h )} = $win->query_geometry() unless defined $win->{x};
-        }
+        $X->change_window_attributes($wid, CW_EVENT_MASK, EVENT_MASK_ENTER_WINDOW | EVENT_MASK_PROPERTY_CHANGE);
 
-        # Apply rules
-        my $rule = $cfg->{rules}->{$win->class()};
-        if ($rule) {
-            # XXX awaiting bugs with idx 0
-            defined $rule->{screen} and $screen = $screens[$rule->{screen} - 1] // $screens[0];
-            defined $rule->{tag} and $tag = $screen->{tags}->[$rule->{tag} - 1];
-            defined $rule->{follow} and $follow = $rule->{follow};
-            defined $rule->{floating} and $floating = $rule->{floating};
-        }
+        # Fix geometry if needed
+        @{ $win }{qw( x y w h )} = $win->query_geometry() unless defined $win->{x};
+    }
 
-        # Process transients
-        my $transient_for = $win->transient_for() // -1;
-        $transient_for = undef unless defined $windows->{$transient_for};
-        if ($transient_for) {
-            my $parent = $windows->{$transient_for};
-            # toggle_floating() won't do for transient, so do some things manually
-            $win->{floating} = 1;
-            $rule->{follow} //= $cfg->{mouse_follow};
-            $win->{transient_for} = $parent;
-            $parent->{siblings}->{$wid} = undef;
+    # Apply rules
+    my $rule = $cfg->{rules}->{$win->class()};
+    if ($rule) {
+        # XXX awaiting bugs with idx 0
+        defined $rule->{screen} and $screen = $screens[$rule->{screen} - 1] // $screens[0];
+        defined $rule->{tag} and $tag = $screen->{tags}->[$rule->{tag} - 1];
+        defined $rule->{follow} and $follow = $rule->{follow};
+        defined $rule->{floating} and $floating = $rule->{floating};
+    }
 
-            $tag = ($parent->tags_visible())[0] // ($parent->tags())[0];
-            $screen = $tag->{screen};
-            $follow = 0 unless $tag == $screen->current_tag();
-        }
+    # Process transients
+    my $transient_for = $win->transient_for() // -1;
+    $transient_for = undef unless defined $windows->{$transient_for};
+    if ($transient_for) {
+        my $parent = $windows->{$transient_for};
+        # toggle_floating() won't do for transient, so do some things manually
+        $win->{floating} = 1;
+        $rule->{follow} //= $cfg->{mouse_follow};
+        $win->{transient_for} = $parent;
+        $parent->{siblings}->{$wid} = undef;
 
-        # Set default screen & tag, and fix position
-        $screen //= $focus->{screen};
-        $tag //= $screen->current_tag();
-        if ($win->{x} == 0) {
-            $win->{x} = $screen->{x} + int(($screen->{w} - $win->{w}) / 2);
-            $win->{y} = $screen->{y} + int(($screen->{h} - $win->{h}) / 2);
-        } elsif ($win->{x} < $screen->{x}) {
-            $win->{x} += $screen->{x};
-        }
+        $tag = ($parent->tags_visible())[0] // ($parent->tags())[0];
+        $screen = $tag->{screen};
+        $follow = 0 unless $tag == $screen->current_tag();
+    }
 
-        # Place it in proper place
-        $win->show() if $screen->current_tag() == $tag;
-        $tag->win_add($win);
+    # Set default screen & tag, and fix position
+    $screen //= $focus->{screen};
+    $tag //= $screen->current_tag();
+    if ($win->{x} == 0) {
+        $win->{x} = $screen->{x} + int(($screen->{w} - $win->{w}) / 2);
+        $win->{y} = $screen->{y} + int(($screen->{h} - $win->{h}) / 2);
+    } elsif ($win->{x} < $screen->{x}) {
+        $win->{x} += $screen->{x};
+    }
 
-        if ($win->{transient_for}) {
-            if ($win->{w} and $win->{h}) {
-                $win->resize_and_move(@{ $win }{qw( x y w h )});
-            } else {
-                $win->move(@{ $win }{qw( x y )});
-            }
-        }
+    # Place it in proper place
+    $win->show() if $screen->current_tag() == $tag;
+    $tag->win_add($win);
 
-        $win->toggle_floating(1) if $floating;
-
-        if ($follow) {
-            $screen->tag_set_active($tag->{idx}, 0);
-            $screen->refresh();
-            $win->focus();
-            $win->warp_pointer() if $rule->{follow};
+    if ($win->{transient_for}) {
+        if ($win->{w} and $win->{h}) {
+            $win->resize_and_move(@{ $win }{qw( x y w h )});
         } else {
-            if ($screen->current_tag() == $tag) {
-                $screen->refresh();
-            } else {
-                $win->urgency_raise(1);
-            }
+            $win->move(@{ $win }{qw( x y )});
+        }
+    }
+
+    $win->toggle_floating(1) if $floating;
+
+    if ($follow) {
+        $screen->tag_set_active($tag->{idx}, 0);
+        $screen->refresh();
+        $win->focus();
+        $win->warp_pointer() if $rule->{follow};
+    } else {
+        if ($screen->current_tag() == $tag) {
+            $screen->refresh();
+        } else {
+            $win->urgency_raise(1);
+        }
+    }
+
+    $X->flush();
+});
+
+add_event_cb(DESTROY_NOTIFY(), sub($evt) {
+    hide_window($evt->{window}, 1);
+});
+
+add_event_cb(UNMAP_NOTIFY(), sub($evt) {
+    # This condition is to distinguish between unmap due to $tag->hide() and unmap request from client
+    hide_window($evt->{window}) unless delete $unmap_prevent->{$evt->{window}};
+});
+
+add_event_cb(CONFIGURE_REQUEST(), sub($evt) {
+    # Configure window on the server
+    my $win_id = $evt->{window};
+
+    if (my $win = $windows->{$win_id}) {
+        # Save desired x y w h
+        my ($x, $y, $w, $h) = @{ $win }{qw( x y w h )} = @{ $evt }{qw( x y w h )};
+        $y = $cfg->{panel_height} if $y < $cfg->{panel_height};
+
+        # Handle floating windows properly
+        if ($win->{floating}) {
+            # For floating we need fixup border
+            my $bw = $cfg->{border_width};
+            # TODO check if it moved to another screen
+            $win->resize_and_move($x, $y, $w + 2 * $bw, $h + 2 * $bw);
+        } else {
+            # If window is tiled or maximized, tell it it's real size
+            ($x, $y, $w, $h) = @{ $win }{qw( real_x real_y real_w real_h )};
         }
 
+        # Send notification to the client and return
+        $win->configure_notify($evt->{sequence}, $x, $y, $w, $h);
         $X->flush();
-    },
-    DESTROY_NOTIFY, sub($evt) {
-        hide_window($evt->{window}, 1);
-    },
-    UNMAP_NOTIFY, sub($evt) {
-        # This condition is to distinguish between unmap due to $tag->hide() and unmap request from client
-        hide_window($evt->{window}) unless delete $unmap_prevent->{$evt->{window}};
-    },
-    CONFIGURE_REQUEST, sub($evt) {
-        # Configure window on the server
-        my $win_id = $evt->{window};
+        return;
+    }
 
-        if (my $win = $windows->{$win_id}) {
-            # Save desired x y w h
-            my ($x, $y, $w, $h) = @{ $win }{qw( x y w h )} = @{ $evt }{qw( x y w h )};
-            $y = $cfg->{panel_height} if $y < $cfg->{panel_height};
+    # Send xcb_configure_notify_event_t to the window's client
+    X11::korgwm::Window::_configure_notify($win_id, @{ $evt }{qw( sequence x y w h )});
+    $X->flush();
+});
 
-            # Handle floating windows properly
-            if ($win->{floating}) {
-                # For floating we need fixup border
-                my $bw = $cfg->{border_width};
-                # TODO check if it moved to another screen
-                $win->resize_and_move($x, $y, $w + 2 * $bw, $h + 2 * $bw);
-            } else {
-                # If window is tiled or maximized, tell it it's real size
-                ($x, $y, $w, $h) = @{ $win }{qw( real_x real_y real_w real_h )};
-            }
+# This will handle RandR screen change event
+add_event_cb($RANDR_EVENT_BASE, sub($evt) {
+    qx($cfg->{randr_cmd});
+    handle_screens();
+});
 
-            # Send notification to the client and return
-            $win->configure_notify($evt->{sequence}, $x, $y, $w, $h);
-            $X->flush();
-            return;
-        }
-
-        # Send xcb_configure_notify_event_t to the window's client
-        X11::korgwm::Window::_configure_notify($win_id, @{ $evt }{qw( sequence x y w h )});
-        $X->flush();
-    },
-    $RANDR_EVENT_BASE => sub($evt) {
-        qx($cfg->{randr_cmd});
-        handle_screens();
-    },
-);
+# X11 Error handler
+add_event_cb(XCB_NONE(), sub($evt) {
+    warn sprintf "X11 Error: code=%s seq=%s res=%s %s/%s", @{ $evt }{qw( error_code sequence resource_id major_code
+        minor_code )};
+});
 
 # Prepare manual exit switch
 our $exit_trigger = 0;
@@ -337,15 +361,17 @@ for(;;) {
     die "Segmentation fault (core dumped)\n" if $exit_trigger;
 
     while (my $evt = $X->poll_for_event()) {
-        warn Dumper $evt;
+        DEBUG and warn Dumper $evt;
 
         # Highest bit indicates that the source is another client
         my $type = $evt->{response_type} & 0x7F;
 
         if (defined(my $evt_cb = $xcb_events{$type})) {
             $evt_cb->($evt);
+        } elsif (exists $xcb_events_ignore{$type}) {
+            DEBUG and warn "Manually ignored event type: $type";
         } else {
-            warn "... MISSING handler for event " . $type;
+            warn "Warning: missing handler for event $type";
         }
     }
 

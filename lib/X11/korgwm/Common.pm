@@ -11,10 +11,11 @@ use Exporter 'import';
 use List::Util qw( first );
 use Scalar::Util qw( looks_like_number );
 
-our @EXPORT = qw( DEBUG $X $cfg $focus $unmap_prevent $windows %screens %xcb_events @screens
-    add_event_cb hexnum init_extension replace_event_cb screen_by_xy );
+our @EXPORT = qw( DEBUG $X $cfg $focus $unmap_prevent $windows %screens %xcb_events %xcb_events_ignore @screens
+    add_event_cb add_event_ignore hexnum init_extension replace_event_cb screen_by_xy );
 
-sub DEBUG() { 1 }
+# Set after parsing config
+sub DEBUG;
 
 our $X;
 our $cfg;
@@ -23,12 +24,18 @@ our $unmap_prevent;
 our $windows = {};
 our %screens;
 our %xcb_events;
+our %xcb_events_ignore;
 our @screens;
 
 # Helpers for extensions
 sub add_event_cb($id, $sub) {
     croak "Redefined event handler for $id" if defined $xcb_events{$id};
     $xcb_events{$id} = $sub;
+}
+
+sub add_event_ignore($id) {
+    croak "Redefined event ignore for $id" if defined $xcb_events_ignore{$id};
+    $xcb_events_ignore{$id} = undef;
 }
 
 sub replace_event_cb($id, $sub) {

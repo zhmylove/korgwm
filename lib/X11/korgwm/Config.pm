@@ -10,6 +10,7 @@ use X11::korgwm::Common;
 
 BEGIN {
     # Default values
+    $cfg->{debug} = 0;
     $cfg->{api_host} = "127.0.0.1";
     $cfg->{api_port} = 27015;
     $cfg->{api_timeout} = 5;
@@ -97,6 +98,9 @@ BEGIN {
 
     # Normalize numeric values
     $_ = hexnum for @{ $cfg }{grep /^color_/, keys %{ $cfg }};
+
+    # Set the DEBUG
+    *X11::korgwm::Common::DEBUG = $cfg->{debug} ? sub() { 1 } : sub() { undef };
 }
 
 1;

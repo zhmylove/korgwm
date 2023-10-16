@@ -164,4 +164,6 @@ rules:
     floating: 1
   xeyes:
     floating: 1
+# Enable debug output
+debug: 0
 # vim: ft=yaml ts=2 sw=2 :
