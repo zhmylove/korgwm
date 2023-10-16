@@ -1,0 +1,4 @@
+dist: jammy
+language: perl
+perl:
+    - "5.36"

@@ -93,6 +93,7 @@ BEGIN {
             print STDERR "Error parsing config file: $@ ";
             exit 2;
         };
+        # TODO did not implement validation yet to allow users shoot the legs
         %{ $cfg } = (%{ $cfg }, %{ $rcfg });
     }
 

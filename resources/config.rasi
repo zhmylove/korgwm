@@ -1,0 +1,11 @@
+configuration {
+    modi: "drun,window,run,ssh";
+    font: "DejaVu Sans Mono 12";
+    show-icons: true;
+    terminal: "urxvt-float";
+  timeout {
+    action: "kb-cancel";
+    delay:  0;
+  }
+}
+@theme "/usr/share/rofi/themes/gruvbox-dark-soft.rasi"

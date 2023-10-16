@@ -151,7 +151,6 @@ sub focus($self) {
         carp "Trying to focus an invisible window " . $self->{id};
 
         # Looks like X11 sometimes manages to send EnterNotify on tag switching, so return here
-        # TODO race condition should be fixed
         return;
     } elsif (@visible_tags > 1) {
         # Focusing window residing on multiple visible tags is not implemented yet

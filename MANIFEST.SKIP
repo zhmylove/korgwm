@@ -1,0 +1,14 @@
+\.bak$
+\.old$
+\.tar\.gz$
+^.git
+^META_new\.(?:json|yml)
+^MYMETA\.
+^Makefile$
+^TODO$
+^\.travis\.yml
+^architecture/
+^blib/
+^pm_to_blib
+^resources/
+~$

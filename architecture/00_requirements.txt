@@ -38,6 +38,7 @@
 
 windows => {
     wid => {
+        _hidden => Bool,                    # Internal flag to avoid several window opeations
         id => wid,                          # ID of the window
         on_tags => {},                      # hash of tags on which this window is shown
         always_on => undef / Screen,        # screen on which the window is always_on

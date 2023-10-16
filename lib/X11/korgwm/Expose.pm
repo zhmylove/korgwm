@@ -196,7 +196,7 @@ sub expose {
     } while ($grab_tries-- and $grab_status eq 'already-grabbed');
 }
 
-# TODO consider adding this right into Window.pm
+# TODO consider adding this right into Window.pm (if Expose will work good)
 # Inverse approach is used in order to simplify Expose deletion / re-implementation
 BEGIN {
     # Insert some pixbuf-specific methods 

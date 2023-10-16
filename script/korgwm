@@ -1,0 +1,24 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use X11::korgwm;
+exit X11::korgwm->FireInTheHole();
+__END__
+
+=head1 NAME
+
+korgwm - a tiling window manager written in Perl
+
+=head1 DESCRIPTION
+
+Manages X11 windows in a tiling manner and supports all the stuff KorG needs.
+Built on top of XCB, AnyEvent, and Gtk3.
+It is not reparenting for purpose.
+
+=head1 COPYRIGHT AND LICENSE
+ 
+Copyright (c) 2023 Sergei Zhmylev E<lt>zhmylove@cpan.orgE<gt>
+
+MIT License.  Full text is in LICENSE.
+ 
+=cut
