@@ -50,6 +50,7 @@ use X11::korgwm::Hotkeys;
 # ... though this code is written once to read never.
 
 $SIG{CHLD} = "IGNORE";
+my %evt_masks = (x => CONFIG_WINDOW_X, y => CONFIG_WINDOW_Y, w => CONFIG_WINDOW_WIDTH, h => CONFIG_WINDOW_HEIGHT);
 
 # Establish X11 connection and check for another WM
 $X = X11::XCB::Connection->new;
@@ -220,8 +221,11 @@ add_event_cb(MAP_REQUEST(), sub($evt) {
         @{ $win }{qw( x y w h )} = $win->query_geometry() unless defined $win->{x};
     }
 
+    # Ignore windows with no class (hello Google Chrome)
+    my $class = $win->class() // return;
+
     # Apply rules
-    my $rule = $cfg->{rules}->{$win->class()};
+    my $rule = $cfg->{rules}->{$class};
     if ($rule) {
         # XXX awaiting bugs with idx 0
         defined $rule->{screen} and $screen = $screens[$rule->{screen} - 1] // $screens[0];
@@ -300,23 +304,37 @@ add_event_cb(CONFIGURE_REQUEST(), sub($evt) {
     my $win_id = $evt->{window};
 
     if (my $win = $windows->{$win_id}) {
+        # This ugly code is an answer to bad apps like Google Chrome
+        my (%geom, %parsed);
+
+        # Parse masked fields from $evt
+        $evt->{value_mask} & $evt_masks{$_} and $geom{$_} = $parsed{$_} = $evt->{$_} for qw( x y w h );
+
+        # Try to extract missing fields
+        $geom{$_} //= $win->{$_} // $win->{"real_$_"} for qw( x y w h );
+
+        # Ignore events for not fully configured windows. We've done our best.
+        return unless 4 == grep defined, values %geom;
+
         # Save desired x y w h
-        my ($x, $y, $w, $h) = @{ $win }{qw( x y w h )} = @{ $evt }{qw( x y w h )};
-        $y = $cfg->{panel_height} if $y < $cfg->{panel_height};
+        $win->{$_} = $geom{$_} for keys %geom;
+
+        # Fix y
+        $geom{y} = $cfg->{panel_height} if $geom{y} < $cfg->{panel_height};
 
         # Handle floating windows properly
         if ($win->{floating}) {
             # For floating we need fixup border
             my $bw = $cfg->{border_width};
             # TODO check if it moved to another screen
-            $win->resize_and_move($x, $y, $w + 2 * $bw, $h + 2 * $bw);
+            $win->resize_and_move($geom{x}, $geom{y}, $geom{w} + 2 * $bw, $geom{h} + 2 * $bw);
         } else {
             # If window is tiled or maximized, tell it it's real size
-            ($x, $y, $w, $h) = @{ $win }{qw( real_x real_y real_w real_h )};
+            @geom{qw( x y w h )} = @{ $win }{qw( real_x real_y real_w real_h )};
         }
 
         # Send notification to the client and return
-        $win->configure_notify($evt->{sequence}, $x, $y, $w, $h);
+        $win->configure_notify($evt->{sequence}, @geom{qw( x y w h )});
         $X->flush();
         return;
     }
@@ -361,7 +379,7 @@ for(;;) {
     die "Segmentation fault (core dumped)\n" if $exit_trigger;
 
     while (my $evt = $X->poll_for_event()) {
-        DEBUG and warn Dumper $evt;
+        DEBUG and $evt->{response_type} != 6 and warn Dumper $evt;
 
         # Highest bit indicates that the source is another client
         my $type = $evt->{response_type} & 0x7F;

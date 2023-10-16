@@ -62,7 +62,7 @@ sub _attributes($wid) {
 }
 
 sub _class($wid) {
-    my @class = split /\0/, scalar _get_property($wid, "WM_CLASS", "STRING", 16);
+    my @class = split /\0/, scalar _get_property($wid, "WM_CLASS", "STRING", 16) // return;
     return wantarray ? @class : $class[0];
 }
 
@@ -213,7 +213,7 @@ sub reset_border($self) {
 
 sub update_title($self) {
     for my $screen ($self->screens) {
-        $screen->{panel}->title($self->title // "") if $screen->{focus} == $self;
+        $screen->{panel}->title($self->title // "") if ($screen->{focus} // 0) == $self;
     }
 }
 
