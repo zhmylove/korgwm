@@ -23,6 +23,14 @@ It is just my instrument that I'm going to use on a daily basis.
 In it's heart it uses XCB for X11 interaction, AnyEvent for API and event loop and Gtk3 for panel rendering.
 It is not reparenting for purpose, so borders are rendered by X11 itself.
 
+# Screenshots
+
+![Tiled windows](resources/screenshots/tiling.png)
+
+![Floating windows](resources/screenshots/tiling.png)
+
+![Expose all windows](resources/screenshots/expose.png)
+
 # Contribution
 
 **Yes**, I do appreciate contribution.

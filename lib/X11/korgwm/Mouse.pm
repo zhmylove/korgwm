@@ -107,10 +107,12 @@ sub init {
         # XXX Do we really need to ignore EnterNotifies on unknown windows? I'll leave it here waiting for bugs.
         return unless exists $windows->{$wid};
 
+        my $win = $windows->{$wid};
+        return if $win->{_hidden};
+
         return if $_on_hold{$wid};
         $_on_hold{$wid} = AE::timer 0, 0.09, sub { exists $_on_hold{$wid} and delete $_on_hold{$wid} };
 
-        my $win = $windows->{$wid};
         $win->focus() if ($focus->{window} // 0) != $win;
     });
 

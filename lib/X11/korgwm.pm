@@ -24,7 +24,6 @@ BEGIN {
         require Data::Dumper;
         Data::Dumper->import();
         $Data::Dumper::Sortkeys = 1;
-        #$Data::Dumper::Indent = 0;
     };
 }
 
@@ -317,10 +316,10 @@ sub FireInTheHole {
 
         if (my $win = $windows->{$win_id}) {
             # This ugly code is an answer to bad apps like Google Chrome
-            my (%geom, %parsed);
+            my %geom;
 
             # Parse masked fields from $evt
-            $evt->{value_mask} & $evt_masks{$_} and $geom{$_} = $parsed{$_} = $evt->{$_} for qw( x y w h );
+            $evt->{value_mask} & $evt_masks{$_} and $geom{$_} = $evt->{$_} for qw( x y w h );
 
             # Try to extract missing fields
             $geom{$_} //= $win->{$_} // $win->{"real_$_"} for qw( x y w h );
@@ -388,6 +387,7 @@ sub FireInTheHole {
         die "Segmentation fault (core dumped)\n" if $exit_trigger;
 
         while (my $evt = $X->poll_for_event()) {
+            # MotionNotifies(6) are ignored anyways. No room for error
             DEBUG and $evt->{response_type} != 6 and warn Dumper $evt;
 
             # Highest bit indicates that the source is another client

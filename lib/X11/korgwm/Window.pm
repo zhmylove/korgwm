@@ -81,7 +81,7 @@ sub _query_geometry($wid) {
 }
 
 # Generate accessors by object
-INIT {
+UNITCHECK {
     no strict 'refs';
     for my $func (qw(
         attributes
