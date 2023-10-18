@@ -1,0 +1,53 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+LAYOUT_WITH_LEGEND()
+title korgwm: Panel
+
+Container(korgwm_xcb, "X11::XCB", "Perl + XSUB", "libxcb bindings with Xinerama and RandR extensions.", $link="https://metacpan.org/pod/X11::XCB")
+Container(korgwm_panel, "korgwm::Panel", "Gtk3", "Panel on each screen to show tags, window title, and some other info.", $link="32_panel.svg")
+Container(korgwm_api, "korgwm::API", "AnyEvent TCP", "Asynchronous TCP endpoint to control korgwm programmatically.", $link="31_api.svg")
+
+Container_Boundary(korgwm_core, "korgwm") {
+  Component(korgwm, "korgwm.pm", "Perl", "The heart of korgwm: initializes all the systems and orchestrates three event loops.")
+  Component(ewmh, "EWMH.pm", "Perl", "Module that brings EWMH support")
+  Component(executor, "Executor.pm", "Perl", "Runner for Hotkeys and API calls")
+  Component(expose, "Expose.pm", "Perl", "Module to render all windows and switch between them")
+  Component(hotkeys, "Hotkeys.pm", "Perl", "Module to process keyboard events")
+  Component(layout, "Layout.pm", "Perl", "Tiling layout logic")
+  Component(mouse, "Mouse.pm", "Perl", "Module to process mouse events")
+  Component(screen, "Screen.pm", "Perl", "Encapsulates Screen-related functions")
+  Component(tag, "Tag.pm", "Perl", "Encapsulates Tag-related functions")
+  Component(window, "Window.pm", "Perl", "Encapsulates Window-related functions")
+  Component(xkb, "Xkb.pm", "Perl", "XKB support module")
+}
+
+Lay_D(korgwm_xcb, korgwm_panel)
+Lay_D(korgwm_panel, korgwm_api)
+
+Lay_D(korgwm_xcb, korgwm)
+Lay_D(korgwm_panel, korgwm)
+Lay_D(korgwm_api, korgwm)
+
+Rel(korgwm_xcb, korgwm, "Sends events")
+Rel_Back(korgwm_xcb, korgwm, "Sends events")
+Rel(korgwm_panel, korgwm, "Sends mouse click events")
+Rel_Back(korgwm_panel, korgwm, "Updates user-visible data")
+Rel(korgwm_api, korgwm, "Sends control commands and makes RPC")
+
+Lay_D(screen, tag)
+Lay_D(tag, window)
+Lay_D(ewmh, executor)
+Lay_D(executor, expose)
+Lay_D(hotkeys, layout)
+
+Rel_R(korgwm, ewmh, "Uses")
+Rel_R(korgwm, executor, "Uses")
+Rel_L(korgwm, expose, "Uses")
+Rel_D(korgwm, hotkeys, "Uses")
+Rel_D(korgwm, layout, "Uses")
+Rel_D(korgwm, mouse, "Uses")
+Rel_L(korgwm, screen, "Uses")
+Rel_L(korgwm, tag, "Uses")
+Rel_L(korgwm, window, "Uses")
+Rel_D(korgwm, xkb, "Uses")
+@enduml

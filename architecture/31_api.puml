@@ -1,0 +1,19 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+LAYOUT_WITH_LEGEND()
+title korgwm: Panel
+
+Person(user, "User", "The computer user.")
+Container(korgwm_core, "korgwm", "Perl", "The heart of korgwm: initializes all the systems and orchestrates three event loops.", $link="30_core.svg")
+
+Container_Boundary(api, "korgwm::API") {
+  Component(korgwm_api, "API.pm", "AnyEvent TCP", "Asynchronous TCP endpoint to control korgwm programmatically.")
+}
+
+Lay_D(user, korgwm_api)
+Lay_D(korgwm_api, korgwm_core)
+
+Rel(user, korgwm_api, "Sends control comnands", "Text protocol over TCP")
+Rel_Down(korgwm_api, korgwm_core, "Sends control commands and makes RPC", "Perl")
+
+@enduml

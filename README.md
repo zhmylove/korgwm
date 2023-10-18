@@ -23,13 +23,39 @@ It is just my instrument that I'm going to use on a daily basis.
 In it's heart it uses XCB for X11 interaction, AnyEvent for API and event loop and Gtk3 for panel rendering.
 It is not reparenting for purpose, so borders are rendered by X11 itself.
 
+# Functionality
+
+- Tiling and floating windows
+- Dynamic layout that could be resized and reconfigured using hotkeys
+- EWMH suppport: fullscreen, gentle exit, urgency, title, ...
+- Always ON -- floating windows that are displayed on all tags
+- TCP API to control over the network -- see [API.md](API.md)
+- Non-reparenting for purpose
+- Excessive hotkeys including media keys
+- Move and resize using mouse
+- Bar on GTK3 -- supports UTF-8 and has extensible plugin system
+- Included bar plugins to show info about battery, clock, XKB language
+- Mouse pointer warp system
+- Expose mode to show all windows from all tags and quickly switch between them
+- YAML config -- see [korgwm.conf.sample](korgwm.conf.sample)
+- Display rules for certain windows: screen & tag affinity, floating by default, ...
+- ... and many more.
+
 # Screenshots
+
+By default windows are placed in a tiled grid.  You always can tune it's size and location:
 
 ![Tiled windows](resources/screenshots/tiling.png)
 
-![Floating windows](resources/screenshots/tiling.png)
+Windows could also be floating:
+
+![Floating windows](resources/screenshots/floating.png)
+
+There is an expose mode to show all windows from all tags and quickly switch between them:
 
 ![Expose all windows](resources/screenshots/expose.png)
+
+... and many more.
 
 # Contribution
 

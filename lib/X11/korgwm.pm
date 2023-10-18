@@ -7,7 +7,7 @@ use warnings;
 use feature 'signatures';
 
 # Third-party includes
-use X11::XCB 0.20 ':all';
+use X11::XCB 0.21 ':all';
 use X11::XCB::Connection;
 use Carp;
 use AnyEvent;

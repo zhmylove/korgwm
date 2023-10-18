@@ -1,78 +1,32 @@
-[+]  Поддержка одного, двух и трех экранов. Если х11 представляет их как один общий виртуальный экран (это лучше всего для широких окон) -- умение выделять в нем три группы тэгов в зависимости от текущего положения мыши
-[+]  Поддержка определения экранов с помощью расширения RandR
-[+]  Поддержка 10 тэгов на каждом физическом экране (mod+1..0 для переключения)
-[+]  Реализовать переключение тэгов
-[+]  Добавить поддержку переключения языков (setxkbmap)
-[+]  Умение выбирать предыдущий тэг при переключении на этот же
-[+]  Если экран один и окно одно, то не нужно показывать рамку
-[+]  Добавить хоткеи для переключения тэгов
-[+]  Умение перемещать окно на конкретный экран или на конкретный тэг (mod+shift+1..0, mod+shift+f1..f3)
-[+]  Функция максимизации окна на конкретном тэге конкретного физ. экрана (mod+m, у окошка исчезает frame, на тэге исчезает панель, окно ресайзится под размер экрана)
-[+]  Умение задать курсор, чтобы не было стандартного х11 крестика (xsetroot)
-[+]  Фокус следует за курсором
-[+]  Умение перекидывать курсор на заданный экран по хоткею
-[+]  Добавить хоткеи для переключения экранов
-[+]  Поддержка window urgency
-[+]  Добавить обработчик события urgency
-[+]  Нужна панелька, на которой будет время, статус wifi, индикатор языка, заголовок текущего окна (по центру), список тэгов с окнами, на которых подсвечены urgent
-[+]  Поддержка xft на панельке, чтобы шрифты были хорошими
-[+]  brightness, galculator, volume, media buttons
-[+]  Умение какое-то окошко делать floating по хоткею
-[+]  Умение запускать приложения по хоткеям
-[+]  Умение подбирать открытые окна
-[+]  Умение изменять размеры и положение floating окошек с помощью мышки
-[+]  Навигация по окнам с помощью vim-like хоткеев (hjkl в рамках физ. экрана)
-[+]  Умение изменять размеры tiled окошек/тайлов хотя бы если их 2 <= N <= 4 (change Layout weights)
-[+]  Поддержка запуска приложений на заданном тэге -- чтобы почтовик сам летел куда нужно
-[+]  Поддержка конфиг файла, в котором можно будет настраивать хоткеи и команды, которые их запускают; а также коды цветов
-[+]  Подумать про отображение статуса wifi, мб трей? И как им управлять (just use nm)
-[+]  Посмотреть, можно ли в Gtk Pango указать два шрифта (см. css ниже)
-[+]  Прочитать документацию на возможные ивенты
-[+]  Понять, что происходит при reparenting
-[+]  Продумать алгоритм тайлинга
-
-    my $css = Gtk3::CssProvider->new();
-    $css->load_from_data("label {font-weight: bold; font-size: 10pt; font-family: Symbola;}");
-    my $ctx = $label->get_style_context()->add_provider($css, Gtk3::STYLE_PROVIDER_PRIORITY_USER);
-
-
-windows => {
-    wid => {
-        _hidden => Bool,                    # Internal flag to avoid several window opeations
-        id => wid,                          # ID of the window
-        on_tags => {},                      # hash of tags on which this window is shown
-        always_on => undef / Screen,        # screen on which the window is always_on
-        floating => Bool,                   # flag if window is floating
-        urgent => Bool,                     # flag if window is floating
-        siblings => {},                     # hash keys = transient_for windows, values
-        transient_for => Int,               # wid of transient_for window, or undef
-        (x, y, w, h),                       # geometry of window requested in configure (or set to some defaults); used only for floating windows
-        (real_x, real_y, real_w, real_h),   # real geometry of the window, set and saved by korgwm for internal purposes
-        (real_i, real_j),                   # layout position, maybe irrelevant as not being cleaned anywhere
-    },
-}
-
-screens => {
-    0 => {
-        tags => {
-            1 => {
-                screen => Ptr,              # reference to screen
-                idx => Int,                 # position in the @screen->tags
-                max_window => xid,          # if defined, hide panel and maximize window
-                windows_tiled => [],        # list (performance bye-bye) of windows attached to this tag, also affects Panel tag visibility
-                windows_float => [],        # list of floating windows on the tag
-                urgent_windows => {},       # hash of windows with urgency flag
-                layout => Ref,              # reference to Layout object, or undef (when there is no tiled windows on tag)
-            },
-        },
-        always_on => [],                    # list of windows to show on each tag on the screen, should be float
-        prev_tag => Int,                    # id of previous tag on this screen for switch rotation
-        (x, y, w, h),                       # basically, for pointer warp and xsetroot
-        focus => Int,                       # wid of focused window, or undef; copied to %focus when switching to the screen
-    },
-}
-
-focus => {
-    screen => ScreenId,                     # id of focused screen
-    window => Int,                          # wid of focused windows
-}
+Req.1  [+]  Поддержка одного, двух и трех экранов. Если х11 представляет их как один общий виртуальный экран (это лучше всего для широких окон) -- умение выделять в нем три группы тэгов в зависимости от текущего положения мыши
+Req.2  [+]  Поддержка определения экранов с помощью расширения RandR
+Req.3  [+]  Поддержка 10 тэгов на каждом физическом экране (mod+1..0 для переключения)
+Req.4  [+]  Реализовать переключение тэгов
+Req.5  [+]  Добавить поддержку переключения языков (setxkbmap)
+Req.6  [+]  Умение выбирать предыдущий тэг при переключении на этот же
+Req.7  [+]  Если экран один и окно одно, то не нужно показывать рамку
+Req.8  [+]  Добавить хоткеи для переключения тэгов
+Req.9  [+]  Умение перемещать окно на конкретный экран или на конкретный тэг (mod+shift+1..0, mod+shift+f1..f3)
+Req.10 [+]  Функция максимизации окна на конкретном тэге конкретного физ. экрана (mod+m, у окошка исчезает frame, на тэге исчезает панель, окно ресайзится под размер экрана)
+Req.11 [+]  Умение задать курсор, чтобы не было стандартного х11 крестика (xsetroot)
+Req.12 [+]  Фокус следует за курсором
+Req.13 [+]  Умение перекидывать курсор на заданный экран по хоткею
+Req.14 [+]  Добавить хоткеи для переключения экранов
+Req.15 [+]  Поддержка window urgency
+Req.16 [+]  Добавить обработчик события urgency
+Req.17 [+]  Нужна панелька, на которой будет время, статус wifi, индикатор языка, заголовок текущего окна (по центру), список тэгов с окнами, на которых подсвечены urgent
+Req.18 [+]  Поддержка xft на панельке, чтобы шрифты были хорошими
+Req.19 [+]  brightness, galculator, volume, media buttons
+Req.20 [+]  Умение какое-то окошко делать floating по хоткею
+Req.21 [+]  Умение запускать приложения по хоткеям
+Req.22 [+]  Умение подбирать открытые окна
+Req.23 [+]  Умение изменять размеры и положение floating окошек с помощью мышки
+Req.24 [+]  Навигация по окнам с помощью vim-like хоткеев (hjkl в рамках физ. экрана)
+Req.25 [+]  Умение изменять размеры tiled окошек/тайлов хотя бы если их 2 <= N <= 4 (change Layout weights)
+Req.26 [+]  Поддержка запуска приложений на заданном тэге -- чтобы почтовик сам летел куда нужно
+Req.27 [+]  Поддержка конфиг файла, в котором можно будет настраивать хоткеи и команды, которые их запускают; а также коды цветов
+Req.28 [+]  Подумать про отображение статуса wifi, мб трей? И как им управлять
+Req.29 [+]  Прочитать документацию на возможные ивенты
+Req.30 [+]  Понять, что происходит при reparenting
+Req.31 [+]  Продумать алгоритм тайлинга
+Req.32 [+]  Посмотреть, можно ли в Gtk Pango указать два шрифта (см. css ниже)

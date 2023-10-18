@@ -1,0 +1,21 @@
+Req.1:
+    It was a mistake to base on the assumption that a window can belong to several [visible] tags / screens.
+    There are a lot of extra unnecessary checks in the code due this.
+
+Req.24 and Req.25:
+    I've implemented pretty heavy algo to look up windows in a certain direction, but it made possible to
+    create versatile focus_swap, focus_move logic.
+
+Req.27:
+    I decided to use YAML for config as not only Perl can read it well, but also human beings.
+
+Req.28:
+    We can just use nm gui to manage WiFi.
+
+Req.29:
+    Useful docs are saved under resources.
+
+Req.32:
+    my $css = Gtk3::CssProvider->new();
+    $css->load_from_data("label {font-weight: bold; font-size: 10pt; font-family: Symbola;}");
+    my $ctx = $label->get_style_context()->add_provider($css, Gtk3::STYLE_PROVIDER_PRIORITY_USER);
