@@ -54,7 +54,7 @@ $SIG{CHLD} = "IGNORE";
 my %evt_masks = (x => CONFIG_WINDOW_X, y => CONFIG_WINDOW_Y, w => CONFIG_WINDOW_WIDTH, h => CONFIG_WINDOW_HEIGHT);
 my ($ROOT);
 our $exit_trigger = 0;
-our $VERSION = "0.1";
+our $VERSION = "1.0";
 
 ## Define functions
 # Handles any screen change
