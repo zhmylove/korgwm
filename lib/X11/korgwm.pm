@@ -381,8 +381,9 @@ sub FireInTheHole {
     # Set the initial pointer position, if needed
     if (my $pos = $cfg->{initial_pointer_position}) {
         if ($pos eq "center") {
-            my $screen = $screens[0];
-            $ROOT->warp_pointer(map { int($screen->{$_} / 2) - 1 } qw( w h ));
+            my $screen = $screens[$#screens / 2];
+            $ROOT->warp_pointer(map { $screen->{$_ eq "w" ? "x" : "y"} + int($screen->{$_} / 2) - 1 } qw( w h ));
+            $screen->focus();
         } elsif ($pos eq "hidden") {
             $ROOT->warp_pointer($ROOT->_rect->width, $ROOT->_rect->height);
         } else {
