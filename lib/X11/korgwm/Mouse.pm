@@ -57,10 +57,12 @@ sub _motion_move($evt) {
     # Check if the pointer went outside the screen
     my $new_screen;
     if ($new_screen = screen_by_xy($evt->{event_x}, $evt->{event_y}) and $focus->{screen} != $new_screen) {
+        my $always_on = $_motion_win->{always_on};
         $focus->{screen}->win_remove($_motion_win, 1);
         $focus->{screen}->{panel}->title();
-        $new_screen->win_add($_motion_win);
+        $new_screen->win_add($_motion_win, $always_on);
         $focus->{screen} = $new_screen;
+        $new_screen->{panel}->title($_motion_win->title());
     }
     $X->flush();
 }

@@ -151,9 +151,17 @@ sub hide_window($wid, $delete=undef) {
         }
     }
 
-    if ($win->{always_on} and $win->{always_on}->{focus} == $win) {
-        $win->{always_on}->{focus} = undef;
-        $win->{always_on}->{panel}->title();
+    if (my $on_screen = $win->{always_on}) {
+        # Drop focus and title
+        if (($on_screen->{focus} // 0) == $win) {
+            $on_screen->{focus} = undef;
+            $on_screen->{panel}->title();
+        }
+
+        # Remove from always_on
+        my $arr = $on_screen->{always_on};
+        $win->{always_on} = undef;
+        splice @{ $arr }, $_, 1 for reverse grep { $arr->[$_] == $win } 0..$#{ $arr };
     }
 
     if ($win == ($focus->{window} // 0)) {

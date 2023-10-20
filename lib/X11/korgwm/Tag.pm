@@ -41,7 +41,7 @@ sub destroy($self, $new_screen) {
 
 sub hide($self) {
     # Remove layout and hide on panel if we're hiding an empty tag
-    unless ($self->first_window()) {
+    unless ($self->first_window(1)) {
         $self->{layout} = undef;
         $self->{screen}->{panel}->ws_set_visible($self->{idx} + 1, 0) if $cfg->{hide_empty_tags};
     }
@@ -58,13 +58,13 @@ sub show($self) {
     # Map all windows from the tag
     my ($w, $h, $x, $y) = @{ $self->{screen} }{qw( w h x y )};
     if (defined $self->{max_window}) {
-        # if we have maximized window, just place it over the screen
+        # If we have maximized window, just place it over the screen
         # I believe there is no need to process focus here, right?
         $self->{max_window}->resize_and_move(@{ $self->{screen} }{qw( x y w h )}, 0);
         $self->{max_window}->show();
     } else {
         $self->{screen}->{panel}->ws_set_visible($self->{idx} + 1, 1) if $cfg->{hide_empty_tags};
-        for my $win (grep defined,
+        for my $win (reverse grep defined,
             @{ $self->{screen}->{always_on} },
             @{ $self->{windows_float} },
             @{ $self->{windows_tiled} }) {
@@ -74,8 +74,10 @@ sub show($self) {
         $h -= $cfg->{panel_height};
         $y += $cfg->{panel_height};
         $self->{layout}->arrange_windows($self->{windows_tiled}, $w, $h, $x, $y);
-        # Raise floating all the time
-        $X->configure_window($_->{id}, CONFIG_WINDOW_STACK_MODE, STACK_MODE_ABOVE) for @{ $self->{windows_float} };
+
+        # XXX There should be no need to restack windows here.
+        # The only case: if the window stack order was changed on another tag. Fix if any bugs found
+
         $X->flush();
     }
 
@@ -131,10 +133,9 @@ sub win_float($self, $win, $floating=undef) {
 }
 
 # Select some window, if any
-sub first_window($self) {
-    return $self->{max_window}      ? $self->{max_window}           :
-        $self->{windows_float}->[0] ? $self->{windows_float}->[0]   :
-        $self->{windows_tiled}->[0];
+sub first_window($self, $only_tag = undef) {
+    return $self->{max_window} || $self->{windows_float}->[0] || $self->{windows_tiled}->[0] ||
+        $only_tag ? () : $self->{screen}->{always_on}->[0];
 }
 
 # Select next window
@@ -147,8 +148,11 @@ sub next_window($self, $backward = undef) {
 
     # Prepare list for search
     my ($idx, $found) = $backward ? -1 : 0;
-    my @win_float = @{ $self->{windows_float} };
+    my @win_float = (@{ $self->{windows_float} }, @{ $self->{screen}->{always_on} });
     my @win_tiled = @{ $self->{windows_tiled} };
+
+    # If win_curr belongs to other tag, we need any window from the current one
+    $found = 1 unless $win_curr->{on_tags}->{$self} or $win_curr->{always_on};
 
     # Reverse them if searching backward
     if ($backward) {
@@ -161,6 +165,9 @@ sub next_window($self, $backward = undef) {
         return $win if $found;
         $found = 1 if $win == $win_curr;
     }
+
+    # To avoid ''
+    undef;
 }
 
 1;

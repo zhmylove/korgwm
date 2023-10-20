@@ -146,6 +146,9 @@ sub focus($self) {
     my @visible_tags = $self->tags_visible();
     my $tag = $visible_tags[0];
 
+    # Select current tag if self is always_on
+    $tag = $focus->{screen}->current_tag() if $self->{always_on};
+
     if (0 == @visible_tags and not $self->{always_on}) {
         # We were asked to focus invisible window, do nothing?
         carp "Trying to focus an invisible window " . $self->{id};
@@ -155,7 +158,7 @@ sub focus($self) {
     } elsif (@visible_tags > 1) {
         # Focusing window residing on multiple visible tags is not implemented yet
         croak "Focusing window on multiple visible tags is not supported";
-    } elsif ($self->{maximized} or $self->{always_on} or 0 == @{ $tag->{windows_float} }) {
+    } elsif ($self->{maximized} or (0 == @{ $tag->{windows_float} } and 0 == @{ $tag->{screen}->{always_on} })) {
         # Just raise the window if it is maximized or there are no floating windows on current tag
         $self->_stack_above();
     } else {
@@ -168,7 +171,7 @@ sub focus($self) {
         # - if current window is floating, place it below
         push @stack, $self if $self->{floating};
         # - if there are other floating windows, place them below
-        push @stack, grep { $_ != $self } @{ $tag->{windows_float} };
+        push @stack, grep { $_ != $self } @{ $tag->{windows_float} }, @{ $tag->{screen}->{always_on} };
         # - place this window below if it's tiled
         push @stack, $self unless $self->{floating};
         # - place all others below
@@ -221,7 +224,7 @@ sub hide($self) {
     $unmap_prevent->{$self->{id}} = 1;
 
     # Drop panel title
-    $_->{panel}->title() for grep { $_->{focus} == $self } $self->screens();
+    $_->{panel}->title() for grep { ($_->{focus} // 0) == $self } $self->screens();
 
     # Drop focus
     $focus->{window} = undef if $self == ($focus->{window} // 0);
@@ -350,7 +353,7 @@ sub toggle_always_on($self) {
 
     if ($self->{always_on} = ! $self->{always_on}) {
         # Remove window from all tags and store it in always_on of current screen
-        $_->win_remove($self) for $self->tags();
+        $_->win_remove($self, 1) for $self->tags();
         push @{ $focus->{screen}->{always_on} }, $self;
         $self->{always_on} = $focus->{screen};
     } else {

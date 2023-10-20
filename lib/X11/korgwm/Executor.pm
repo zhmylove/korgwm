@@ -52,6 +52,8 @@ our @parser = (
         my $win = $focus->{window};
         return unless defined $win;
 
+        return if $win->{always_on};
+
         my $new_tag = $focus->{screen}->{tags}->[$arg - 1] or return;
         my $curr_tag = $focus->{screen}->current_tag();
         return if $new_tag == $curr_tag;
@@ -85,8 +87,9 @@ our @parser = (
         return if $new_screen == $old_screen;
         return if $new_screen->current_tag->{max_window} and $win->{maximized};
 
+        my $always_on = $win->{always_on};
         $old_screen->win_remove($win);
-        $new_screen->win_add($win);
+        $new_screen->win_add($win, $always_on);
 
         # Follow focus
         $new_screen->{focus} = $win;

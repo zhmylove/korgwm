@@ -70,16 +70,29 @@ sub refresh($self) {
     $tag_curr->show() if defined $tag_curr;
 }
 
-sub win_add($self, $win) {
-    my $tag = $self->current_tag();
-    croak "Unhandled undefined tag situation" unless defined $tag;
-    $tag->win_add($win);
+sub win_add($self, $win, $always_on = undef) {
+    if ($always_on) {
+        push @{ $self->{always_on} }, $win;
+        croak "Trying to override always_on" if $win->{always_on};
+        $win->{always_on} = $self;
+    } else {
+        my $tag = $self->current_tag();
+        croak "Unhandled undefined tag situation" unless defined $tag;
+        $tag->win_add($win);
+    }
 }
 
 sub win_remove($self, $win, $norefresh = undef) {
     my $tag = $self->current_tag();
     croak "Unhandled undefined tag situation" unless defined $tag;
     $tag->win_remove($win, $norefresh);
+
+    # Remove from always_on
+    if (($win->{always_on} // 0) == $self) {
+        my $arr = $self->{always_on};
+        $win->{always_on} = undef;
+        splice @{ $arr }, $_, 1 for reverse grep { $arr->[$_] == $win } 0..$#{ $arr };
+    }
 }
 
 sub focus($self) {
