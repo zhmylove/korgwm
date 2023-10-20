@@ -50,6 +50,7 @@ sub _resize($wid, $w, $h) {
 
 sub _configure_notify($wid, $sequence, $x, $y, $w, $h, $above_sibling=0, $override_redirect=0,
         $bw=$cfg->{border_width}) {
+    return carp "Undefined ($x, $y, $w, $h) for configure notify" unless 4 == grep defined, $x, $y, $w, $h;
     my $packed = pack('CCSLLLssSSSC', CONFIGURE_NOTIFY, 0, $sequence,
         $wid, # event
         $wid, # window

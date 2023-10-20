@@ -227,6 +227,9 @@ sub FireInTheHole {
     add_event_cb(MAP_REQUEST(), sub($evt) {
         my ($wid, $follow, $win, $screen, $tag, $floating) = ($evt->{window}, 1);
 
+        # Ignore windows with no class (hello Google Chrome)
+        my $class = X11::korgwm::Window::_class($wid) // return;
+
         # Create a window if needed
         $win = $windows->{$wid};
         if (defined $win) {
@@ -239,9 +242,6 @@ sub FireInTheHole {
             # Fix geometry if needed
             @{ $win }{qw( x y w h )} = $win->query_geometry() unless defined $win->{x};
         }
-
-        # Ignore windows with no class (hello Google Chrome)
-        my $class = $win->class() // return;
 
         # Apply rules
         my $rule = $cfg->{rules}->{$class};
