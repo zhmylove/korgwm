@@ -19,7 +19,6 @@ sub _motion_regular($evt) {
     return if @screens == 1 or $evt->{child};
     my $screen = screen_by_xy(@{ $evt }{qw( event_x event_y )}) or return;
     return if $focus->{screen} == $screen;
-    $focus->{window}->reset_border() if defined $focus->{window};
     $screen->focus();
     $X->flush();
 }
@@ -107,11 +106,16 @@ sub init {
         # XXX Do we really need to ignore EnterNotifies on unknown windows? I'll leave it here waiting for bugs.
         return unless exists $windows->{$wid};
 
+        # Ignore notifies for hidden windows
         my $win = $windows->{$wid};
         return if $win->{_hidden};
 
+        # Ignore rapid notifies
         return if $_on_hold{$wid};
         $_on_hold{$wid} = AE::timer 0, 0.09, sub { exists $_on_hold{$wid} and delete $_on_hold{$wid} };
+
+        # Ignore notifies on tag switching
+        return if $unmap_prevent->{$wid};
 
         $win->focus() if ($focus->{window} // 0) != $win;
     });
