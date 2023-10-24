@@ -26,7 +26,6 @@ WriteMakefile(
         x_authority     => "cpan:ZHMYLOVE",
         x_contributors  => [], # Feel free to add yourself here ;-)
     },
-    PREREQ_FATAL    => 1,
     PREREQ_PM       => {
         "AnyEvent"                      => "0",
         "AnyEvent::Handle"              => "0",
