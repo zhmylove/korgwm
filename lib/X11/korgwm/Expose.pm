@@ -109,7 +109,7 @@ sub expose {
     my $windows = keys %{ $windows };
     return unless $windows;
     my $rownum = _get_rownum($windows, @{ $screen_curr }{qw( w h )});
-    my $scale = 0.9 * $screen_curr->{h} / $rownum;
+    my $scale = 0.9 * ($screen_curr->{h} - $rownum * 2 * $cfg->{expose_spacing}) / $rownum;
     my $id_len = 1 + int($windows / 10);
     my %callbacks;
     my $shortcut_str = "";
