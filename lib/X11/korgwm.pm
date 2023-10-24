@@ -325,6 +325,7 @@ sub FireInTheHole {
         if (my $win = $windows->{$win_id}) {
             # This ugly code is an answer to bad apps like Google Chrome
             my %geom;
+            my $bw = $cfg->{border_width};
 
             # Parse masked fields from $evt
             $evt->{value_mask} & $evt_masks{$_} and $geom{$_} = $evt->{$_} for qw( x y w h );
@@ -344,16 +345,22 @@ sub FireInTheHole {
             # Handle floating windows properly
             if ($win->{floating}) {
                 # For floating we need fixup border
-                my $bw = $cfg->{border_width};
                 # TODO check if it moved to another screen
                 $win->resize_and_move($geom{x}, $geom{y}, $geom{w} + 2 * $bw, $geom{h} + 2 * $bw);
             } else {
                 # If window is tiled or maximized, tell it it's real size
                 @geom{qw( x y w h )} = @{ $win }{qw( real_x real_y real_w real_h )};
+
+                # Two reasons: 1. some windows prefer not to know about their border; 2. $Layout::hide_border
+                $bw = 0 if 0 == $win->{real_bw} // $cfg->{border_width};
+                $geom{x} += $bw;
+                $geom{y} += $bw;
+                $geom{w} -= 2 * $bw;
+                $geom{h} -= 2 * $bw;
             }
 
             # Send notification to the client and return
-            $win->configure_notify($evt->{sequence}, @geom{qw( x y w h )});
+            $win->configure_notify($evt->{sequence}, @geom{qw( x y w h )}, 0, 0, $bw);
             $X->flush();
             return;
         }

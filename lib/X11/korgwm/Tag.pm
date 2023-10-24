@@ -135,7 +135,7 @@ sub win_float($self, $win, $floating=undef) {
 # Select some window, if any
 sub first_window($self, $only_tag = undef) {
     return $self->{max_window} || $self->{windows_float}->[0] || $self->{windows_tiled}->[0] ||
-        $only_tag ? () : $self->{screen}->{always_on}->[0];
+        ($only_tag ? () : $self->{screen}->{always_on}->[0]);
 }
 
 # Select next window
