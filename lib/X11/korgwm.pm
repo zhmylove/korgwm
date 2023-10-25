@@ -165,6 +165,9 @@ sub hide_window($wid, $delete=undef) {
         }
     }
 
+    # Remove from all the tags where it is appended
+    $_->win_remove($win) for values %{ $win->{also_tags} // {} };
+
     if (my $on_screen = $win->{always_on}) {
         # Drop focus and title
         if (($on_screen->{focus} // 0) == $win) {

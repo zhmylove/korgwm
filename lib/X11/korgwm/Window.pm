@@ -7,7 +7,7 @@ use warnings;
 use feature 'signatures';
 
 use Carp;
-use List::Util qw( first );
+use List::Util qw( any first );
 use Encode qw( encode decode );
 use X11::XCB ':all';
 use X11::korgwm::Common;
@@ -149,10 +149,20 @@ sub focus($self) {
     my @visible_tags = $self->tags_visible();
     my $tag = $visible_tags[0];
 
-    # Select current tag if self is always_on
-    $tag = $focus->{screen}->current_tag() if $self->{always_on};
+    if ($self->{always_on}) {
+        # Select current tag if self is always_on
+        $tag = $focus->{screen}->current_tag();
+    } elsif (0 == @visible_tags) {
+        # Override tag if the window is actually invisible but was appended to some visible tag
+        my @tags = grep { any { $self == $_ } @{ $_->{windows_appended} } } map { $_->current_tag() } @screens;
 
-    if (0 == @visible_tags and not $self->{always_on}) {
+        # Not sure how to handle such a situation. Maybe select random/first one?
+        return carp "Trying to focus a window which is appended to multiple tags" if @tags > 1;
+
+        $tag = $tags[0];
+    }
+
+    if (0 == @visible_tags and not $tag) {
         # We were asked to focus invisible window, do nothing?
         carp "Trying to focus an invisible window " . $self->{id};
 
@@ -224,6 +234,7 @@ sub update_title($self) {
 
 sub hide($self) {
     # We do not actually unmap them anymore, just move out of screen
+    $self->{_hidden} = 1;
     $X->configure_window($self->{id}, CONFIG_WINDOW_X | CONFIG_WINDOW_Y, $self->{sid} * 4096, $visible_max_y * 2);
 
     # Drop panel title
@@ -240,7 +251,12 @@ sub hide($self) {
 sub show($self) {
     # Not using $self->move() to avoid garbage in real_*
     $X->configure_window($self->{id}, CONFIG_WINDOW_X | CONFIG_WINDOW_Y, @{ $self }{qw( x y )}) if $self->{floating};
+
+    # Map anyways as client could've unmapped on their own
     $X->map_window($self->{id});
+
+    # Remove _hidden mark as it was requested manually
+    delete $self->{_hidden};
 }
 
 sub tags($self) {

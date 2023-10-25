@@ -13,13 +13,15 @@ use AnyEvent;
 use X11::korgwm::Common;
 
 # Prepare internal variables
-my ($ready, $color_fg , $color_bg , $color_urgent_bg, $color_urgent_fg, @ws_names);
+my ($ready, $color_fg , $color_bg , $color_urgent_bg, $color_urgent_fg, $color_append_bg, $color_append_fg, @ws_names);
 sub _init {
     Glib::Object::set_property(Gtk3::Settings::get_default(), "gtk-font-name", $cfg->{font});
     $color_fg = sprintf "#%x", $cfg->{color_fg};
     $color_bg = sprintf "#%x", $cfg->{color_bg};
     $color_urgent_bg = sprintf "#%x", $cfg->{color_urgent_fg};
     $color_urgent_fg = sprintf "#%x", $cfg->{color_urgent_bg};
+    $color_append_bg = sprintf "#%x", $cfg->{color_append_fg};
+    $color_append_fg = sprintf "#%x", $cfg->{color_append_bg};
     @ws_names = @{ $cfg->{ws_names} };
     $ready = 1;
 }
@@ -82,8 +84,27 @@ sub ws_set_urgent($self, $ws_id, $urgent = 1) {
     my $ws = $self->{ws}->[$ws_id - 1];
     $ws->{urgent} = $urgent ? 1 : undef;
     return if $urgent and $ws->{active};
-    $self->ws_set_color($ws_id, $urgent ?  ($color_urgent_bg, $color_urgent_fg) :
+    $self->ws_set_color($ws_id, $urgent ? ($color_urgent_bg, $color_urgent_fg) :
         $ws->{active} ? ($color_fg, $color_bg) : ($color_bg, $color_fg));
+}
+
+# Clean all appends
+sub ws_drop_appends($self) {
+    for my $ws (@{ $self->{ws} }) {
+        next if $ws->{active} or $ws->{urgent};
+
+        $ws->{ebox}->override_background_color(normal => Gtk3::Gdk::RGBA::parse($color_bg));
+
+        my $text = $ws->{label}->get_text;
+        $ws->{label}->txt($text, $color_fg);
+    }
+}
+
+# Mark some ws as appended to current active. Ws should not be active or urgent
+sub ws_add_append($self, $ws_id) {
+    my $ws = $self->{ws}->[$ws_id];
+    return if $ws->{active} or $ws->{urgent};
+    $self->ws_set_color($ws_id + 1, $color_append_fg, $color_append_bg);
 }
 
 # Create new workspace during initialization phase

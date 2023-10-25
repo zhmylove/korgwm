@@ -31,6 +31,17 @@ our @parser = (
         $X->flush();
     }}],
 
+    # Append windows from other tag
+    [qr/tag_append\((\d+)\)/, sub ($arg) { return sub {
+        return unless $arg > 0;
+        my $screen = $focus->{screen};
+        my $tag = $screen->current_tag();
+        my $other = $screen->{tags}->[ $arg - 1 ];
+        $tag->append($other);
+        $screen->refresh();
+        $X->flush();
+    }}],
+
     # Window close or toggle floating / maximize / always_on
     [qr/win_(close|toggle_(?:floating|maximize|always_on))\(\)/, sub ($arg) { return sub {
         my $win = $focus->{window};

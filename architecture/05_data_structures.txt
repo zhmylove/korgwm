@@ -4,10 +4,11 @@ windows => {
         id => wid,                          # X11 ID of the window
         sid => Int,                         # internal sequential ID. Unique for all windows
         on_tags => {},                      # hash of tags on which this window is shown
+        also_tags => {},                    # hash of tags on which this window is shown
         always_on => undef / Screen,        # screen on which the window is always_on
         floating => Bool,                   # flag if window is floating
         urgent => Bool,                     # flag if window is floating
-        siblings => {},                     # hash keys = transient_for windows, values
+        siblings => {},                     # hash keys = transient_for windows IDs, values always undef
         transient_for => Int,               # wid of transient_for window, or undef
         (x, y, w, h),                       # geometry of window requested in configure (or set to some defaults); used only for floating windows
         (real_x, real_y, real_w, real_h),   # real geometry of the window, set and saved by korgwm for internal purposes
@@ -25,6 +26,7 @@ screens => {
                 max_window => xid,          # if defined, hide panel and maximize window
                 windows_tiled => [],        # list (performance bye-bye) of windows attached to this tag, also affects Panel tag visibility
                 windows_float => [],        # list of floating windows on the tag
+                windows_appended => [],     # list of windows that belongs to others tags and were appended using tag_append
                 urgent_windows => {},       # hash of windows with urgency flag
                 layout => Ref,              # reference to Layout object, or undef (when there is no tiled windows on tag)
             },

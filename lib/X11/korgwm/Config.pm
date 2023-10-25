@@ -25,6 +25,8 @@ BEGIN {
     $cfg->{color_fg} = '0xA3BABF';
     $cfg->{color_urgent_bg} = '0x464729';
     $cfg->{color_urgent_fg} = '0xFFFF00';
+    $cfg->{color_append_bg} = '0x262729';
+    $cfg->{color_append_fg} = '0xF502C8';
     $cfg->{expose_spacing} = 15;
     $cfg->{expose_show_id} = 1;
     $cfg->{font} = "DejaVu Sans Mono 10";
@@ -46,7 +48,7 @@ BEGIN {
         (map {; "mod_$_"                => "focus_move($_)"         } qw(h j k l)),
         (map {; "mod_$_"                => "tag_select($_)"         } 1..9),
         (map {; "mod_F$_"               => "screen_select($_)"      } 1..9),
-    #   (map {; "mod_ctrl_$_"           => "tag_append($_)"         } 1..9), # TODO nice to have, but too much for now
+        (map {; "mod_ctrl_$_"           => "tag_append($_)"         } 1..9),
         (map {; "mod_ctrl_$_"           => "layout_resize($_)"      } qw(h j k l)),
         (map {; "mod_shift_$_"          => "focus_swap($_)"         } qw(h j k l)),
         (map {; "mod_shift_$_"          => "win_move_tag($_)"       } 1..9),

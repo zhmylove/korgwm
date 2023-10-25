@@ -49,6 +49,9 @@ sub tag_set_active($self, $tag_new_id, $rotate = 1) {
     $self->{tag_prev} = $self->{tag_curr};
     $self->{tag_curr} = $tag_new_id;
 
+    # Drop appended windows
+    $tag_old->drop_appends();
+
     # Show new tag and hide the old one
     my $tag_new = $self->current_tag();
     $tag_new->show() if defined $tag_new;

@@ -62,12 +62,21 @@ ws_names:
   - '9'
 
 ## Colours
+# How to mark a tag in case it was appended to the active one
+color_append_bg: 0x262729
+color_append_fg: 0xF502C8
+# Overrides color_fg when the battery is low
 color_battery_low: 0xFF0000
+# Regular bg colour
 color_bg: 0x262729
+# Window border colours: regular and focused
 color_border: 0x232426
 color_border_focus: 0xA3BABF
+# Background colour for Expose window (slightly darker looks better)
 color_expose: 0x232426
+# Regular fg colour, basically for text everywhere
 color_fg: 0xA3BABF
+# How to mark a tag if it has urgent windows and is not active
 color_urgent_bg: 0x464729
 color_urgent_fg: 0xFFFF00
 
