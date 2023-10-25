@@ -11,8 +11,9 @@ use Exporter 'import';
 use List::Util qw( first );
 use Scalar::Util qw( looks_like_number );
 
-our @EXPORT = qw( DEBUG $X $cfg $focus $unmap_prevent $windows %screens %xcb_events %xcb_events_ignore @screens
-    add_event_cb add_event_ignore hexnum init_extension replace_event_cb screen_by_xy );
+our @EXPORT = qw( DEBUG $X $cfg $focus $windows %screens %xcb_events %xcb_events_ignore @screens
+    add_event_cb add_event_ignore hexnum init_extension replace_event_cb screen_by_xy
+    $visible_min_x $visible_min_y $visible_max_x $visible_max_y );
 
 # Set after parsing config
 sub DEBUG;
@@ -20,12 +21,12 @@ sub DEBUG;
 our $X;
 our $cfg;
 our $focus;
-our $unmap_prevent;
 our $windows = {};
 our %screens;
 our %xcb_events;
 our %xcb_events_ignore;
 our @screens;
+our ($visible_min_x, $visible_min_y, $visible_max_x, $visible_max_y);
 
 # Helpers for extensions
 sub add_event_cb($id, $sub) {

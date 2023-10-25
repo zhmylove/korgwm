@@ -13,9 +13,11 @@ use X11::XCB ':all';
 use X11::korgwm::Common;
 
 our $focus_prev;
+my $sid = 1;
 
 sub new($class, $id) {
-    bless { id => $id, on_tags => {} }, $class;
+    # Full structure is defined in architecture/05_data_structures.txt
+    bless { id => $id, sid => $sid++, on_tags => {} }, $class;
 }
 
 sub DESTROY($self) {
@@ -221,8 +223,8 @@ sub update_title($self) {
 }
 
 sub hide($self) {
-    # Ignore notifications from our actions
-    $unmap_prevent->{$self->{id}} = 1;
+    # We do not actually unmap them anymore, just move out of screen
+    $X->configure_window($self->{id}, CONFIG_WINDOW_X | CONFIG_WINDOW_Y, $self->{sid} * 4096, $visible_max_y * 2);
 
     # Drop panel title
     $_->{panel}->title() for grep { ($_->{focus} // 0) == $self } $self->screens();
@@ -233,12 +235,11 @@ sub hide($self) {
 
     # Execute hooks, see Expose.pm
     $_->($self) for our @hooks_hide;
-
-    # Do actual unmap
-    $X->unmap_window($self->{id});
 }
 
 sub show($self) {
+    # Not using $self->move() to avoid garbage in real_*
+    $X->configure_window($self->{id}, CONFIG_WINDOW_X | CONFIG_WINDOW_Y, @{ $self }{qw( x y )}) if $self->{floating};
     $X->map_window($self->{id});
 }
 

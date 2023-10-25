@@ -1,7 +1,8 @@
 windows => {
     wid => {
         _hidden => Bool,                    # Internal flag to avoid several window opeations
-        id => wid,                          # ID of the window
+        id => wid,                          # X11 ID of the window
+        sid => Int,                         # internal sequential ID. Unique for all windows
         on_tags => {},                      # hash of tags on which this window is shown
         always_on => undef / Screen,        # screen on which the window is always_on
         floating => Bool,                   # flag if window is floating

@@ -11,6 +11,7 @@ use X11::XCB 0.21 ':all';
 use X11::XCB::Connection;
 use Carp;
 use AnyEvent;
+use List::Util qw( min max );
 
 # Those two should be included prior any DEBUG stuf
 use X11::korgwm::Common;
@@ -52,7 +53,7 @@ use X11::korgwm::Hotkeys;
 ## Define internal variables
 $SIG{CHLD} = "IGNORE";
 my %evt_masks = (x => CONFIG_WINDOW_X, y => CONFIG_WINDOW_Y, w => CONFIG_WINDOW_WIDTH, h => CONFIG_WINDOW_HEIGHT);
-my ($ROOT);
+my ($ROOT, $atom_wmstate);
 our $exit_trigger = 0;
 our $VERSION = "1.0";
 
@@ -61,11 +62,23 @@ our $VERSION = "1.0";
 sub handle_screens {
     my @xscreens = @{ $X->screens() };
 
+    # Drop information about visible area
+    undef $visible_min_x;
+    undef $visible_min_y;
+    undef $visible_max_x;
+    undef $visible_max_y;
+
     # Count current screens
     my %curr_screens;
     for my $s (@xscreens) {
         my ($x, $y, $w, $h) = map { $s->rect->$_ } qw( x y width height );
         $curr_screens{"$x,$y,$w,$h"} = undef;
+
+        # Collect new information about visible area
+        $visible_min_x = defined $visible_min_x ? min($visible_min_x, $x)      : $x;
+        $visible_min_y = defined $visible_min_y ? min($visible_min_y, $y)      : $y;
+        $visible_max_x = defined $visible_max_x ? max($visible_max_x, $x + $w) : $x + $w;
+        $visible_max_y = defined $visible_max_y ? max($visible_max_y, $y + $h) : $y + $h;
     }
 
     # Categorize them
@@ -124,6 +137,7 @@ sub handle_existing_windows {
     for my $win (values %{ $windows }) {
         $win->{floating} = 1;
         $X->change_window_attributes($win->{id}, CW_EVENT_MASK, EVENT_MASK_ENTER_WINDOW | EVENT_MASK_PROPERTY_CHANGE);
+        $X->change_property(PROP_MODE_REPLACE, $win->{id}, $atom_wmstate, $atom_wmstate, 32, 1, pack L => 1);
 
         my ($x, $y, $w, $h) = $win->query_geometry();
         $y = $cfg->{panel_height} if $y < $cfg->{panel_height};
@@ -183,6 +197,9 @@ sub FireInTheHole {
     # Save root window
     $ROOT = $X->root;
 
+    # Preload some atoms
+    $atom_wmstate = $X->atom(name => "WM_STATE")->id;
+
     # Check for another WM
     my $wm = $X->change_window_attributes_checked($ROOT->id, CW_EVENT_MASK,
         EVENT_MASK_SUBSTRUCTURE_REDIRECT |
@@ -238,6 +255,9 @@ sub FireInTheHole {
             $win = $windows->{$wid} = X11::korgwm::Window->new($wid);
 
             $X->change_window_attributes($wid, CW_EVENT_MASK, EVENT_MASK_ENTER_WINDOW | EVENT_MASK_PROPERTY_CHANGE);
+
+            # Unconditionally set NormalState for any windows, we do not want to correctly process this property
+            $X->change_property(PROP_MODE_REPLACE, $wid, $atom_wmstate, $atom_wmstate, 32, 1, pack L => 1);
 
             # Fix geometry if needed
             @{ $win }{qw( x y w h )} = $win->query_geometry() unless defined $win->{x};
@@ -314,8 +334,8 @@ sub FireInTheHole {
     });
 
     add_event_cb(UNMAP_NOTIFY(), sub($evt) {
-        # This condition is to distinguish between unmap due to $tag->hide() and unmap request from client
-        hide_window($evt->{window}) unless delete $unmap_prevent->{$evt->{window}};
+        # Handle only client unmap requests as we do not call unmap anymore
+        hide_window($evt->{window});
     });
 
     add_event_cb(CONFIGURE_REQUEST(), sub($evt) {

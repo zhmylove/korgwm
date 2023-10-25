@@ -116,9 +116,6 @@ sub init {
         return if $_on_hold{$wid};
         $_on_hold{$wid} = AE::timer 0, 0.09, sub { exists $_on_hold{$wid} and delete $_on_hold{$wid} };
 
-        # Ignore notifies on tag switching
-        return if $unmap_prevent->{$wid};
-
         $win->focus() if ($focus->{window} // 0) != $win;
     });
 

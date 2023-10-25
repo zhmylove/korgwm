@@ -42,7 +42,8 @@ sub icccm_update_maximize($evt) {
     my $win = $windows->{$evt->{window}} or return;
 
     # Ignore irrelevant events
-    my ($action, $first, $second, $source_indication) = unpack "LLLL", $evt->{data};
+    my ($action, $first, $second, $source_indication) = unpack "LLLL", $evt->{data} // return;
+    $second //= $first //= 0;
     return unless $first == $atom_fullscreen or $second == $atom_fullscreen;
 
     # Ok, now we're sure we were requested to change the fullscreen hint
