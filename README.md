@@ -57,6 +57,30 @@ There is an expose mode to show all windows from all tags and quickly switch bet
 
 ... and many more.
 
+# Installation
+
+As it is written entirely in pure Perl, the installation is pretty generic.
+
+You can use any software to install CPAN modules. Personally I like cpm:
+
+    curl -fsSL https://raw.githubusercontent.com/skaji/cpm/main/cpm > cpm
+    chmod +x cpm
+    ./cpm install -g X11::korgwm
+
+Or in a regular Perl way, if you prefer (or if you're building a version from GitHub):
+
+    perl Makefile.PL
+    make
+    make test
+    make install
+
+Please note that it has number of dependencies which in turn rely on C libraries.
+To make installation process smooth and nice you probably want to install them in advance.
+For Debian GNU/Linux these should be sufficient:
+
+    build-essential libcairo-dev libgirepository1.0-dev libglib2.0-dev xcb-proto
+
+
 # Contribution
 
 **Yes**, I do appreciate contribution.
