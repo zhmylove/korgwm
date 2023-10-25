@@ -7,7 +7,6 @@ use warnings;
 use feature 'signatures';
 
 use Carp;
-use List::Util qw( first );
 use X11::XCB ':all';
 use X11::korgwm::Common;
 require X11::korgwm::Config;

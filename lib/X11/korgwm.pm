@@ -11,7 +11,7 @@ use X11::XCB 0.21 ':all';
 use X11::XCB::Connection;
 use Carp;
 use AnyEvent;
-use List::Util qw( min max );
+use List::Util qw( any min max );
 
 # Those two should be included prior any DEBUG stuf
 use X11::korgwm::Common;
@@ -364,15 +364,34 @@ sub FireInTheHole {
 
             # Handle floating windows properly
             if ($win->{floating}) {
+                my ($old_screen, $new_screen);
+
+                # Verify that it moved inside the same screen
+                if (defined $win->{real_y} and any { $geom{$_} != ($win->{"real_$_"} // 0) } qw( x y )) {
+                    $old_screen = screen_by_xy(@{ $win }{qw( real_x real_y )});
+                    $new_screen = screen_by_xy(@geom{qw( x y )});
+
+                    if ($old_screen != $new_screen) {
+                        # Reparent screen
+                        my $always_on = $win->{always_on};
+                        $old_screen->win_remove($win);
+                        $new_screen->win_add($win, $always_on);
+                    } else {
+                        undef $old_screen;
+                    }
+                }
+
                 # For floating we need fixup border
-                # TODO check if it moved to another screen
                 $win->resize_and_move($geom{x}, $geom{y}, $geom{w} + 2 * $bw, $geom{h} + 2 * $bw);
+
+                # Update the screens if needed
+                $old_screen->refresh() if $old_screen;
             } else {
                 # If window is tiled or maximized, tell it it's real size
                 @geom{qw( x y w h )} = @{ $win }{qw( real_x real_y real_w real_h )};
 
                 # Two reasons: 1. some windows prefer not to know about their border; 2. $Layout::hide_border
-                $bw = 0 if 0 == $win->{real_bw} // $cfg->{border_width};
+                $bw = 0 if 0 == ($win->{real_bw} // $cfg->{border_width});
                 $geom{x} += $bw;
                 $geom{y} += $bw;
                 $geom{w} -= 2 * $bw;
