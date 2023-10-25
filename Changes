@@ -1,4 +1,21 @@
 Revision history for korgwm.
 
+2.0     2023-10-26
+    - Implemented tag_append() -- it's possible to append windows from other tags to the active one.
+
+    - xcb_unmap_window() was removed. From now on the windows are being moved out of visible area instead of unmap.
+
+    - Make initial_pointer_position multiple screen-aware: mouse pointer can now warp to the central screen.
+
+    - Other minor improvements:
+        - Update POD documentation
+        - Process cross-screen ConfigureRequests
+        - Handle margins while scaling Expose thumbnails
+        - Hide border size from ConfigureNotify
+        - Replace PREREQ_FATAL in Makefile with Test::More::BAIL_OUT
+        - Ignore windows with no WM_CLASS earlier
+        - Improve always_on handling
+        - Ignore EnterNotify on tag switching
+
 1.0     2023-10-18
     - First version, released on an unsuspecting world.
