@@ -306,8 +306,7 @@ sub FireInTheHole {
             $win->{x} += $screen->{x};
         }
 
-        # Place it in proper place
-        $win->show() if $screen->current_tag() == $tag;
+        # Just add win to a proper tag. win->show() will be called from tag->show() during screen->refresh()
         $tag->win_add($win);
 
         if ($win->{transient_for}) {

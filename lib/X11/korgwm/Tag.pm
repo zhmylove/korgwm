@@ -65,6 +65,13 @@ sub show($self) {
         $self->{max_window}->show();
     } else {
         $self->{screen}->{panel}->ws_set_visible($self->{idx} + 1, 1) if $cfg->{hide_empty_tags};
+
+        # Firstly move
+        $h -= $cfg->{panel_height};
+        $y += $cfg->{panel_height};
+        $self->{layout}->arrange_windows($self->{windows_tiled}, $w, $h, $x, $y);
+
+        # Only then -- show
         for my $win (reverse grep defined,
             @{ $self->{screen}->{always_on} },
             @{ $self->{windows_float} },
@@ -72,9 +79,6 @@ sub show($self) {
             $win->show();
             $win->reset_border() if $win != ($self->{screen}->{focus} // 0);
         }
-        $h -= $cfg->{panel_height};
-        $y += $cfg->{panel_height};
-        $self->{layout}->arrange_windows($self->{windows_tiled}, $w, $h, $x, $y);
 
         # XXX There should be no need to restack windows here.
         # The only case: if the window stack order was changed on another tag. Fix if any bugs found
