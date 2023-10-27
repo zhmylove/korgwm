@@ -248,7 +248,11 @@ sub FireInTheHole {
         my ($wid, $follow, $win, $screen, $tag, $floating) = ($evt->{window}, 1);
 
         # Ignore windows with no class (hello Google Chrome)
-        my $class = X11::korgwm::Window::_class($wid) // return;
+        my $class = X11::korgwm::Window::_class($wid);
+        unless (defined $class) {
+            my $wmname = X11::korgwm::Window::_title($wid) // return;
+            return unless $cfg->{noclass_whitelist}->{$wmname};
+        }
 
         # Create a window if needed
         $win = $windows->{$wid};
@@ -267,7 +271,7 @@ sub FireInTheHole {
         }
 
         # Apply rules
-        my $rule = $cfg->{rules}->{$class};
+        my $rule = $cfg->{rules}->{$class // ""};
         if ($rule) {
             # XXX awaiting bugs with idx 0
             defined $rule->{screen} and $screen = $screens[$rule->{screen} - 1] // $screens[0];
@@ -315,6 +319,7 @@ sub FireInTheHole {
         }
 
         $win->toggle_floating(1) if $floating;
+        $win->urgency_raise(1) if $rule->{urgent};
 
         if ($follow) {
             $screen->tag_set_active($tag->{idx}, 0);

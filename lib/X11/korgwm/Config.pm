@@ -80,12 +80,15 @@ BEGIN {
     };
 
     $cfg->{rules} = {
-        "mattermost"    => { screen => 2, tag => 4, follow => 0, },
+        "mattermost"    => { screen => 2, tag => 4, follow => 1, },
         "evolution"     => { screen => 1, tag => 3, follow => 0, },
         "galculator"    => { floating => 1 },
         "urxvt-float"   => { floating => 1 },
         "xeyes"         => { floating => 1 },
+        "evolution-alarm-notify" => { floating => 1, urgent => 1 },
     };
+
+    $cfg->{noclass_whitelist} = ["Event Tester"];
 
     # Read local configs
     for my $file ("/etc/korgwm/korgwm.conf", "$ENV{HOME}/.korgwmrc", "$ENV{HOME}/.config/korgwm/korgwm.conf") {
@@ -98,6 +101,9 @@ BEGIN {
         # TODO did not implement validation yet to allow users shoot the legs
         %{ $cfg } = (%{ $cfg }, %{ $rcfg });
     }
+
+    # Prepare whitelist of windows which we want to see with unset WM_CLASS
+    $cfg->{noclass_whitelist} = { map { ($_, 1) } @{ $cfg->{noclass_whitelist} } };
 
     # Normalize numeric values
     $_ = hexnum for @{ $cfg }{grep /^color_/, keys %{ $cfg }};

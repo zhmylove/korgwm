@@ -31,6 +31,7 @@ Supported API functions are:
 - Resize the layout: `layout_resize(<DIRECTION>)`
 - Expose windows: `expose()`
 - Resize the layout from API: `layout_resize(<SCREEN NUM>, <TAG NUM>, <ROW NUM>, <COLUMN NUM>, <FLOAT>, <FLOAT>)`
+- Append windows from certain tag(s) to the active one: `tag_append(<TAG NUM>)`
 - Exit from WM: `exit()`
 
 ## Debug API

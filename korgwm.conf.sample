@@ -126,6 +126,15 @@ hotkeys:
   mod_l: 'focus_move(l)'
   mod_m: 'win_toggle_maximize()'
   mod_r: 'exec(rofi -show drun)'
+  mod_ctrl_1: 'tag_append(1)'
+  mod_ctrl_2: 'tag_append(2)'
+  mod_ctrl_3: 'tag_append(3)'
+  mod_ctrl_4: 'tag_append(4)'
+  mod_ctrl_5: 'tag_append(5)'
+  mod_ctrl_6: 'tag_append(6)'
+  mod_ctrl_7: 'tag_append(7)'
+  mod_ctrl_8: 'tag_append(8)'
+  mod_ctrl_9: 'tag_append(9)'
   mod_shift_1: 'win_move_tag(1)'
   mod_shift_2: 'win_move_tag(2)'
   mod_shift_3: 'win_move_tag(3)'
@@ -175,4 +184,8 @@ rules:
     floating: 1
   xeyes:
     floating: 1
+
+## List of WM_NAME of windows which we want to see despite unset WM_CLASS
+noclass_whitelist:
+  - Event Tester
 # vim: ft=yaml ts=2 sw=2 :

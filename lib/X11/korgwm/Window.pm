@@ -424,7 +424,7 @@ sub urgency_set($self, $urgency = 1) {
         $flags &= ~(1 << 8);
     }
 
-    # TODO maybe respect other than flags fields?
+    # TODO maybe respect other fields, not only flags?
     my $hints = X11::XCB::ICCCM::WMHints->new();
     $hints->set_flags($flags);
     $X->X11::XCB::ICCCM::set_wm_hints($self->{id}, $hints);
