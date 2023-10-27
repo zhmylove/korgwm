@@ -16,6 +16,7 @@ require X11::korgwm::Executor;
 my $keys = {
             "CR"    => 0xFF0D,              # XK_Return
             "TAB"   => 0xFF09,              # XK_Tab
+            "Print" => 0xFF61,              # XK_Print
     (map {; "F$_"   => 0xFFBD + $_ } 1..9), # XK_Fx
     "XF86MonBrightnessUp"   => 0x1008FF02,
     "XF86MonBrightnessDown" => 0x1008FF03,
@@ -54,7 +55,7 @@ sub init {
     $keymap = $X->get_keymap();
 
     # Prepare reverse mapping
-    for (my $i = 0; $i < @{ $keymap }; $i++) {
+    for (my $i = $#{ $keymap }; $i > 0; $i--) {
         my $keycode = $keymap->[$i] or next;
         $keycodes->{$keycode->[0]} = $i;
     }

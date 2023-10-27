@@ -9,3 +9,34 @@ configuration {
   }
 }
 @theme "/usr/share/rofi/themes/gruvbox-dark-soft.rasi"
+* {
+    /* bg */
+    gruvbox-dark-bg0-soft:       rgba ( 38, 39, 41, 100 % );
+
+    /* not sel */
+    gruvbox-dark-bg1:            rgba ( 38, 39, 41, 100 % );
+    gruvbox-dark-fg1:            rgba ( 163, 186, 191, 100 % );
+
+    /* sel */
+    gruvbox-dark-bg3:            rgba ( 163, 186, 191, 100 % );
+    gruvbox-dark-fg0:            rgba ( 38, 39, 41, 100 % );
+
+    /* border -> hidden */
+    gruvbox-dark-gray:           rgba ( 163, 186, 191, 100 % );
+}
+scrollbar {
+    width: 0px;
+    handle-width: 0px;
+    handle-color: rgba( 250, 0, 0, 100%);
+}
+window {
+    border: 1;
+    padding: 3;
+    width: 45%;
+    height: 401px;
+}
+listview {
+    border: 0;
+    spacing: 0;
+    padding: 0;
+}

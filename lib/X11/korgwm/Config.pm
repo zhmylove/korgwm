@@ -72,6 +72,7 @@ BEGIN {
                 "mod_shift_w"           => "exec(firefox --new-instance)",
                 "mod_="                 => "exec(galculator)",
                 "mod_ctrl_shift_q"      => "exit()",
+                "Print"                 => "exec(flameshot gui)",
                 "XF86MonBrightnessDown" => "exec(light -U 20)",
                 "XF86MonBrightnessUp"   => "exec(light -A 20)",
                 "XF86AudioLowerVolume"  => "exec(pactl set-sink-volume 0 -10%)",

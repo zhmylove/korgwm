@@ -87,6 +87,7 @@ hotkeys:
   XF86AudioRaiseVolume: 'exec(pactl set-sink-volume 0 +10%)'
   XF86MonBrightnessDown: 'exec(light -U 20)'
   XF86MonBrightnessUp: 'exec(light -A 20)'
+  Print: 'exec(flameshot gui)'
   alt_F4: 'win_close()'
   alt_TAB: 'focus_cycle(forward)'
   alt_shift_TAB: 'focus_cycle(backward)'
