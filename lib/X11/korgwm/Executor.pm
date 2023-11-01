@@ -8,6 +8,7 @@ use feature 'signatures';
 
 use Carp;
 use POSIX qw( setsid );
+use List::Util qw( any );
 use X11::XCB ':all';
 use X11::korgwm::Common;
 
@@ -124,6 +125,18 @@ our @parser = (
     [qr/focus_prev\(\)/, sub ($arg) { return sub {
         my $win = $X11::korgwm::Window::focus_prev;
         return unless defined $win;
+
+        my @tags = $win->tags();
+        my $tag = shift @tags // ($win->{always_on} && $win->{always_on}->current_tag());
+        return carp "Window $win is visible on multiple tags, do not know how to focus_prev() to it" if @tags;
+        return croak "Window $win has no tags and is not always_on" unless $tag;
+
+        # Switch to proper tag unless it is already active
+        unless (any { $tag == ($_->current_tag() // 0) } @screens) {
+            $tag->{screen}->tag_set_active($tag->{idx});
+            $tag->{screen}->refresh();
+        }
+
         $win->warp_pointer();
     }}],
 

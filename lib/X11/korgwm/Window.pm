@@ -212,7 +212,6 @@ sub focus($self) {
     my $screen = $self->{always_on} || $tag->{screen};
     $screen->{focus} = $self;
     $screen->{panel}->title($self->title // "");
-    $focus_prev = $focus->{window} unless ($focus->{window} // 0) == $self;
     $focus->{window} = $self;
     $focus->{screen} = $self->{always_on} || $focus_screens[0];
 
@@ -242,7 +241,6 @@ sub hide($self) {
 
     # Drop focus
     $focus->{window} = undef if $self == ($focus->{window} // 0);
-    $focus_prev = undef if $self == ($focus_prev // 0);
 
     # Execute hooks, see Expose.pm
     $_->($self) for our @hooks_hide;

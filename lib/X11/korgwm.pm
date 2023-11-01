@@ -375,13 +375,15 @@ sub FireInTheHole {
 
                 # Verify that it moved inside the same screen
                 if (defined $win->{real_y} and any { $geom{$_} != ($win->{"real_$_"} // 0) } qw( x y )) {
+                    # Sometimes windows were not move()d prior ConfigureRequest and do not have real_x / real_y
+                    # In that case old_screen will be undef and we want just reparent window to a new one
                     $old_screen = screen_by_xy(@{ $win }{qw( real_x real_y )});
                     $new_screen = screen_by_xy(@geom{qw( x y )});
 
-                    if ($old_screen != $new_screen) {
+                    if (($old_screen // 0) != $new_screen) {
                         # Reparent screen
                         my $always_on = $win->{always_on};
-                        $old_screen->win_remove($win);
+                        $old_screen->win_remove($win) if $old_screen;
                         $new_screen->win_add($win, $always_on);
                     } else {
                         undef $old_screen;
