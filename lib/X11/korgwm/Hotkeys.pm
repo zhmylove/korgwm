@@ -74,7 +74,7 @@ sub init {
         my $handler = $hotkeys->{$key}->{$mask};
         unless ($handler) {
             return carp "X11 sent us XK_Escape, but didn't even think to call us Godfather" if $key == 0xff1b;
-            croak "Caught unexpected key: $key mask: $mask";
+            croak "Caught unexpected key: $key code: $evt->{detail} mask: $mask";
         }
         $handler->();
     });

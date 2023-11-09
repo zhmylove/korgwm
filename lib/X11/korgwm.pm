@@ -6,6 +6,8 @@ use strict;
 use warnings;
 use feature 'signatures';
 
+our $VERSION = "2.0";
+
 # Third-party includes
 use X11::XCB 0.21 ':all';
 use X11::XCB::Connection;
@@ -55,7 +57,6 @@ $SIG{CHLD} = "IGNORE";
 my %evt_masks = (x => CONFIG_WINDOW_X, y => CONFIG_WINDOW_Y, w => CONFIG_WINDOW_WIDTH, h => CONFIG_WINDOW_HEIGHT);
 my ($ROOT, $atom_wmstate);
 our $exit_trigger = 0;
-our $VERSION = "2.0";
 
 ## Define functions
 # Handles any screen change
@@ -142,10 +143,17 @@ sub handle_existing_windows {
         my ($x, $y, $w, $h) = $win->query_geometry();
         $y = $cfg->{panel_height} if $y < $cfg->{panel_height};
         my $bw = $cfg->{border_width};
+        my $screen = screen_by_xy($x, $y) || $focus->{screen};
+
+        # Fix window position if they're outside of the visible screen
+        unless ($screen->contains_xy($x, $y)) {
+            $x = $screen->{x} + int(($screen->{w} - $w) / 2);
+            $y = $screen->{y} + int(($screen->{h} - $h) / 2);
+        }
+
         @{ $win }{qw( x y w h )} = ($x, $y, $w, $h);
 
         $win->resize_and_move($x, $y, $w + 2 * $bw, $h + 2 * $bw);
-        my $screen = screen_by_xy($x, $y) || $focus->{screen};
         $screen->win_add($win)
     }
     $_->refresh() for reverse @screens;
@@ -306,6 +314,8 @@ sub FireInTheHole {
             $win->{x} += $screen->{x};
         }
 
+        DEBUG and warn "Mapping $win [$class] (@{ $win }{qw( x y w h )}) screen($screen->{id}) tag($tag->{idx})";
+
         # Just add win to a proper tag. win->show() will be called from tag->show() during screen->refresh()
         $tag->win_add($win);
 
@@ -371,14 +381,14 @@ sub FireInTheHole {
 
             # Handle floating windows properly
             if ($win->{floating}) {
-                my ($old_screen, $new_screen);
+                my ($new_screen, $old_screen) = $focus->{screen};
 
                 # Verify that it moved inside the same screen
                 if (defined $win->{real_y} and any { $geom{$_} != ($win->{"real_$_"} // 0) } qw( x y )) {
                     # Sometimes windows were not move()d prior ConfigureRequest and do not have real_x / real_y
                     # In that case old_screen will be undef and we want just reparent window to a new one
                     $old_screen = screen_by_xy(@{ $win }{qw( real_x real_y )});
-                    $new_screen = screen_by_xy(@geom{qw( x y )});
+                    $new_screen = screen_by_xy(@geom{qw( x y )}) // $focus->{screen};
 
                     if (($old_screen // 0) != $new_screen) {
                         # Reparent screen
@@ -388,6 +398,15 @@ sub FireInTheHole {
                     } else {
                         undef $old_screen;
                     }
+                }
+
+                # Fix window position if it asked to place it outside of selected screen
+                unless ($new_screen->contains_xy(@geom{qw( x y )})) {
+                    $geom{x} = $new_screen->{x} + int(($new_screen->{w} - $geom{w}) / 2);
+                    $geom{y} = $new_screen->{y} + int(($new_screen->{h} - $geom{h}) / 2);
+
+                    # Certainly save new position
+                    @{ $win }{qw( x y )} = @geom{qw( x y )};
                 }
 
                 # For floating we need fixup border

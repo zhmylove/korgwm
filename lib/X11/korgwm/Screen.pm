@@ -129,4 +129,8 @@ sub set_active($self, $window = undef) {
     $X->flush();
 }
 
+sub contains_xy($self, $x, $y) {
+    $self->{x} <= $x and $self->{x} + $self->{w} > $x and $self->{y} <= $y and $self->{y} + $self->{h} > $y;
+}
+
 1;

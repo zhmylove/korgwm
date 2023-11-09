@@ -129,7 +129,7 @@ our @parser = (
         my @tags = $win->tags();
         my $tag = shift @tags // ($win->{always_on} && $win->{always_on}->current_tag());
         return carp "Window $win is visible on multiple tags, do not know how to focus_prev() to it" if @tags;
-        return croak "Window $win has no tags and is not always_on" unless $tag;
+        return carp "Previous window $win has no tags and is not always_on" unless $tag;
 
         # Switch to proper tag unless it is already active
         unless (any { $tag == ($_->current_tag() // 0) } @screens) {

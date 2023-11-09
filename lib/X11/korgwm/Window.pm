@@ -12,6 +12,13 @@ use Encode qw( encode decode );
 use X11::XCB ':all';
 use X11::korgwm::Common;
 
+# Simplify object usage
+use Scalar::Util qw( refaddr );
+use overload '""' => sub {sprintf "%s [id:%d]", overload::StrVal($_[0]), $_[0]->{id} // "undef"};
+use overload '==' => sub { (refaddr($_[0]) // 0) == (refaddr($_[1]) // 0) };
+use overload '!=' => sub { (refaddr($_[0]) // 0) != (refaddr($_[1]) // 0) };
+
+# Internal class variables
 our $focus_prev;
 my $sid = 1;
 
@@ -440,7 +447,7 @@ sub urgency_clear($self) {
 
 # High-level wrapper
 sub urgency_raise($self, $set_hint = undef) {
-    if ($focus->{window} == $self) {
+    if (($focus->{window} // 0) == $self) {
         return $self->urgency_clear();
     }
 

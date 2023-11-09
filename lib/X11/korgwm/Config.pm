@@ -40,7 +40,7 @@ BEGIN {
     $cfg->{panel_hide} = undef;
     $cfg->{randr_cmd} = q(xrandr --output HDMI-A-0 --left-of eDP --auto --output DisplayPort-0 --right-of eDP --auto);
     $cfg->{set_root_color} = 0;
-    $cfg->{title_max_len} = 64;
+    $cfg->{title_max_len} = 128;
     $cfg->{ws_names} = [qw( T W M C 5 6 7 8 9 )];
 
     # Default keyboard layout
