@@ -9,7 +9,7 @@ use feature 'signatures';
 our $VERSION = "2.0";
 
 # Third-party includes
-use X11::XCB 0.21 ':all';
+use X11::XCB 0.22 ':all';
 use X11::XCB::Connection;
 use Carp;
 use AnyEvent;
@@ -57,6 +57,7 @@ $SIG{CHLD} = "IGNORE";
 my %evt_masks = (x => CONFIG_WINDOW_X, y => CONFIG_WINDOW_Y, w => CONFIG_WINDOW_WIDTH, h => CONFIG_WINDOW_HEIGHT);
 my ($ROOT, $atom_wmstate);
 our $exit_trigger = 0;
+my $new_window_event_mask = EVENT_MASK_ENTER_WINDOW | EVENT_MASK_PROPERTY_CHANGE | EVENT_MASK_FOCUS_CHANGE;
 
 ## Define functions
 # Handles any screen change
@@ -137,7 +138,7 @@ sub handle_existing_windows {
     # Set proper window information
     for my $win (values %{ $windows }) {
         $win->{floating} = 1;
-        $X->change_window_attributes($win->{id}, CW_EVENT_MASK, EVENT_MASK_ENTER_WINDOW | EVENT_MASK_PROPERTY_CHANGE);
+        $X->change_window_attributes($win->{id}, CW_EVENT_MASK, $new_window_event_mask);
         $X->change_property(PROP_MODE_REPLACE, $win->{id}, $atom_wmstate, $atom_wmstate, 32, 1, pack L => 1);
 
         my ($x, $y, $w, $h) = $win->query_geometry();
@@ -255,6 +256,7 @@ sub FireInTheHole {
     add_event_ignore(CREATE_NOTIFY());
     add_event_ignore(MAP_NOTIFY());
     add_event_ignore(CONFIGURE_NOTIFY());
+    add_event_ignore(FOCUS_OUT());
 
     # Add several important event handlers
     add_event_cb(MAP_REQUEST(), sub($evt) {
@@ -274,7 +276,7 @@ sub FireInTheHole {
         } else {
             $win = $windows->{$wid} = X11::korgwm::Window->new($wid);
 
-            $X->change_window_attributes($wid, CW_EVENT_MASK, EVENT_MASK_ENTER_WINDOW | EVENT_MASK_PROPERTY_CHANGE);
+            $X->change_window_attributes($wid, CW_EVENT_MASK, $new_window_event_mask);
 
             # Unconditionally set NormalState for any windows, we do not want to correctly process this property
             $X->change_property(PROP_MODE_REPLACE, $wid, $atom_wmstate, $atom_wmstate, 32, 1, pack L => 1);
@@ -440,6 +442,30 @@ sub FireInTheHole {
         # Send xcb_configure_notify_event_t to the window's client
         X11::korgwm::Window::_configure_notify($win_id, @{ $evt }{qw( sequence x y w h )});
         $X->flush();
+    });
+
+    # Under certain conditions X11 grants focus to other window generating FocusIn, we'll respect this
+    add_event_cb(FOCUS_IN(), sub($evt) {
+        # Skip grab-initiated events
+        return unless $evt->{mode} == 0;
+
+        # Skip unknown and already focused windows
+        my $win = $windows->{$evt->{event}} or return;
+        return if $focus->{window} == $win;
+
+        # Switch to a proper tag
+        if ($win->{_hidden}) {
+            my @tags = $win->tags();
+            return carp "Do not know how to focus hidden window $win on several tags @tags" if @tags > 1;
+
+            # Silently skip the situation with no tags (likely always_on window), just try to warp pointer there
+            for my $tag (@tags) {
+                $tag->{screen}->tag_set_active($tag->{idx}, 0);
+                $tag->{screen}->refresh();
+            }
+        }
+
+        $win->warp_pointer();
     });
 
     # This will handle RandR screen change event
