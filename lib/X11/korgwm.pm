@@ -388,14 +388,13 @@ sub FireInTheHole {
 
             # Handle floating windows properly
             if ($win->{floating}) {
-                my ($new_screen, $old_screen) = $focus->{screen};
+                my ($new_screen, $old_screen) = screen_by_xy(@geom{qw( x y )}) // $focus->{screen};
 
                 # Verify that it moved inside the same screen
                 if (defined $win->{real_y} and any { $geom{$_} != ($win->{"real_$_"} // 0) } qw( x y )) {
                     # Sometimes windows were not move()d prior ConfigureRequest and do not have real_x / real_y
                     # In that case old_screen will be undef and we want just reparent window to a new one
                     $old_screen = screen_by_xy(@{ $win }{qw( real_x real_y )});
-                    $new_screen = screen_by_xy(@geom{qw( x y )}) // $focus->{screen};
 
                     if (($old_screen // 0) != $new_screen) {
                         # Reparent screen
@@ -476,6 +475,7 @@ sub FireInTheHole {
 
     # X11 Error handler
     add_event_cb(XCB_NONE(), sub($evt) {
+        # https://www.x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Errors
         warn sprintf "X11 Error: code=%s seq=%s res=%s %s/%s", @{ $evt }{qw( error_code sequence
             resource_id major_code minor_code )};
     });
