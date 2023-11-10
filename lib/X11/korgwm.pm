@@ -165,7 +165,12 @@ sub hide_window($wid, $delete=undef) {
     return unless $win;
     $win->{_hidden} = 1;
 
-    for my $tag (values %{ $win->{on_tags} // {} }) {
+    for my $tag ($win->tags()) {
+        if ($win->{urgent}) {
+            delete $tag->{urgent_windows}->{$win};
+            $tag->{screen}->{panel}->ws_set_urgent($tag->{idx} + 1, 0) unless keys %{ $tag->{urgent_windows} };
+        }
+
         $tag->win_remove($win);
         if ($win == ($tag->{screen}->{focus} // 0)) {
             $tag->{screen}->{focus} = undef;
