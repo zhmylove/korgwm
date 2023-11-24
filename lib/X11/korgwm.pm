@@ -314,6 +314,8 @@ sub FireInTheHole {
         # Set default screen & tag, and fix position
         $screen //= $focus->{screen};
         $tag //= $screen->current_tag();
+
+        # First and simple check and correction
         if ($win->{x} == 0) {
             $win->{x} = $screen->{x} + int(($screen->{w} - $win->{w}) / 2);
             $win->{y} = $screen->{y} + int(($screen->{h} - $win->{h}) / 2);
@@ -358,8 +360,8 @@ sub FireInTheHole {
     });
 
     add_event_cb(UNMAP_NOTIFY(), sub($evt) {
-        # Handle only client unmap requests as we do not call unmap anymore
-        hide_window($evt->{window});
+        # Handle only client unmap requests as we do not call unmap anymore. So we're fine to delete win here as well
+        hide_window($evt->{window}, 1);
     });
 
     add_event_cb(CONFIGURE_REQUEST(), sub($evt) {
@@ -388,23 +390,10 @@ sub FireInTheHole {
 
             # Handle floating windows properly
             if ($win->{floating}) {
-                my ($new_screen, $old_screen) = screen_by_xy(@geom{qw( x y )}) // $focus->{screen};
-
-                # Verify that it moved inside the same screen
-                if (defined $win->{real_y} and any { $geom{$_} != ($win->{"real_$_"} // 0) } qw( x y )) {
-                    # Sometimes windows were not move()d prior ConfigureRequest and do not have real_x / real_y
-                    # In that case old_screen will be undef and we want just reparent window to a new one
-                    $old_screen = screen_by_xy(@{ $win }{qw( real_x real_y )});
-
-                    if (($old_screen // 0) != $new_screen) {
-                        # Reparent screen
-                        my $always_on = $win->{always_on};
-                        $old_screen->win_remove($win) if $old_screen;
-                        $new_screen->win_add($win, $always_on);
-                    } else {
-                        undef $old_screen;
-                    }
-                }
+                # Prevent ConfigureRequest moving the window out of already assigned screen (if real_* set)
+                # Otherwise: set new_screen using required win geometry if possible, or use currently focused screen.
+                my $new_screen = screen_by_xy(@{ $win }{qw( real_x real_y )}) //
+                    screen_by_xy(@geom{qw( x y )}) // $focus->{screen};
 
                 # Fix window position if it asked to place it outside of selected screen
                 unless ($new_screen->contains_xy(@geom{qw( x y )})) {
@@ -417,9 +406,6 @@ sub FireInTheHole {
 
                 # For floating we need fixup border
                 $win->resize_and_move($geom{x}, $geom{y}, $geom{w} + 2 * $bw, $geom{h} + 2 * $bw);
-
-                # Update the screens if needed
-                $old_screen->refresh() if $old_screen;
             } else {
                 # If window is tiled or maximized, tell it it's real size
                 @geom{qw( x y w h )} = @{ $win }{qw( real_x real_y real_w real_h )};
@@ -567,6 +553,10 @@ To make installation process smooth and nice you probably want to install them i
 For Debian GNU/Linux these should be sufficient:
 
     build-essential libcairo-dev libgirepository1.0-dev libglib2.0-dev xcb-proto
+
+And these for Archlinux:
+
+    base-devel cairo glib2 gobject-introspection gtk3 libgirepository xcb-proto
 
 =head1 COPYRIGHT AND LICENSE
 

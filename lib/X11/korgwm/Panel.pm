@@ -56,6 +56,10 @@ sub ws_set_color($self, $ws, $new_color_bg, $new_color_fg) {
 sub ws_set_visible($self, $id, $new_visible = 1) {
     my $meth = $new_visible ? "show" : "hide";
     my $ws = $self->{ws}->[$id - 1];
+
+    # Prevent hiding of the last visible workspace
+    return if not $new_visible and $self->visbile_ws() <= 1;
+
     $ws->{ebox}->$meth;
 }
 
@@ -195,6 +199,10 @@ sub destroy($self) {
 
 sub iter {
     Gtk3::main_iteration_do(0) while Gtk3::events_pending();
+}
+
+sub visbile_ws($self) {
+    grep { $_->{ebox}->get_visible() } @{ $self->{ws} };
 }
 
 1;

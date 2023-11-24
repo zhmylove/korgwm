@@ -3,7 +3,7 @@ use strict;
 use warnings FATAL => 'all';
 use Test::More;
 
-my $XCB_VERSION = 0.21;
+my $XCB_VERSION = 0.22;
 my @modules = qw( Expose Panel Panel::Battery Panel::Clock Panel::Lang Xkb );
 my @modules_nox = qw( API Common Config EWMH Hotkeys Layout Mouse Screen Tag Window );
 my @prerequisites = qw( AnyEvent AnyEvent::Handle AnyEvent::Socket Carp Encode Exporter Glib::Object::Introspection

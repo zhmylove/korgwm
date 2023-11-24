@@ -52,6 +52,7 @@ sub init_extension($name, $first_event) {
 
 # Other helpers
 sub screen_by_xy($x, $y) {
+    return unless defined $x and defined $y;
     first { $_->contains_xy($x, $y) } @screens;
 }
 

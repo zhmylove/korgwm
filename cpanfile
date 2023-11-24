@@ -11,5 +11,5 @@ requires 'List::Util';
 requires 'POSIX';
 requires 'Scalar::Util';
 requires 'Storable';
-requires 'X11::XCB', '0.21';
+requires 'X11::XCB', '0.22';
 requires 'YAML::Tiny';

@@ -151,7 +151,12 @@ sub focus($self) {
 
     # TODO implement focus for several screens: check current focus, check focus for screens, select random one
     my @focus_screens = $self->screens;
-    croak "Unimplemented focus for multiple screens: @focus_screens" unless @focus_screens == 1;
+
+    # XXX Currently it's not supported, so croak
+    if (@focus_screens != 1) {
+        warn "Bad window: $self tags: " . join " ", map { "$_->{screen}: tag #$_->{idx}" } $self->tags();
+        croak "Unimplemented focus for multiple screens (@focus_screens)" . join " ", map { $_->{id} } @focus_screens;
+    }
 
     my @visible_tags = $self->tags_visible();
     my $tag = $visible_tags[0];
@@ -239,8 +244,10 @@ sub update_title($self) {
 }
 
 sub hide($self) {
-    # We do not actually unmap them anymore, just move out of screen
+    # We do not actually unmap them anymore, just move out of screen and mark as '_hidden'.
     $self->{_hidden} = 1;
+
+    # Not using $self->move() to avoid garbage in real_*
     $X->configure_window($self->{id}, CONFIG_WINDOW_X | CONFIG_WINDOW_Y, $self->{sid} * 4096, $visible_max_y * 2);
 
     # Drop panel title
@@ -255,7 +262,8 @@ sub hide($self) {
 
 sub show($self) {
     # Not using $self->move() to avoid garbage in real_*
-    $X->configure_window($self->{id}, CONFIG_WINDOW_X | CONFIG_WINDOW_Y, @{ $self }{qw( x y )}) if $self->{floating};
+    $X->configure_window($self->{id}, CONFIG_WINDOW_X | CONFIG_WINDOW_Y, @{ $self }{qw( x y )})
+        if $self->{floating} and $self->{_hidden};
 
     # Map anyways as client could've unmapped on their own
     $X->map_window($self->{id});

@@ -104,6 +104,7 @@ sub show($self) {
 
 sub win_add($self, $win) {
     $win->{on_tags}->{$self} = $self;
+
     $self->{urgent_windows}->{$win} = undef if $win->urgency_get();
     $self->{screen}->{panel}->ws_set_visible($self->{idx} + 1);
 
@@ -124,6 +125,9 @@ sub win_remove($self, $win, $norefresh = undef) {
     for my $arr (map { $self->{$_} } qw( windows_float windows_tiled )) {
         splice @{ $arr }, $_, 1 for reverse grep { $arr->[$_] == $win } 0..$#{ $arr };
     }
+
+    # Remove title when removing focused window
+    $self->{screen}->{panel}->title() if $win == $focus->{window};
 
     # Update panel if tag becomes empty
     $self->{screen}->{panel}->ws_set_visible($self->{idx} + 1, 0)

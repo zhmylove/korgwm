@@ -44,6 +44,10 @@ For Debian GNU/Linux these should be sufficient:
 
     build-essential libcairo-dev libgirepository1.0-dev libglib2.0-dev xcb-proto
 
+And these for Archlinux:
+
+    base-devel cairo glib2 gobject-introspection gtk3 libgirepository xcb-proto
+
 =head1 COPYRIGHT AND LICENSE
 
 Copyright (c) 2023 Sergei Zhmylev E<lt>zhmylove@cpan.orgE<gt>
