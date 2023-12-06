@@ -67,7 +67,7 @@ BEGIN {
                 "mod_g"                 => "exec(google-chrome --simulate-outdated-no-au --new-window --incognito)",
                 "mod_shift_g"           => "exec(google-chrome --simulate-outdated-no-au --new-window)",
                 "mod_m"                 => "win_toggle_maximize()",
-                "mod_r"                 => "exec(rofi -show drun)",
+                "mod_r"                 => "exec(xkb-switch -s us; rofi -show drun)",
                 "mod_w"                 => "exec(firefox --new-instance --private-window)",
                 "mod_shift_w"           => "exec(firefox --new-instance)",
                 "mod_="                 => "exec(galculator)",
@@ -91,8 +91,13 @@ BEGIN {
 
     $cfg->{noclass_whitelist} = ["Event Tester"];
 
+    $cfg->{autostart} = ["exec(setxkbmap -layout us,ru -option grp:alt_shift_toggle,compose:ralt)"];
+
     # Read local configs
-    for my $file ("/etc/korgwm/korgwm.conf", "$ENV{HOME}/.korgwmrc", "$ENV{HOME}/.config/korgwm/korgwm.conf") {
+    for my $file (
+        "/etc/korgwm/korgwm.conf", "/usr/local/etc/korgwm/korgwm.conf",
+        "$ENV{HOME}/.korgwmrc", "$ENV{HOME}/.config/korgwm/korgwm.conf"
+    ) {
         next unless -f $file;
         my $rcfg;
         eval { $rcfg = YAML::Tiny->read($file) and $rcfg = $rcfg->[0]; 1; } or do {
