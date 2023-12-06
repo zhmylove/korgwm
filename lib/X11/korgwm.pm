@@ -469,6 +469,14 @@ sub FireInTheHole {
     # Init our extensions
     $_->() for our @extensions;
 
+    # Execute autostart, if any
+    my $autostart = ref $cfg->{autostart} eq "ARRAY" ? $cfg->{autostart} : [];
+    for my $cmd (@{ $autostart }) {
+        my $cb;
+        eval { $cb = X11::korgwm::Executor::parse($cmd); 1; } or next;
+        ref $cb eq "CODE" and $cb->();
+    }
+
     # Set the initial pointer position, if needed
     if (my $pos = $cfg->{initial_pointer_position}) {
         if ($pos eq "center") {
