@@ -1,11 +1,35 @@
 Revision history for korgwm.
 
+3.0     2023-12-07
+    - Moved to X11::XCB 0.22
+
+    - Significantly improved logic around floating windows on multiple screens
+
+    - Implemented FocusIn support for background windows: now browser windows steals focus on URL opens.
+
+    - Implemented whitelist of windows with unset WM_CLASS: previously we just ignored them.
+
+    - Implemented autostart commands in API format (see configuration example).
+
+    - Other minor improvements:
+        - Add support for PrintScr button
+        - Make cosmetic changes to Readme
+        - Update outdated configuration samples
+        - Fix file permissions
+        - Erase window structure on Unmap
+        - Prevent ConfigureRequest moving windows out of their screens
+        - Fix issue with hiding the last visible workspace
+        - Fix stale panel title issues when moving floating windows between screens
+        - Fix stale urgency on window destroy
+        - Circumvent show() race condition in MapRequest
+        - Implement focus_prev() for hidden windows
+
 2.0     2023-10-26
     - Implemented tag_append() -- it's possible to append windows from other tags to the active one.
 
     - xcb_unmap_window() was removed. From now on the windows are being moved out of visible area instead of unmap.
 
-    - Make initial_pointer_position multiple screen-aware: mouse pointer can now warp to the central screen.
+    - Made initial_pointer_position multiple screen-aware: mouse pointer can now warp to the central screen.
 
     - Other minor improvements:
         - Update POD documentation

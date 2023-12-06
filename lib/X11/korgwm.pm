@@ -6,7 +6,7 @@ use strict;
 use warnings;
 use feature 'signatures';
 
-our $VERSION = "2.0";
+our $VERSION = "3.0";
 
 # Third-party includes
 use X11::XCB 0.22 ':all';
