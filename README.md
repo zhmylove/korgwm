@@ -1,8 +1,10 @@
-# Joke
+# korgwm: pure Perl tiling window manager by KorG
+
+## Joke
 
 No, it is not a joke.
 
-# Why?
+## Why?
 
 **Back in 2010** I used the most impressive WM I think &mdash; WMFS (version 1).
 Then WMFS author ([@xorg62](https://github.com/xorg62)) decided to completely drop WMFS and started working on WMFS2.
@@ -13,22 +15,22 @@ Over time, new technologies emerged and new WM features were required to feel en
 Since that days, I always had **the idea of writing my own WM**.
 The perfect time is now.
 
-# What is?
+## What is?
 
 **korgwm** is my personal WM.
 I do NOT want to make it highly customizable as I do know my wishes pretty well.
 I decided to write it in [Perl](https://www.perl.org/), as Perl is the best language ever.
 This WM is not a proof of concept, nor a society-oriented pet-project.
-It is just my instrument that I'm going to use on a daily basis.
+It is just my instrument that I'm using on a daily basis.
 In it's heart it uses XCB for X11 interaction, AnyEvent for API and event loop and Gtk3 for panel rendering.
 It is not reparenting for purpose, so borders are rendered by X11 itself.
 
-# Functionality
+## Functionality
 
 - Tiling and floating windows
 - Dynamic layout that could be resized and reconfigured using hotkeys
-- EWMH suppport: fullscreen, gentle exit, urgency, title, ...
-- Always ON -- floating windows that are displayed on all tags
+- EWMH support: full screen, gentle exit, urgency, title, ...
+- Always ON -- floating windows that are displayed on each tag
 - TCP API to control over the network -- see [API.md](API.md)
 - Non-reparenting for purpose
 - Excessive hotkeys including media keys
@@ -41,13 +43,13 @@ It is not reparenting for purpose, so borders are rendered by X11 itself.
 - Display rules for certain windows: screen & tag affinity, floating by default, ...
 - ... and many more.
 
-# Screenshots
+## Screenshots
 
 By default windows are placed in a tiled grid.  You always can tune it's size and location:
 
 ![Tiled windows](resources/screenshots/tiling.png)
 
-Windows could also be floating:
+Windows could also be floating (in any combination):
 
 ![Floating windows](resources/screenshots/floating.png)
 
@@ -57,17 +59,18 @@ There is an expose mode to show all windows from all tags and quickly switch bet
 
 ... and many more.
 
-# Installation
+## Installation
 
-As it is written entirely in pure Perl, the installation is pretty generic.
+As korgwm is written entirely in pure Perl, the installation is pretty generic.
 
-You can use any software to install CPAN modules. Personally I like cpm:
+Release versions are published on CPAN, so the installation is similar to other CPAN modules.
+Personally I like cpm:
 
     curl -fsSL https://raw.githubusercontent.com/skaji/cpm/main/cpm > cpm
     chmod +x cpm
     ./cpm install -g X11::korgwm
 
-Or in a regular Perl way, if you prefer (or if you're building a version from GitHub):
+In case you want to build it from GitHub or do not want to use CPAN, a regular Perl way is:
 
     perl Makefile.PL
     make
@@ -84,9 +87,9 @@ And these for Archlinux:
 
     base-devel cairo glib2 gobject-introspection gtk3 libgirepository xcb-proto
 
-# Contribution
+## Contribution
 
 **Yes**, I do appreciate contribution.
 But it should not break the default behaviour of *korgwm*, as I'm going to tune it for myself.
-Though this is discussible in your PRs.
+Though this is discussable in your PRs.
 Welcome!
