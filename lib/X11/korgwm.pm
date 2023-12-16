@@ -166,6 +166,10 @@ sub hide_window($wid, $delete=undef) {
     return unless $win;
     $win->{_hidden} = 1;
 
+    if ($delete and $win->{transient_for}) {
+        delete $win->{transient_for}->{siblings}->{$wid};
+    }
+
     for my $tag ($win->tags()) {
         if ($win->{urgent}) {
             delete $tag->{urgent_windows}->{$win};
@@ -199,10 +203,6 @@ sub hide_window($wid, $delete=undef) {
         $focus->{focus} = undef;
         $focus->{screen}->focus();
     }
-
-    if ($delete and $win->{transient_for}) {
-        delete $win->{transient_for}->{siblings}->{$wid};
-    }
 }
 
 # Main routine
@@ -214,8 +214,8 @@ sub FireInTheHole {
     # Save root window
     $ROOT = $X->root;
 
-    # Preload some atoms
-    $atom_wmstate = $X->atom(name => "WM_STATE")->id;
+    # Preload some atoms, create non-existent ones
+    $atom_wmstate = $X->intern_atom_reply($X->intern_atom(0, length("WM_STATE"), "WM_STATE")->{sequence})->{atom};
 
     # Check for another WM
     my $wm = $X->change_window_attributes_checked($ROOT->id, CW_EVENT_MASK,
