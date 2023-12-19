@@ -1,5 +1,10 @@
 Revision history for korgwm.
 
+3.1     2023-12-19
+    - WM_STATE atom is now created manually unless it already exists to prevent crashes on unconfigured X server.
+
+    - Fixed race condition on transient siblings removal.
+
 3.0     2023-12-07
     - Moved to X11::XCB 0.22
 

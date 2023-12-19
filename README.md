@@ -63,6 +63,9 @@ There is an expose mode to show all windows from all tags and quickly switch bet
 
 As korgwm is written entirely in pure Perl, the installation is pretty generic.
 
+For FreeBSD it is available from ports: x11-wm/korgwm.
+On ArchLinux you can install it from AUR.
+
 Release versions are published on CPAN, so the installation is similar to other CPAN modules.
 Personally I like cpm:
 
