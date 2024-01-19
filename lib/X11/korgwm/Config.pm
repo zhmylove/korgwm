@@ -41,7 +41,7 @@ BEGIN {
     $cfg->{randr_cmd} = q(xrandr --output HDMI-A-0 --left-of eDP --auto --output DisplayPort-0 --right-of eDP --auto);
     $cfg->{set_root_color} = 0;
     $cfg->{title_max_len} = 128;
-    $cfg->{ws_names} = [qw( T W M 4 5 6 7 8 9 )];
+    $cfg->{ws_names} = [qw( 1 2 3 4 5 6 7 8 9 )];
 
     # Default keyboard layout
     $cfg->{hotkeys} = {
@@ -81,7 +81,7 @@ BEGIN {
     };
 
     $cfg->{rules} = {
-        "mattermost"    => { screen => 2, tag => 4, follow => 1, },
+        "mattermost"    => { screen => 3, tag => 4, follow => 1, },
         "evolution"     => { screen => 1, tag => 3, follow => 0, },
         "galculator"    => { floating => 1 },
         "urxvt-float"   => { floating => 1 },
