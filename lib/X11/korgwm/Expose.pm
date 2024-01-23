@@ -10,7 +10,13 @@ use Carp;
 use X11::XCB ':all';
 use X11::korgwm::Common;
 use Glib::Object::Introspection;
-use Gtk3 -init;
+use Gtk3;
+
+unless ($X11::korgwm::gtk_init) {
+    Gtk3::disable_setlocale();
+    Gtk3::init();
+    $X11::korgwm::gtk_init = 1;
+}
 
 my $display;
 my $win_expose;

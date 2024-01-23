@@ -7,10 +7,16 @@ use warnings;
 use feature 'signatures';
 
 use Carp;
-use Gtk3 -init;
+use Gtk3;
 use Glib::Object::Introspection;
 use AnyEvent;
 use X11::korgwm::Common;
+
+unless ($X11::korgwm::gtk_init) {
+    Gtk3::disable_setlocale();
+    Gtk3::init();
+    $X11::korgwm::gtk_init = 1;
+}
 
 # Prepare internal variables
 my ($ready, $color_fg , $color_bg , $color_urgent_bg, $color_urgent_fg, $color_append_bg, $color_append_fg, @ws_names);
