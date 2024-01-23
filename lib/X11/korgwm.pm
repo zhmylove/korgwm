@@ -494,7 +494,11 @@ sub FireInTheHole {
     for(;;) {
         die "Segmentation fault (core dumped)\n" if $exit_trigger;
 
-        while (my $evt = $X->poll_for_event()) {
+        my $limit = 1024;
+        while ($limit--) {
+            my $evt = $X->poll_for_event();
+            last unless $evt;
+
             # MotionNotifies(6) are ignored anyways. No room for error
             DEBUG and $evt->{response_type} != 6 and warn Dumper $evt;
 
