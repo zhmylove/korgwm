@@ -9,6 +9,7 @@
 ^\.travis\.yml
 ^architecture/
 ^blib/
+^doc/
 ^pm_to_blib
 ^resources/
 ~$
