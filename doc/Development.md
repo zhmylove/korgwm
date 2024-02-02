@@ -6,6 +6,17 @@ status: work in progress. This line will be removed as soon as this paper become
 
 ## Requirements
 
+Any development should obviously base on formal requirements and this case is not an exclusion.
+As I had already been pretty familiar with most tiling WM functionality I need by the time I started writing korgwm, I firstly defined a list of 32 requirements.
+I'm not sure presenting them all here worth it, but here are some examples just to illustrate the idea:
+
+- Req.17: there should be a little Panel on top of the screen displaying current input language, time, a title of active window and a list of non-empty tags;
+- Req.18: GUI should support Xft in order to use beautiful fonts for Panel;
+- Req.19: WM should support not only regular hotkeys, but also media buttons in order to control volume, brightness and so on;
+- ...
+
+The full list of [the initial requirements](../architecture/00_requirements.txt) is saved in architecture directory.
+
 ## Architectural decisions
 
 ### X11 vs Wayland
@@ -67,6 +78,21 @@ And I decided to use XCB as well.
 
 ### Why Perl
 
+Most likely you can name at least 3 languages you'd choose for WM development.
+And even if you name 16 of them I still bet Perl would not be among them.
+Many people may consider too insane starting new project using Perl in a world with all those modern GPPL: Golang, Rust, C/C++, Lua, Python, ...
+Nowadays Perl become underestimated and pretty inpopular language.
+In spite that it is still being actively developed.
+
+Several factors determined the choice of language for development, besides the fact that Perl actually is my native language.
+
+1. Perl gives an extreme speed writing prototypes: you can use tons of existing CPAN modules and write only tens lines of code in order to create powerful applications.
+2. It's pretty easy to replace some parts of prototypes written in Perl with performant code in C -- Perl out of the box supports a lot of techniques for that: XSUB, FFI, even micro-service architecture and fast IPC.
+3. Being syntactically rich language Perl gives a number of ways for expression the same ideas in different words and all those expressions would just work: it does not imprison you into poor frameworks invented by some other people.
+4. There already were several Perl modules for X11 interaction.
+
+Given so much advantages using Perl I just did not find any drawbacks of it and thus **the choise was obvious**.
+
 ## Development
 
 ### A word to PerlWM
@@ -78,6 +104,8 @@ And I decided to use XCB as well.
 ## Bad architectural decisions
 
 ### Window shown on multiple tags and Tags VS Workspaces
+
+### Windows re-arrangement on screen change
 
 ### Expose module
 
