@@ -32,7 +32,7 @@ sub windows($self) {
 
 sub destroy($self, $new_screen) {
     # Move windows to some other place
-    my $new_tag = $new_screen->{tags}->[0];
+    my $new_tag = $new_screen->{tags}->[$self->{idx}] || $new_screen->{tags}->[0];
     for my $win ($self->windows()) {
         $new_tag->win_add($win);
         $self->win_remove($win);
