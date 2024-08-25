@@ -253,8 +253,11 @@ sub hide($self) {
     # Drop panel title
     $_->{panel}->title() for grep { ($_->{focus} // 0) == $self } $self->screens();
 
-    # Drop focus
-    $focus->{window} = undef if $self == ($focus->{window} // 0);
+    # Drop focus saving $self to $focus_prev
+    if ($self == ($focus->{window} // 0)) {
+        $focus_prev = $focus->{window};
+        $focus->{window} = undef;
+    }
 
     # Execute hooks, see Expose.pm
     $_->($self) for our @hooks_hide;

@@ -126,6 +126,11 @@ our @parser = (
         my $win = $X11::korgwm::Window::focus_prev;
         return unless defined $win;
 
+        # We need to move the pointer out of the screen in order to avoid ENTER_NOTIFY from improper window
+        # resulting into garbaged $focus_prev
+        $X->warp_pointer(0, $X->root->id, 0, 0, 0, 0, 0, 0);
+        $X->flush();
+
         my @tags = $win->tags();
         my $tag = shift @tags // ($win->{always_on} && $win->{always_on}->current_tag());
         return carp "Window $win is visible on multiple tags, do not know how to focus_prev() to it" if @tags;
@@ -133,6 +138,7 @@ our @parser = (
 
         # Switch to proper tag unless it is already active
         unless (any { $tag == ($_->current_tag() // 0) } @screens) {
+            $tag->{screen}->{focus} = $win;
             $tag->{screen}->tag_set_active($tag->{idx});
             $tag->{screen}->refresh();
         }
