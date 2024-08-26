@@ -12,7 +12,10 @@ BEGIN {
     # Default values
     $cfg->{debug} = 0;
     $cfg->{api_host} = "127.0.0.1";
-    $cfg->{api_port} = 27015;
+
+    ## This may be way too complicated, but thus I'm sure it won't be exploited. Resolves EADDRINUSE
+    $cfg->{api_port} = ($ENV{KORGWM_DEBUG_PORT} // "") =~ m/^(\d+)$/s ? $1 : 27015;
+
     $cfg->{api_timeout} = 5;
     $cfg->{battery_format} = "%s";
     $cfg->{border_width} = 1;

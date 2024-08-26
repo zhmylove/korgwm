@@ -2,3 +2,5 @@ MANIFEST
 MYMETA.json
 MYMETA.yml
 Makefile
+blib
+pm_to_blib

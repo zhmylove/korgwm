@@ -7,6 +7,7 @@
 ---
 ## API parameters
 # Set api_port = 0 to disable API server
+# KORGWM_DEBUG_PORT environment variable overrides api_port if set
 api_host: 127.0.0.1
 api_port: 27015
 # Inactivity timeout for API to close the connection
