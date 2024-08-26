@@ -258,9 +258,6 @@ sub hide($self) {
         $focus_prev = $focus->{window};
         $focus->{window} = undef;
     }
-
-    # Execute hooks, see Expose.pm
-    $_->($self) for our @hooks_hide;
 }
 
 sub show($self) {

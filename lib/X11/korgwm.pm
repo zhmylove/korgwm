@@ -9,7 +9,7 @@ use feature 'signatures';
 our $VERSION = "3.1";
 
 # Third-party includes
-use X11::XCB 0.22 ':all';
+use X11::XCB 0.23 ':all';
 use X11::XCB::Connection;
 use Carp;
 use AnyEvent;
@@ -138,6 +138,7 @@ sub handle_existing_windows {
     # Set proper window information
     for my $win (values %{ $windows }) {
         $win->{floating} = 1;
+        $X->composite_redirect_window($win->{id}, COMPOSITE_REDIRECT_AUTOMATIC);
         $X->change_window_attributes($win->{id}, CW_EVENT_MASK, $new_window_event_mask);
         $X->change_property(PROP_MODE_REPLACE, $win->{id}, $atom_wmstate, $atom_wmstate, 32, 1, pack L => 1);
 
@@ -239,6 +240,9 @@ sub FireInTheHole {
     my ($RANDR_EVENT_BASE);
     init_extension("RANDR", \$RANDR_EVENT_BASE);
 
+    # Initialize XComposite
+    init_extension("Composite", undef);
+
     # Process existing screens
     handle_screens();
     die "No screens found" unless keys %screens;
@@ -275,6 +279,9 @@ sub FireInTheHole {
             delete $win->{_hidden};
         } else {
             $win = $windows->{$wid} = X11::korgwm::Window->new($wid);
+
+            # Ask X11 for composition redirect
+            $X->composite_redirect_window($wid, COMPOSITE_REDIRECT_AUTOMATIC);
 
             $X->change_window_attributes($wid, CW_EVENT_MASK, $new_window_event_mask);
 

@@ -47,6 +47,9 @@ sub replace_event_cb($id, $sub) {
 sub init_extension($name, $first_event) {
     my $ext = $X->query_extension_reply($X->query_extension(length($name), $name)->{sequence});
     die "$name extension not available" unless $ext->{present};
+
+    # We can skip this part unless we're interested getting event
+    return unless defined $first_event;
     die "Could not get $name first_event" unless $$first_event = $ext->{first_event};
 }
 

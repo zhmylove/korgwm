@@ -24,9 +24,10 @@ my $font;
 my ($color_fg, $color_bg, $color_expose);
 my ($color_gdk_fg, $color_gdk_bg, $color_gdk_expose);
 
-sub _create_thumbnail($scale, $pixbuf, $title, $id, $cb) {
+sub _create_thumbnail($scale, $win, $title, $id, $cb) {
     my $vbox = Gtk3::Box->new(vertical => 0);
     my $vbox_inner = Gtk3::Box->new(vertical => 0);
+    my $pixbuf = $win->_get_pixbuf();
 
     # Normalize size
     my ($w, $h) = ($pixbuf->get_width(), $pixbuf->get_height());
@@ -82,9 +83,6 @@ sub _get_rownum($number, $width, $height) {
 sub expose {
     # Drop any previous window
     return if $win_expose;
-
-    # Update pixbufs for all visible windows
-    $_->_update_pixbuf() for map { $_->current_tag()->windows() } values %screens;
 
     # Select current screen
     my $screen_curr = $focus->{screen};
@@ -145,11 +143,8 @@ sub expose {
                 my $id_str = "[$id]"; # should be string to avoid {0} === {"0"}
                 $callbacks{$id_str} = $cb if $cfg->{expose_show_id};
 
-                # If we never created a pixbuf for it
-                $win->_update_pixbuf() unless $win->{pixbuf};
-
                 # Create thumbnail
-                my $ebox = _create_thumbnail($scale, $win->{pixbuf}, $win->title(), $id_str, sub ($obj, $e) {
+                my $ebox = _create_thumbnail($scale, $win, $win->title(), $id_str, sub ($obj, $e) {
                     return unless $e->button == 1;
                     $cb->();
                 });
@@ -206,15 +201,27 @@ sub expose {
 # Inverse approach is used in order to simplify Expose deletion / re-implementation
 BEGIN {
     # Insert some pixbuf-specific methods 
-    sub X11::korgwm::Window::_update_pixbuf($self) {
-        return $self->{pixbuf} = Gtk3::GdkPixbuf::Pixbuf->new_from_xpm_data(['1 1 1 1', 'a c #000000', 'a'])
+    sub X11::korgwm::Window::_get_pixbuf($self) {
+        # If the window was not mapped, draw it in black
+        return Gtk3::GdkPixbuf::Pixbuf->new_from_xpm_data(['1 1 1 1', 'a c #262729', 'a'])
             unless $self->{real_w} and $self->{real_h};
-        my $win = Gtk3::Gdk::X11Window->foreign_new_for_display($display, $self->{id});
-        $self->{pixbuf} = Gtk3::Gdk::pixbuf_get_from_window($win, 0, 0, @{ $self }{qw( real_w real_h )});
-    }
 
-    # Register hide hook
-    push @X11::korgwm::Window::hooks_hide, sub($self) { $self->_update_pixbuf(); };
+        # This routine gets RGBA 24TT image but Gtk3 cat convert it only to 8-bit Pixbuf :(
+        my $pixmap = $X->generate_id();
+        $X->composite_name_window_pixmap($self->{id}, $pixmap);
+        my $image = $X->get_image(IMAGE_FORMAT_Z_PIXMAP, $pixmap, 0, 0, $self->{real_w}, $self->{real_h}, -1);
+        $image = $X->get_image_data($image->{sequence});
+
+        return Gtk3::GdkPixbuf::Pixbuf->new_from_bytes(
+            Glib::Bytes->new($image->{data}),   # data
+            "rgb",                              # colorspace = RGB
+            1,                                  # has alpha
+            8,                                  # ASSertion bits_per_sample == 8 are you kidding?
+            $self->{real_w},                    # width
+            $self->{real_h},                    # height
+            $self->{real_w} * 4,                # distance in bytes between rows aka rowstride
+        );
+    }
 }
 
 sub init {
