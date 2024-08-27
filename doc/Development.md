@@ -35,7 +35,7 @@ So now I have to state that my comparison results reflect only my personal opini
 | 2 | Existing WM or pet-projects that could be used as a reference or help | Tons of tiling WMs including some I already familiar with: dwm, awesomewm, i3wm, wmfs, bspwm, ... | Not so much: wlroots, dwl, sway |
 | 3 | The most popular according to "Tiling WM Mastery" Telegram group | 2x more votes for X11 | Only several people recommended Wayland |
 | 4 | How much should be implemented | X server does a lot of work, so writing a WM for X11 is mostly about writing it's business logic | In order to write a WM for Wayland one have to implement the full Compositor functionality |
-| 5 | Typical arguments in favor of subj | Do not know :( | Absense of screen tearing, HiDPI support, true isolation of applications, ... What else? |
+| 5 | Typical arguments in favor of subj | Do not know :( | Absence of screen tearing, HiDPI support, true isolation of applications, ... What else? |
 | 6 | My personal experience | For the last 10 years I've never experienced any issues with X11 | I've tried to use Wayland on Debian 12 Bookworm with GNOME3 and some things worked improperly: WebRTC screen sharing shown a black screen instead of the picture, Atlassian Confluence page hierarchy not shown a cursor when I moved a page in it |
 | 7 | Last, but not least: the library for the language I'll use | There are several modules: X11::Xlib (supports some functionality for WM), X11::XCB (only client-side functionality), X11::Protocol (hard-to-use pure protocol library) | A single lonely "WL" in which only client part is [partly] implemented |
 
@@ -48,7 +48,7 @@ Wayland initial release was somewhere around 2008.
 In six years it'll have the same age as X11 had by the time Wayland development started and it is still complex and not well documented.
 Taking into account that personally I come across 2+ UI issues in Wayland, I suppose the world deserves a better, clearer and more understandable display system than it.
 
-**As a result**: my personal choise for writing the very first WM is definitely X11.
+**As a result**: my personal choice for writing the very first WM is definitely X11.
 
 ### Xlib vs XCB
 
@@ -81,17 +81,17 @@ And I decided to use XCB as well.
 Most likely you can name at least 3 languages you'd choose for WM development.
 And even if you name 16 of them I still bet Perl would not be among them.
 Many people may consider too insane starting new project using Perl in a world with all those modern GPPL: Golang, Rust, C/C++, Lua, Python, ...
-Nowadays Perl become underestimated and pretty inpopular language.
+Nowadays Perl become underestimated and pretty unpopular language.
 In spite that it is still being actively developed.
 
 Several factors determined the choice of language for development, besides the fact that Perl actually is my native language.
 
 1. Perl gives an extreme speed writing prototypes: you can use tons of existing CPAN modules and write only tens lines of code in order to create powerful applications.
-2. It's pretty easy to replace some parts of prototypes written in Perl with performant code in C -- Perl out of the box supports a lot of techniques for that: XSUB, FFI, even micro-service architecture and fast IPC.
+2. It's pretty easy to replace some parts of prototypes written in Perl with performant code in C -- Perl out of the box supports a lot of techniques for that: XSUB, FFI, even asynchronous micro-service architecture and fast IPC.
 3. Being syntactically rich language Perl gives a number of ways for expression the same ideas in different words and all those expressions would just work: it does not imprison you into poor frameworks invented by some other people.
-4. There already were several Perl modules for X11 interaction.
+4. There already were several Perl modules for X11 interaction. *Although none of them were actually suitable for WM development*.
 
-Given so much advantages using Perl I just did not find any drawbacks of it and thus **the choise was obvious**.
+Given so much advantages using Perl I just did not find any drawbacks of it and thus **the choice was obvious**.
 
 ## Development
 
@@ -108,6 +108,35 @@ Given so much advantages using Perl I just did not find any drawbacks of it and 
 ### Windows re-arrangement on screen change
 
 ### Expose module
+
+Didn't you know: it's pretty difficult to get "a screenshot" of all the windows in X11.
+I bet Wayland built all around its famous "security" does this job even worther.
+
+First thing first.
+As I've already based some functionality on Gtk3 -- namely written a panel using this library -- I decided to write a little window chooser.
+It is not a mandatory requirement to built such a thing into a WM, more or less it was just my desire to write one with my personal hotkeys and UX.
+
+At the very early stages I created two little PoC applications: one contained an area displaying some other window and another created a window and placed some tiles in a table grid.
+The idea of the latter was to come out with some suitable scaling algorithm: tiles should be proportionally resized based on their count and screen resolution.
+
+Done with that I quickly enough implemented Expose.pm combining those ideas.
+This time it was much more mature application: full-screen window with no decoration aka 'popup', nice looking colours, support for lots of hotkeys, several optimizations...
+I was so happy absolutely not noticing how badly increased memory consumption.
+Below will definitely be a couple of words on memory leaks analysis, to cut is short: GdkPixbuf creates way much Perl objects resulting into several MBytes overhead per window.
+Moreover, it revealed that even GDK developers not happy with it as the most recent commit bda80c4e41 says: "It's a bad function, and people should feel bad about using it".
+GdkPixbufs do not manage to properly dump partially obscured windows, nor able they to handle off screen windows.
+And thus I decided to rework so called "X11 foreign windows" GdkPixbufs with some other techniques.
+
+The solution was found during one of my daily meetings: once setting up desktop sharing in a web browser I saw a window selection dialog with pretty thumbnails for each of my windows.
+At that time I asked myself where and how did my web browser get all those images.
+Not waiting too long I cloned webrtc repo and inspected all the code under `modules/desktop_capture` -- there are two approaches: both require X11 composition extension.
+One approach based on asking X11 to share pixmap memory of a window, while the other falls back to XImage interface.
+
+I've updated X11::XCB -- added support for XComposite extension and implemented `xcb_get_image_data()` function in order to get image data directly from Perl code.
+After a couple of hours refactoring Expose.pm I got a solution which consumed less memory and even was able to free some, reducing memory usage of a Perl program!
+At the time I'm writing this text this solution still uses pixbufs for scaling and rendering of those images but it works way better.
+The only issue now is that original images are in ARGB32 while Gtk3 pixbufs support only importing of RGB8 and this distorts thumbnail colours...
+Maybe later I'll manage to render TrueColor bitmaps directly over the Expose window.
 
 ## Problems solved
 
