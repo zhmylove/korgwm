@@ -19,7 +19,6 @@ use overload '==' => sub { (refaddr($_[0]) // 0) == (refaddr($_[1]) // 0) };
 use overload '!=' => sub { (refaddr($_[0]) // 0) != (refaddr($_[1]) // 0) };
 
 # Internal class variables
-our $focus_prev;
 my $sid = 1;
 
 sub new($class, $id) {
@@ -28,7 +27,8 @@ sub new($class, $id) {
 }
 
 sub DESTROY($self) {
-    $focus_prev = undef if $self == ($focus_prev // 0);
+    # Wanna free some resources? Do it inside Destroy handler: korgwm.pm/hide_window()
+    1;
 }
 
 sub _get_property($wid, $prop_name, $prop_type='UTF8_STRING', $ret_length=8) {

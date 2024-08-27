@@ -204,6 +204,8 @@ sub hide_window($wid, $delete=undef) {
         $focus->{focus} = undef;
         $focus->{screen}->focus();
     }
+
+    $focus_prev = undef if $win == ($focus_prev // 0);
 }
 
 # Main routine

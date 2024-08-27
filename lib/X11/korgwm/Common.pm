@@ -11,7 +11,7 @@ use Exporter 'import';
 use List::Util qw( first );
 use Scalar::Util qw( looks_like_number );
 
-our @EXPORT = qw( DEBUG $X $cfg $focus $windows %screens %xcb_events %xcb_events_ignore @screens
+our @EXPORT = qw( DEBUG $X $cfg $focus $focus_prev $windows %screens %xcb_events %xcb_events_ignore @screens
     add_event_cb add_event_ignore hexnum init_extension replace_event_cb screen_by_xy
     $visible_min_x $visible_min_y $visible_max_x $visible_max_y );
 
@@ -21,6 +21,7 @@ sub DEBUG;
 our $X;
 our $cfg;
 our $focus;
+our $focus_prev;
 our $windows = {};
 our %screens;
 our %xcb_events;
