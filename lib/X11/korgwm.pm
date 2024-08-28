@@ -440,6 +440,9 @@ sub FireInTheHole {
 
     # Under certain conditions X11 grants focus to other window generating FocusIn, we'll respect this
     add_event_cb(FOCUS_IN(), sub($evt) {
+        # Sometimes X11 sends FocusIn on rapid EnterNotifies: when pointer is not where it thinks it should be
+        return if $prevent_focus_in;
+
         # Skip grab-initiated events
         return unless $evt->{mode} == 0;
 
