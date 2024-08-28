@@ -12,7 +12,7 @@ use List::Util qw( first );
 use Scalar::Util qw( looks_like_number );
 
 our @EXPORT = qw( DEBUG $X $cfg $focus $focus_prev $windows %screens %xcb_events %xcb_events_ignore @screens
-    add_event_cb add_event_ignore hexnum init_extension replace_event_cb screen_by_xy
+    add_event_cb add_event_ignore hexnum init_extension replace_event_cb screen_by_xy pointer
     $visible_min_x $visible_min_y $visible_max_x $visible_max_y );
 
 # Set after parsing config
@@ -62,6 +62,10 @@ sub screen_by_xy($x, $y) {
 
 sub hexnum($str = $_) {
     looks_like_number $str ? $str : hex($str);
+}
+
+sub pointer($wid = $X->root->id) {
+	$X->query_pointer_reply($X->query_pointer($wid)->{sequence}) // {};
 }
 
 1;

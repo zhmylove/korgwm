@@ -300,6 +300,7 @@ sub transients($self) {
     map { ($windows->{$_}->transients(), $windows->{$_}) } sort @siblings_xid;
 }
 
+# Toggles or sets a particular floating
 sub toggle_floating($self, $set_floating = undef) {
     # There is no way to disable floating for transient windows
     return if $self->{transient_for};
@@ -467,6 +468,12 @@ sub urgency_raise($self, $set_hint = undef) {
 }
 
 sub warp_pointer($self) {
+    # Do nothing if this window already owns the pointer
+    return if $self->{id} == (pointer()->{child} // 0);
+
+    # We have to re-stack windows if the win is floating, so call focus() explicitly
+    $self->focus() if $self->{floating};
+
     $X->warp_pointer(0, $self->{id}, 0, 0, 0, 0, map {
             int($self->{$_} / 2) - $cfg->{border_width} - 1
         } qw( real_w real_h ));
