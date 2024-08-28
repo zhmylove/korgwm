@@ -7,6 +7,7 @@ use warnings;
 use feature 'signatures';
 
 use Carp;
+use List::Util qw( any );
 use X11::XCB ':all';
 use X11::korgwm::Common;
 use Glib::Object::Introspection;
@@ -84,6 +85,34 @@ sub expose {
     # Drop any previous window
     return if $win_expose;
 
+    # We should return earlier unless windows exist
+    my $nwindows = keys %{ $windows };
+    return unless $nwindows;
+
+    # If there is only one window we just want to focus it.
+    # Sorry for this ugly code. The logic is mostly copied from focus_prev() of Executor
+    if ($nwindows == 1) {{
+        my $win = (values %{ $windows })[0];
+        return carp "Unable to find single existing window to focus" unless $win;
+
+        my @tags = $win->tags();
+        my $tag = shift @tags // ($win->{always_on} && $win->{always_on}->current_tag());
+
+        # "Window $win is visible on multiple tags, do not know how to focus_prev() to it" so return to main routine
+        last if @tags;
+
+        return carp "Window $win has no tags and is not always_on" unless $tag;
+
+        # Switch to proper tag unless it is already active
+        unless (any { $tag == ($_->current_tag() // 0) } @screens) {
+            $tag->{screen}->{focus} = $win;
+            $tag->{screen}->tag_set_active($tag->{idx});
+            $tag->{screen}->refresh();
+        }
+
+        $win->warp_pointer();
+    }}
+
     # Select current screen
     my $screen_curr = $focus->{screen};
 
@@ -110,11 +139,9 @@ sub expose {
 
     # Estimate sizes
     # XXX it is incorrect as one window could belong to several tags, dont know how to represent it so left it for now
-    my $windows = keys %{ $windows };
-    return unless $windows;
-    my $rownum = _get_rownum($windows, @{ $screen_curr }{qw( w h )});
+    my $rownum = _get_rownum($nwindows, @{ $screen_curr }{qw( w h )});
     my $scale = 0.9 * ($screen_curr->{h} - $rownum * 2 * $cfg->{expose_spacing}) / $rownum;
-    my $id_len = 1 + int($windows / 10);
+    my $id_len = 1 + int($nwindows / 10);
     my %callbacks;
     my $shortcut_str = "";
     my $shortcut = Gtk3::Label->new();
