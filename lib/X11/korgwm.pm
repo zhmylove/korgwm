@@ -291,7 +291,23 @@ sub FireInTheHole {
             $X->change_property(PROP_MODE_REPLACE, $wid, $atom_wmstate, $atom_wmstate, 32, 1, pack L => 1);
 
             # Fix geometry if needed
-            @{ $win }{qw( x y w h )} = $win->query_geometry() unless defined $win->{x};
+            unless (defined $win->{x}) {
+                # Ask X11 about regular geometry
+                @{ $win }{qw( x y w h )} = $win->query_geometry();
+
+                # Respect also WM_SIZE_HINTS
+                my $hints = $win->size_hints_get();
+
+                if ($hints->{flags} & ICCCM_SIZE_HINT_P_MIN_SIZE) {
+                    $win->{w} = $hints->{min_width} if $win->{w} < $hints->{min_width};
+                    $win->{h} = $hints->{min_height} if $win->{h} < $hints->{min_height};
+                }
+
+                if ($hints->{flags} & ICCCM_SIZE_HINT_P_MAX_SIZE) {
+                    $win->{w} = $hints->{max_width} if $win->{w} > $hints->{max_width};
+                    $win->{h} = $hints->{max_height} if $win->{h} > $hints->{max_height};
+                }
+            }
         }
 
         # Apply rules
@@ -309,6 +325,7 @@ sub FireInTheHole {
         $transient_for = undef unless defined $windows->{$transient_for};
         if ($transient_for) {
             my $parent = $windows->{$transient_for};
+
             # toggle_floating() won't do for transient, so do some things manually
             $win->{floating} = 1;
             $rule->{follow} //= $cfg->{mouse_follow};

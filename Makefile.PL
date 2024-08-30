@@ -40,7 +40,7 @@ WriteMakefile(
         "POSIX"                         => "0",
         "Scalar::Util"                  => "0",
         "Storable"                      => "0",
-        "X11::XCB"                      => "0.22",
+        "X11::XCB"                      => "0.23",
         "YAML::Tiny"                    => "0",
     },
     TEST_REQUIRES   => { "Test::More" => "0" },

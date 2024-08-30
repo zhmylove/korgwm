@@ -20,6 +20,9 @@ use overload '!=' => sub { (refaddr($_[0]) // 0) != (refaddr($_[1]) // 0) };
 
 # Internal class variables
 my $sid = 1;
+my @wm_size_hints = qw( flags x y width height min_width min_height max_width max_height width_inc height_inc
+    min_aspect_num min_aspect_den max_aspect_num max_aspect_den base_width base_height win_gravity );
+my $wm_size_hints = "LllllllllllllllllL";
 
 sub new($class, $id) {
     # Full structure is defined in architecture/05_data_structures.txt
@@ -554,6 +557,19 @@ sub swap($self, $new) {
     ($arr->[$pos[0]], $arr->[$pos[1]]) = ($arr->[$pos[1]], $arr->[$pos[0]]);
     $tag->show();
     $self->warp_pointer();
+}
+
+# Get WM_SIZE_HINTS
+sub size_hints_get($self) {
+    my $hints = { flags => 0 };
+
+    my $req = $X->get_property(0, $self->{id}, ATOM_WM_NORMAL_HINTS, ATOM_WM_SIZE_HINTS, 0, 64);
+    my $data = $X->get_property_reply($req->{sequence});
+
+    return $hints unless defined $data->{value};
+
+    @{ $hints }{ @wm_size_hints } = unpack($wm_size_hints, $data->{value});
+    return $hints;
 }
 
 1;

@@ -104,7 +104,7 @@ sub focus($self) {
         # self->focus already points to some window on active tag
         # This condition just looks prettier in this way, so if-clause is empty
     } else {
-        # Focus some window on active tag
+        # Focus some window on active tag. It's ok if it return undef
         my $win = $tag->first_window();
         $self->{focus} = $win;
     }
