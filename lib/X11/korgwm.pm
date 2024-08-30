@@ -544,7 +544,7 @@ sub FireInTheHole {
         }
 
         my $pause = AE::cv;
-        my $w = AE::timer 0.1, 0, sub { $pause->send };
+        my $w = AE::timer $cpu_saver, 0, sub { $pause->send };
         $pause->recv;
     }
 

@@ -13,13 +13,14 @@ use Scalar::Util qw( looks_like_number );
 
 our @EXPORT = qw( DEBUG $X $cfg $focus $focus_prev $windows %screens %xcb_events %xcb_events_ignore @screens
     add_event_cb add_event_ignore hexnum init_extension replace_event_cb screen_by_xy pointer
-    $visible_min_x $visible_min_y $visible_max_x $visible_max_y $prevent_focus_in );
+    $visible_min_x $visible_min_y $visible_max_x $visible_max_y $prevent_focus_in $cpu_saver );
 
 # Set after parsing config
 sub DEBUG;
 
 our $X;
 our $cfg;
+our $cpu_saver = 0.1; # number of seconds to sleep before events processing (100ms by default)
 our $focus;
 our $focus_prev;
 our $windows = {};

@@ -71,6 +71,7 @@ sub init {
     add_event_cb(MOTION_NOTIFY, \&_motion_regular);
 
     add_event_cb(BUTTON_RELEASE, sub($evt) {
+        $cpu_saver = 0.1;
         replace_event_cb(MOTION_NOTIFY, \&_motion_regular);
         $_motion_win = undef;
     });
@@ -85,6 +86,7 @@ sub init {
             # Save the first point
             @{ _motion_start }{qw( x y )} = @{ $evt }{qw( root_x root_y )};
 
+            $cpu_saver = 0.0001;
             replace_event_cb(MOTION_NOTIFY, \&_motion_move);
         } elsif ($evt->{detail} == 3) {
             # Move mouse and save the first point
@@ -94,6 +96,7 @@ sub init {
                 $_motion_win->{real_x} + $_motion_win->{real_w}, $_motion_win->{real_y} + $_motion_win->{real_h}
             );
 
+            $cpu_saver = 0.0001;
             replace_event_cb(MOTION_NOTIFY, \&_motion_resize);
         } else {
             croak "We got unexpected mouse event, detail:" . $evt->{detail};
