@@ -178,7 +178,7 @@ sub hide_window($wid, $delete=undef) {
         }
 
         $tag->win_remove($win);
-        if ($win == ($tag->{screen}->{focus} // 0)) {
+        if ($win == $tag->{screen}->{focus}) {
             $tag->{screen}->{focus} = undef;
             $tag->{screen}->{panel}->title();
         }
@@ -200,10 +200,9 @@ sub hide_window($wid, $delete=undef) {
         splice @{ $arr }, $_, 1 for reverse grep { $arr->[$_] == $win } 0..$#{ $arr };
     }
 
-    if ($win == ($focus->{window} // 0)) {
-        $focus->{focus} = undef;
-        $focus->{screen}->focus();
+    if ($win == $focus->{window}) {
         $focus->{window} = undef;
+        $focus->{screen}->focus();
     }
 
     focus_prev_remove($win) if $delete;
