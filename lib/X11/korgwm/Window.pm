@@ -145,9 +145,9 @@ sub focus($self) {
     croak "Undefined window" unless $self->{id};
 
     # Get focus pointer and reset focus for previously focused window, if any
-    if ($focus->{window} and $self != ($focus->{window} // 0)) {
-        $focus_prev = $focus->{window};
-        $focus_prev->reset_border();
+    if ($focus->{window} and $self != $focus->{window}) {
+        focus_prev_push($focus->{window});
+        $focus->{window}->reset_border();
     }
 
     $X->change_window_attributes($self->{id}, CW_BORDER_PIXEL, $cfg->{color_border_focus});
@@ -258,7 +258,7 @@ sub hide($self) {
 
     # Drop focus saving $self to $focus_prev
     if ($self == ($focus->{window} // 0)) {
-        $focus_prev = $focus->{window};
+        focus_prev_push($focus->{window});
         $focus->{window} = undef;
     }
 }

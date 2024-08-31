@@ -8,12 +8,14 @@ no warnings 'experimental::signatures';
 use feature 'signatures';
 use Carp;
 use Exporter 'import';
-use List::Util qw( first );
+use List::Util qw( any first );
 use Scalar::Util qw( looks_like_number );
 
-our @EXPORT = qw( DEBUG $X $cfg $focus $focus_prev $windows %screens %xcb_events %xcb_events_ignore @screens
+our @EXPORT = qw( DEBUG $X $cfg $focus $windows %screens %xcb_events %xcb_events_ignore @screens
     add_event_cb add_event_ignore hexnum init_extension replace_event_cb screen_by_xy pointer
-    $visible_min_x $visible_min_y $visible_max_x $visible_max_y $prevent_focus_in $cpu_saver );
+    $visible_min_x $visible_min_y $visible_max_x $visible_max_y $prevent_focus_in $cpu_saver
+    focus_prev_push focus_prev_remove focus_prev_get
+    );
 
 # Set after parsing config
 sub DEBUG;
@@ -22,7 +24,6 @@ our $X;
 our $cfg;
 our $cpu_saver = 0.1; # number of seconds to sleep before events processing (100ms by default)
 our $focus;
-our $focus_prev;
 our $windows = {};
 our %screens;
 our %xcb_events;
@@ -32,6 +33,10 @@ our ($visible_min_x, $visible_min_y, $visible_max_x, $visible_max_y);
 
 # Sometimes we want to ignore FocusIn (see Mouse/ENTER_NOTIFY and Executor/tag_select)
 our $prevent_focus_in;
+
+# focus_prev() is now implemented as a functional interface and allows switch between more than two windows
+my @focus_prev;
+my $focus_prev_size = 5;
 
 # Helpers for extensions
 sub add_event_cb($id, $sub) {
@@ -56,6 +61,23 @@ sub init_extension($name, $first_event) {
     # We can skip this part unless we're interested getting event
     return unless defined $first_event;
     die "Could not get $name first_event" unless $$first_event = $ext->{first_event};
+}
+
+# focus_prev helpers
+sub focus_prev_push($win) {
+    return unless defined $win;
+    focus_prev_remove($win);
+    push @focus_prev, $win;
+    shift @focus_prev if @focus_prev > $focus_prev_size;
+}
+
+sub focus_prev_remove($win) {
+    return unless defined $win;
+    @focus_prev = grep { $_ != $win } @focus_prev;
+}
+
+sub focus_prev_get() {
+    (grep { $_ != $focus->{window} } @focus_prev)[-1];
 }
 
 # Other helpers

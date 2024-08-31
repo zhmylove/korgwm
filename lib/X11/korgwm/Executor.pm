@@ -126,7 +126,7 @@ our @parser = (
 
     # Focus previous window (screen independent)
     [qr/focus_prev\(\)/, sub ($arg) { return sub {
-        my $win = $X11::korgwm::Window::focus_prev;
+        my $win = focus_prev_get();
         return unless defined $win;
 
         my @tags = $win->tags();
@@ -146,6 +146,7 @@ our @parser = (
             $tag->{screen}->refresh();
         }
 
+        $win->focus();
         $win->warp_pointer();
     }}],
 
