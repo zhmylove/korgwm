@@ -6,7 +6,7 @@ Hash to handle main focus information.
 
     $focus = {
       screen => ScreenPtr,
-      focus => WindowPtr,
+      window => WindowPtr,
     }
 
 Each screen holds a reference to focused window as well.

@@ -91,7 +91,7 @@ sub hexnum($str = $_) {
 }
 
 sub pointer($wid = $X->root->id) {
-	$X->query_pointer_reply($X->query_pointer($wid)->{sequence}) // {};
+    $X->query_pointer_reply($X->query_pointer($wid)->{sequence}) // {};
 }
 
 1;

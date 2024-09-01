@@ -1,0 +1,35 @@
+# Release checklist for korgwm
+
+- Write proper relnotes/changelog:
+    - Changes
+- Update VERSION in the following files:
+    - lib/X11/korgwm.pm
+- Update copyright date in:
+    - LICENSE
+    - lib/X11/korgwm.pm
+    - script/korgwm
+- In case X11::XCB version changed, update it in:
+    - Changes
+    - Makefile.PL
+    - cpanfile
+    - lib/X11/korgwm.pm
+    - t/00-load.t
+- Check if readme files still relevant:
+    - README.md
+    - korgwm.conf.sample
+    - API.md
+- Prepare release tar.gz
+    - `make clean`
+    - `rm -f Makefile.old MANIFEST MANIFEST.bak`
+    - ensure everything is cleaned: `git status`
+    - `perl Makefile.PL`
+    - build an archive in clean tree: `make dist`
+    - `make disttest`
+    - carefully inspect what was created and contents of the archive
+- Commit changes with message `Release X.Y`
+- Tag the commit `git tag X.Y`
+- Push both: commit and tag to remote repository
+- Upload the archive to CPAN
+- Wait some time and ensure CPAN tests were successful
+- Update FreeBSD port: `Makefile`, `distinfo` and `pkg-plist`
+- Update ArchLinux AUR paclage: `PKGBUILD` and `.SRCINFO`

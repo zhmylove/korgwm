@@ -5,7 +5,7 @@ my $repo = 'https://github.com/zhmylove/korgwm';
 
 WriteMakefile(
     ABSTRACT        => q(a tiling window manager for X11),
-    AUTHOR          => q(Sergei Zhmylev <zhmylove@cpan.org>),
+    AUTHOR          => q(Sergei Zhmylev <zhmylove@narod.ru>),
     EXE_FILES       => [ "script/korgwm" ],
     LICENSE         => "mit",
     NAME            => "X11::korgwm",
