@@ -394,7 +394,7 @@ sub toggle_always_on($self) {
     } else {
         # Remove window from always_on and store it in current tag
         my $arr = $focus->{screen}->{always_on};
-        splice @{ $arr }, $_, 1 for reverse grep { $arr->[$_] == $self } 0..$#{ $arr };
+        @{ $arr } = grep { $self != $_ } @{ $arr };
         $focus->{screen}->current_tag()->win_add($self);
     }
 }

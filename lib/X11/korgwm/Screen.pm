@@ -93,7 +93,7 @@ sub win_remove($self, $win, $norefresh = undef) {
     if (($win->{always_on} // 0) == $self) {
         my $arr = $self->{always_on};
         $win->{always_on} = undef;
-        splice @{ $arr }, $_, 1 for reverse grep { $arr->[$_] == $win } 0..$#{ $arr };
+        @{ $arr } = grep { $win != $_ } @{ $arr };
     }
 }
 

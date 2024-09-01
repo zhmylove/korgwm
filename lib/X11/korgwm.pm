@@ -197,7 +197,7 @@ sub hide_window($wid, $delete=undef) {
         # Remove from always_on
         my $arr = $on_screen->{always_on};
         $win->{always_on} = undef;
-        splice @{ $arr }, $_, 1 for reverse grep { $arr->[$_] == $win } 0..$#{ $arr };
+        @{ $arr } = grep { $win != $_ } @{ $arr };
     }
 
     if ($win == $focus->{window}) {

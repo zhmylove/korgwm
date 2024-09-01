@@ -123,7 +123,7 @@ sub win_remove($self, $win, $norefresh = undef) {
     $self->{max_window} = undef if $win == ($self->{max_window} // 0);
 
     for my $arr (map { $self->{$_} } qw( windows_float windows_tiled )) {
-        splice @{ $arr }, $_, 1 for reverse grep { $arr->[$_] == $win } 0..$#{ $arr };
+        @{ $arr } = grep { $win != $_ } @{ $arr };
     }
 
     # Remove title when removing focused window
@@ -142,7 +142,7 @@ sub win_float($self, $win, $floating=undef) {
     my ($arr_from, $arr_to) = map { $self->{$_} } "windows_float", "windows_tiled";
     ($arr_from, $arr_to) = ($arr_to, $arr_from) if $floating;
 
-    splice @{ $arr_from }, $_, 1 for reverse grep { $arr_from->[$_] == $win } 0..$#{ $arr_from };
+    @{ $arr_from } = grep { $win != $_ } @{ $arr_from };
     unshift @{ $arr_to }, $win;
 }
 
