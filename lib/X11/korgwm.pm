@@ -474,6 +474,10 @@ sub FireInTheHole {
 
             # Silently skip the situation with no tags (likely always_on window), just try to warp pointer there
             for my $tag (@tags) {
+                # Right now we're pretty sure that the window we're gonna focus exists on that tag so to avoid
+                # focus_prev garbaging not only do we make the tag active, but also replace focus window for the
+                # corresponding screen in advance. This results in $win->focus() inside tag->show() as in focus_prev()
+                $tag->{screen}->{focus} = $win;
                 $tag->{screen}->tag_set_active($tag->{idx}, 0);
                 $tag->{screen}->refresh();
             }

@@ -111,6 +111,7 @@ sub focus($self) {
 
     # If there is a win, focus it; otherwise just reset panel title and update focus structure
     if (defined $self->{focus}) {
+        # This will set focus->{screen} as well
         $self->{focus}->focus();
     } else {
         $focus->{screen} = $self;

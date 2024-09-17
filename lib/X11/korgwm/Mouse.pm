@@ -11,7 +11,6 @@ use X11::XCB ':all';
 use X11::korgwm::Common;
 require X11::korgwm::Config;
 my ($_motion_win, %_motion_start);
-my (%_on_hold, $_on_hold_w);
 
 # Regular motion notify, used to track inter-screen movements
 sub _motion_regular($evt) {
@@ -114,15 +113,16 @@ sub init {
         my $win = $windows->{$wid};
         return if $win->{_hidden};
 
-        # Ignore rapid notifies
-        return if $_on_hold{$wid};
-        $_on_hold{$wid} = AE::timer 0, 0.09, sub { exists $_on_hold{$wid} and delete $_on_hold{$wid} };
-
         # Prevent FocusIn events
         $prevent_focus_in = AE::timer 0, 0.2, sub { $prevent_focus_in = undef };
 
+        # There is a bug on multiple screens moving mouse between them when one screen contains a window,
+        # while another does not. So I do prefer to explicitly focus the screen by pointer coordinates.
+        # I intentionally do not use $new_screen->focus() to avoid unnecessary window->focus() from inside it.
+        # I also do not try to exploit calling win->focus() via screen->{focus} as this will trigger focus() logic
+        # unconditionally and is way too complicated for any EnterNotify. win->focus() is called only when needed
         my $new_screen = screen_by_xy($evt->{root_x}, $evt->{root_y});
-        $new_screen->focus() if $focus->{screen} != $new_screen;
+        $focus->{screen} = $new_screen;
 
         $win->focus() if ($focus->{window} // 0) != $win;
     });
