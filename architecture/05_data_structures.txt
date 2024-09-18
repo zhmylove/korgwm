@@ -29,6 +29,7 @@ screens => {
                 windows_appended => [],     # list of windows that belongs to others tags and were appended using tag_append
                 urgent_windows => {},       # hash of windows with urgency flag
                 layout => Ref,              # reference to Layout object, or undef (when there is no tiled windows on tag)
+                focus => Ref,               # ref to a focused Window, used for selecting which one give the focus to during tag switching
             },
         },
         always_on => [],                    # list of windows to show on each tag on the screen, should be float

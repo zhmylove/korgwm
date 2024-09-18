@@ -93,9 +93,9 @@ sub show($self) {
         # If this window is focused on this tag, just give it a focus
         $focus_win->focus();
     } else {
-        # Try to select next window and give it a focus
-        my $win = $self->first_window();
-        # XXX maybe drop focus otherwise?
+        # Try to focus previously focused window (or any window)
+        my $win = $self->{focus} || $self->first_window();
+        # XXX maybe drop focus otherwise? UPD: no. I want visible window to be focused this case
         $win->focus() if $win;
     }
 
@@ -132,6 +132,9 @@ sub win_remove($self, $win, $norefresh = undef) {
     # Update panel if tag becomes empty
     $self->{screen}->{panel}->ws_set_visible($self->{idx} + 1, 0)
         if $cfg->{hide_empty_tags} and not $self->first_window();
+
+    # Clean preferred focus for this tag if needed
+    $self->{focus} = undef if $win == $self->{focus};
 
     # If this tag is visible, call screen refresh
     $self->{screen}->refresh() if not $norefresh and $self == $self->{screen}->current_tag();

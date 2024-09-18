@@ -227,6 +227,7 @@ sub focus($self) {
     my $screen = $self->{always_on} || $tag->{screen};
     $screen->{focus} = $self;
     $screen->{panel}->title($self->title // "");
+    $tag->{focus} = $self;
     $focus->{window} = $self;
     $focus->{screen} = $self->{always_on} || $focus_screens[0];
 
