@@ -134,6 +134,9 @@ our @parser = (
         return carp "Window $win is visible on multiple tags, do not know how to focus_prev() to it" if @tags;
         return carp "Previous window $win has no tags and is not always_on" unless $tag;
 
+        # Do nothing if there is another maximized window on that tag
+        return if $win != ($tag->{max_window} // $win);
+
         # We need to move the pointer out of the screen in order to avoid ENTER_NOTIFY from improper window
         # resulting into garbaged $focus_prev
         $X->warp_pointer(0, $X->root->id, 0, 0, 0, 0, 0, 0);
