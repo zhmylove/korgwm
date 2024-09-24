@@ -17,6 +17,8 @@ sub _motion_regular($evt) {
     return if @screens == 1 or $evt->{child};
     my $screen = screen_by_xy(@{ $evt }{qw( event_x event_y )}) or return;
     return if $focus->{screen} == $screen;
+
+    # This code runs only during inter-screen movement
     $screen->focus();
     $X->flush();
 }

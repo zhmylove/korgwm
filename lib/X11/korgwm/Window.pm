@@ -7,7 +7,7 @@ use warnings;
 use feature 'signatures';
 
 use Carp;
-use List::Util qw( any first );
+use List::Util qw( any first sum0 );
 use Encode qw( encode decode );
 use X11::XCB ':all';
 use X11::korgwm::Common;
@@ -472,8 +472,9 @@ sub urgency_raise($self, $set_hint = undef) {
 }
 
 sub warp_pointer($self) {
-    # Do nothing if this window already owns the pointer
-    return if $self->{id} == (pointer()->{child} // 0);
+    # Do nothing if this window already owns the pointer not in (0, 0) position
+    my $ptr = pointer();
+    return if $self->{id} == ($ptr->{child} // 0) and sum0 map { $ptr->{$_} // () } qw( root_x root_y );
 
     # We have to re-stack windows if the win is floating, so call focus() explicitly
     $self->focus() if $self->{floating};
