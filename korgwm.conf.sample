@@ -24,6 +24,8 @@ expose_spacing: 15
 initial_pointer_position: center
 # Should mouse follow the focus under certain circumstances (RTFS)
 mouse_follow: 1
+# If set: tag will be switched together with a window during win_move_tag(). Stay on current tag otherwise
+move_follow: 1
 # Command which is used to set relevant screen positions on each RandR event
 randr_cmd: 'xrandr --output HDMI-A-0 --left-of eDP --auto --output DisplayPort-0 --right-of eDP --auto'
 # Enable/disable setting the colour for root window

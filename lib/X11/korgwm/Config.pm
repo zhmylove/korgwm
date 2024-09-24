@@ -38,10 +38,13 @@ BEGIN {
     $cfg->{lang_format} = " %s ";
     $cfg->{lang_names} = { 0 => chr(0x00a3), 1 => chr(0x20bd) };
     $cfg->{mouse_follow} = 1;
+    $cfg->{move_follow} = 1;
     $cfg->{panel_end} = [qw( battery clock lang )];
     $cfg->{panel_height} = 20;
     $cfg->{panel_hide} = undef;
     $cfg->{randr_cmd} = q(xrandr --output HDMI-A-0 --left-of eDP --auto --output DisplayPort-0 --right-of eDP --auto);
+    ## For 4K screens we perhaps need to override:
+    # --output HDMI-A-0 --left-of eDP --mode 1920x1080 --output DisplayPort-0 --right-of eDP --mode 1920x1080
     $cfg->{set_root_color} = 0;
     $cfg->{title_max_len} = 128;
     $cfg->{ws_names} = [qw( 1 2 3 4 5 6 7 8 9 )];

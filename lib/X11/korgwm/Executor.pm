@@ -69,16 +69,32 @@ our @parser = (
 
         return if $win->{always_on};
 
-        my $new_tag = $focus->{screen}->{tags}->[$arg - 1] or return;
-        my $curr_tag = $focus->{screen}->current_tag();
+        my $screen = $focus->{screen};
+        my $new_tag = $screen->{tags}->[$arg - 1] or return;
+        my $curr_tag = $screen->current_tag();
         return if $new_tag == $curr_tag;
 
         $win->hide(); # always from visible tag to invisible
         $new_tag->win_add($win);
-        $curr_tag->win_remove($win);
+        $curr_tag->win_remove($win, 1);
 
-        $focus->{screen}->refresh();
+        # Follow the window if required
+        if ($cfg->{move_follow}) {
+            # Move pointer out of the window to avoid EnterNotify
+            $X->warp_pointer(0, $X->root->id, 0, 0, 0, 0, 0, 0);
+            $X->flush();
+
+            # Prevent FocusIn events
+            $prevent_focus_in = AE::timer 0, 0.2, sub { $prevent_focus_in = undef };
+
+            $screen->{focus} = $win;
+            $screen->tag_set_active($new_tag->{idx}, 0);
+        }
+
+        $screen->refresh();
         $X->flush();
+
+        $win->warp_pointer() if $cfg->{move_follow};
     }}],
 
     # Set active screen
@@ -102,8 +118,12 @@ our @parser = (
         return if $new_screen == $old_screen;
         return if $new_screen->current_tag->{max_window} and $win->{maximized};
 
+        # Move pointer out of the window to avoid EnterNotify
+        $X->warp_pointer(0, $X->root->id, 0, 0, 0, 0, 0, 0);
+        $X->flush();
+
         my $always_on = $win->{always_on};
-        $old_screen->win_remove($win);
+        $old_screen->win_remove($win, 1);
         $new_screen->win_add($win, $always_on);
 
         # Follow focus
