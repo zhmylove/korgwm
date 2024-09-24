@@ -59,9 +59,9 @@ lang_names:
 title_max_len: 128
 # How many tags to create and their names
 ws_names:
-  - 'T'
-  - 'W'
-  - 'M'
+  - '1'
+  - '2'
+  - '3'
   - '4'
   - '5'
   - '6'
@@ -90,11 +90,12 @@ color_urgent_fg: 0xFFFF00
 
 ## Hotkeys, see API.pm for description of possible functions
 hotkeys:
-  XF86AudioLowerVolume: 'exec(pactl set-sink-volume 0 -10%)'
-  XF86AudioMute: 'exec(pactl set-sink-mute 0 toggle)'
-  XF86AudioRaiseVolume: 'exec(pactl set-sink-volume 0 +10%)'
-  XF86MonBrightnessDown: 'exec(light -U 20)'
-  XF86MonBrightnessUp: 'exec(light -A 20)'
+  XF86AudioLowerVolume: 'nop()'
+  XF86AudioMute: 'nop()'
+  XF86AudioRaiseVolume: 'nop()'
+  XF86MonBrightnessDown: 'nop()'
+  XF86MonBrightnessUp: 'nop()'
+  XF86WakeUp: 'nop()'
   Print: 'exec(flameshot gui)'
   alt_F4: 'win_close()'
   alt_TAB: 'focus_cycle(forward)'
@@ -121,6 +122,11 @@ hotkeys:
   mod_F9: 'screen_select(9)'
   mod_TAB: 'focus_prev()'
   mod_a: 'win_toggle_always_on()'
+  mod_alt_F1: 'exec(pactl set-sink-mute 0 toggle)'
+  mod_alt_F2: 'exec(pactl set-sink-volume 0 -10%)'
+  mod_alt_F3: 'exec(pactl set-sink-volume 0 +10%)'
+  mod_alt_F5: 'exec(light -U 20)'
+  mod_alt_F6: 'exec(light -A 20)'
   mod_ctrl_h: 'layout_resize(h)'
   mod_ctrl_j: 'layout_resize(j)'
   mod_ctrl_k: 'layout_resize(k)'

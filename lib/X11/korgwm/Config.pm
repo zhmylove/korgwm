@@ -79,11 +79,17 @@ BEGIN {
                 "mod_="                 => "exec(galculator)",
                 "mod_ctrl_shift_q"      => "exit()",
                 "Print"                 => "exec(flameshot gui)",
-                "XF86MonBrightnessDown" => "exec(light -U 20)",
-                "XF86MonBrightnessUp"   => "exec(light -A 20)",
-                "XF86AudioLowerVolume"  => "exec(pactl set-sink-volume 0 -10%)",
-                "XF86AudioRaiseVolume"  => "exec(pactl set-sink-volume 0 +10%)",
-                "XF86AudioMute"         => "exec(pactl set-sink-mute 0 toggle)",
+                "XF86AudioLowerVolume"  => "nop()",
+                "XF86AudioMute"         => "nop()",
+                "XF86AudioRaiseVolume"  => "nop()",
+                "XF86MonBrightnessDown" => "nop()",
+                "XF86MonBrightnessUp"   => "nop()",
+                "XF86WakeUp"            => "nop()",
+                "mod_alt_F1"            => "exec(pactl set-sink-mute 0 toggle)",
+                "mod_alt_F2"            => "exec(pactl set-sink-volume 0 -10%)",
+                "mod_alt_F3"            => "exec(pactl set-sink-volume 0 +10%)",
+                "mod_alt_F5"            => "exec(light -U 20)",
+                "mod_alt_F6"            => "exec(light -A 20)",
     };
 
     $cfg->{rules} = {

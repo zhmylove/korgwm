@@ -14,6 +14,9 @@ use X11::korgwm::Common;
 
 # Implementation of all the commands (unless some module push here additional funcs)
 our @parser = (
+    # nop
+    [qr/nop[wlq]?\((.*)\)/, sub ($arg) { return sub { 1 }}],
+
     # Exec command
     [qr/exec\((.+)\)/, sub ($arg) { return sub {
         my $pid = fork;
