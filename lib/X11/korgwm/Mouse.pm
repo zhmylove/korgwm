@@ -106,6 +106,8 @@ sub init {
 
     add_event_cb(ENTER_NOTIFY, sub($evt) {
         return if $_motion_win;
+        return if $prevent_enter_notify;
+
         my $wid = $evt->{event};
 
         # XXX Do we really need to ignore EnterNotifies on unknown windows? I'll leave it here waiting for bugs.
@@ -116,7 +118,7 @@ sub init {
         return if $win->{_hidden};
 
         # Prevent FocusIn events
-        $prevent_focus_in = AE::timer 0, 0.2, sub { $prevent_focus_in = undef };
+        prevent_focus_in();
 
         # There is a bug on multiple screens moving mouse between them when one screen contains a window,
         # while another does not. So I do prefer to explicitly focus the screen by pointer coordinates.

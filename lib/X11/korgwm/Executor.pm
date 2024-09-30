@@ -31,7 +31,7 @@ our @parser = (
     # Set active tag
     [qr/tag_select\((\d+)\)/, sub ($arg) { return sub {
         # Prevent FocusIn events
-        $prevent_focus_in = AE::timer 0, 0.2, sub { $prevent_focus_in = undef };
+        prevent_focus_in();
 
         $focus->{screen}->tag_set_active($arg - 1);
         $focus->{screen}->refresh();
@@ -88,7 +88,7 @@ our @parser = (
             $X->flush();
 
             # Prevent FocusIn events
-            $prevent_focus_in = AE::timer 0, 0.2, sub { $prevent_focus_in = undef };
+            prevent_focus_in();
 
             $screen->{focus} = $win;
             $screen->tag_set_active($new_tag->{idx}, 0);

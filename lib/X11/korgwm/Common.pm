@@ -13,8 +13,8 @@ use Scalar::Util qw( looks_like_number );
 
 our @EXPORT = qw( DEBUG $X $cfg $focus $windows %screens %xcb_events %xcb_events_ignore @screens
     add_event_cb add_event_ignore hexnum init_extension replace_event_cb screen_by_xy pointer
-    $visible_min_x $visible_min_y $visible_max_x $visible_max_y $prevent_focus_in $cpu_saver
-    focus_prev_push focus_prev_remove focus_prev_get
+    $visible_min_x $visible_min_y $visible_max_x $visible_max_y $prevent_focus_in $prevent_enter_notify $cpu_saver
+    focus_prev_push focus_prev_remove focus_prev_get prevent_focus_in prevent_enter_notify
     );
 
 # Set after parsing config
@@ -33,6 +33,7 @@ our ($visible_min_x, $visible_min_y, $visible_max_x, $visible_max_y);
 
 # Sometimes we want to ignore FocusIn (see Mouse/ENTER_NOTIFY and Executor/tag_select)
 our $prevent_focus_in;
+our $prevent_enter_notify;
 
 # focus_prev() is now implemented as a functional interface and allows switch between more than two windows
 my @focus_prev;
@@ -78,6 +79,15 @@ sub focus_prev_remove($win) {
 
 sub focus_prev_get() {
     (grep { $_ != $focus->{window} } @focus_prev)[-1];
+}
+
+# Preventor functions to avoid code copy-pasting
+sub prevent_focus_in($timeout = 0.2) {
+    $prevent_focus_in = AE::timer $timeout, 0, sub { $prevent_focus_in = undef };
+}
+
+sub prevent_enter_notify($timeout = 0.2) {
+    $prevent_enter_notify = AE::timer $timeout, 0, sub { $prevent_enter_notify = undef };
 }
 
 # Other helpers
