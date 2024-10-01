@@ -10,7 +10,12 @@ use Carp;
 use X11::XCB ':all';
 use X11::korgwm::Common;
 require X11::korgwm::Config;
+
+# Internal class variables
 my ($_motion_win, %_motion_start);
+
+# Sometimes we want to prevent EnterNotifies by window ID
+my %prevent_enter_notify_by_wid;
 
 # Regular motion notify, used to track inter-screen movements
 sub _motion_regular($evt) {
@@ -116,6 +121,10 @@ sub init {
         # Ignore notifies for hidden windows
         my $win = $windows->{$wid};
         return if $win->{_hidden};
+
+        # Prevent rapid EnterNotify (they're firing during tag switching)
+        return if $prevent_enter_notify_by_wid{$wid};
+        $prevent_enter_notify_by_wid{$wid} = AE::timer 0.09, 0, sub { delete $prevent_enter_notify_by_wid{$wid} };
 
         # Prevent FocusIn events
         prevent_focus_in();
