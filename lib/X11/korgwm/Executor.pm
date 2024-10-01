@@ -181,6 +181,7 @@ our @parser = (
         my $tag = $focus->{screen}->current_tag();
         my $win = $tag->next_window($arg eq "backward");
         return unless defined $win;
+        prevent_enter_notify();
         $win->focus();
     }}],
 
