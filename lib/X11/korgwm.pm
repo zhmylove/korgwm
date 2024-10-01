@@ -362,8 +362,12 @@ sub FireInTheHole {
             }
         }
 
+        # This lines will apply rules
         $win->toggle_floating(1) if $floating;
         $win->urgency_raise(1) if $rule->{urgent};
+
+        # The reason of floating does not matter here so checking the object directly
+        prevent_enter_notify() if $win->{floating};
 
         if ($follow) {
             $screen->tag_set_active($tag->{idx}, 0);
