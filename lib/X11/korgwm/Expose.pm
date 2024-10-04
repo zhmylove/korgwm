@@ -237,7 +237,7 @@ BEGIN {
         my $pixmap = $X->generate_id();
         $X->composite_name_window_pixmap($self->{id}, $pixmap);
         my $image = $X->get_image(IMAGE_FORMAT_Z_PIXMAP, $pixmap, 0, 0, $self->{real_w}, $self->{real_h}, -1);
-        $image = $X->get_image_data($image->{sequence});
+        $image = $X->get_image_data_rgba($image->{sequence});
 
         return Gtk3::GdkPixbuf::Pixbuf->new_from_bytes(
             Glib::Bytes->new($image->{data}),   # data
