@@ -8,6 +8,7 @@ use feature 'signatures';
 
 use Carp;
 use List::Util qw( any );
+use POSIX qw( ceil );
 use X11::XCB ':all';
 use X11::korgwm::Common;
 use Glib::Object::Introspection;
@@ -141,7 +142,13 @@ sub expose {
     # XXX it is incorrect as one window could belong to several tags, dont know how to represent it so left it for now
     my $rownum = _get_rownum($nwindows, @{ $screen_curr }{qw( w h )});
     my $scale = 0.9 * ($screen_curr->{h} - $rownum * 2 * $cfg->{expose_spacing}) / $rownum;
-    my $id_len = 1 + int($nwindows / 10);
+
+    # This math formulae describes proper number of characters in window ID: 9 => 1, 10 => 2, 89 => 2, 90 => 3
+    my $lgnwindows = ceil(log($nwindows)/log(10));
+    my $id_len = $nwindows <= 9 ? 1 :
+        $nwindows <= (10 ** $lgnwindows - 10 ** ($lgnwindows - 1)) ?
+        $lgnwindows : $lgnwindows + 1;
+
     my %callbacks;
     my $shortcut_str = "";
     my $shortcut = Gtk3::Label->new();
