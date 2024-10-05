@@ -63,6 +63,7 @@ sub show($self) {
         # I believe there is no need to process focus here, right?
         $self->{max_window}->resize_and_move(@{ $self->{screen} }{qw( x y w h )}, 0);
         $self->{max_window}->show();
+        $_->show() for $self->{max_window}->transients();
     } else {
         $self->{screen}->{panel}->ws_set_visible($self->{idx} + 1, 1) if $cfg->{hide_empty_tags};
 

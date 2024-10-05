@@ -131,14 +131,31 @@ sub resize($self, $w, $h) {
     $X->configure_window($self->{id}, CONFIG_WINDOW_WIDTH | CONFIG_WINDOW_HEIGHT, $w, $h);
 }
 
+# Put the window above others
 sub _stack_above($self) {
     return if $self->{_hidden};
     $X->configure_window($self->{id}, CONFIG_WINDOW_STACK_MODE, STACK_MODE_ABOVE);
 }
 
+# Put the window below another ($top)
 sub _stack_below($self, $top) {
     return if $self->{_hidden};
     $X->configure_window($self->{id}, CONFIG_WINDOW_SIBLING | CONFIG_WINDOW_STACK_MODE, $top->{id}, STACK_MODE_BELOW);
+}
+
+# Place windows in a stack calling above/below only once per window
+sub _stack_place(@stack) {
+    return unless @stack;
+    my $above = shift @stack;
+    my %seen = ($above => undef);
+    $above->_stack_above();
+
+    for my $win (@stack) {
+        next if exists $seen{$win};
+        $seen{$win} = undef;
+        $win->_stack_below($above);
+        $above = $win;
+    }
 }
 
 sub focus($self) {
@@ -188,7 +205,14 @@ sub focus($self) {
         croak "Focusing window on multiple visible tags is not supported";
     } elsif ($self->{maximized} or (0 == @{ $tag->{windows_float} } and 0 == @{ $tag->{screen}->{always_on} })) {
         # Just raise the window if it is maximized or there are no floating windows on current tag
-        $self->_stack_above();
+        # We also must show it's transients
+
+        # Then create a stack of windows we want to show
+        my @stack = $self->transients();
+        push @stack, $self;
+
+        # Place the windows stack
+        _stack_place(@stack);
     } else {
         # The window is not maximized and there are some floating windows
         # This procedure likely fixes the bug I observed 6 years ago in WMFS1
@@ -206,17 +230,8 @@ sub focus($self) {
         push @stack, grep { $_ != $self } @{ $tag->{windows_tiled} };
 
         # Fist element of the @stack should be raised above others
-        $stack[0]->_stack_above();
-        my $last = $stack[0];
-        my %seen = ($stack[0] => undef);
-
         # Other elements should be chained below
-        for (my $i = 1; $i < @stack; $i++) {
-            next if exists $seen{$stack[$i]};
-            $seen{$stack[$i]} = undef;
-            $stack[$i]->_stack_below($last);
-            $last = $stack[$i];
-        }
+        _stack_place(@stack);
     }
 
     $X->set_input_focus(INPUT_FOCUS_POINTER_ROOT, $self->{id}, TIME_CURRENT_TIME);
@@ -247,12 +262,18 @@ sub update_title($self) {
     }
 }
 
-sub hide($self) {
+# Literally hide the window out of the screen not using $self->move() to avoid garbage in real_*
+sub _hide($self) {
     # We do not actually unmap them anymore, just move out of screen and mark as '_hidden'.
     $self->{_hidden} = 1;
 
-    # Not using $self->move() to avoid garbage in real_*
+    # Ask X11 to move it
     $X->configure_window($self->{id}, CONFIG_WINDOW_X | CONFIG_WINDOW_Y, $self->{sid} * 4096, $visible_max_y * 2);
+}
+
+sub hide($self) {
+    # Hide the window
+    $self->_hide();
 
     # Drop panel title
     $_->{panel}->title() for grep { ($_->{focus} // 0) == $self } $self->screens();
@@ -383,6 +404,9 @@ sub toggle_maximize($self, $action = undef) {
     if ($action) {
         $tag->{max_window} = $self;
         @{ $self }{qw( x y w h )} = @{ $self }{qw( real_x real_y real_w real_h )};
+
+        # Hide all the windows from tag, they will emerge on tag->show()
+        $_->_hide() for $tag->windows();
     } else {
         $tag->{max_window} = undef;
         $self->resize_and_move(@{ $self }{qw( x y w h )});
