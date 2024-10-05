@@ -5,11 +5,14 @@
 ^META_new\.(?:json|yml)
 ^MYMETA\.
 ^Makefile$
+^RELEASE_CHECKLIST.md$
 ^TODO$
 ^\.travis\.yml
 ^architecture/
 ^blib/
 ^doc/
+^errors/
 ^pm_to_blib
 ^resources/
+^tmp/
 ~$
