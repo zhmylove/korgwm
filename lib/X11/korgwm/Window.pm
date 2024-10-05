@@ -373,13 +373,14 @@ sub toggle_maximize($self, $action = undef) {
     return unless @visible_tags; # ignore maximize requests for invisibe windows
     my $tag = $visible_tags[0];
 
+    # There is race condition creating new maximized windows like starting evince in a fullscreen mode
+    # To avoid that we want to ignore FocusIn and EnterNotify for a short time
+    # I also want to prevent EnterNotify unmaximizing a window to avoid focus switch, so calling it unconditionally
+    prevent_focus_in();
+    prevent_enter_notify();
+
     # Execute toggle
     if ($action) {
-        # There is race condition creating new maximized windows like starting evince in a fullscreen mode
-        # To avoid that we want to ignore FocusIn and EnterNotify for a short time
-        prevent_focus_in();
-        prevent_enter_notify();
-
         $tag->{max_window} = $self;
         @{ $self }{qw( x y w h )} = @{ $self }{qw( real_x real_y real_w real_h )};
     } else {
