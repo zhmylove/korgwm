@@ -58,6 +58,7 @@ my %evt_masks = (x => CONFIG_WINDOW_X, y => CONFIG_WINDOW_Y, w => CONFIG_WINDOW_
 my ($ROOT, $atom_wmstate);
 our $exit_trigger = 0;
 my $new_window_event_mask = EVENT_MASK_ENTER_WINDOW | EVENT_MASK_PROPERTY_CHANGE | EVENT_MASK_FOCUS_CHANGE;
+my $prevent_window_errors;
 
 ## Define functions
 # Handles any screen change
@@ -166,6 +167,11 @@ sub hide_window($wid, $delete=undef) {
     my $win = $delete ? delete $windows->{$wid} : $windows->{$wid};
     return unless $win;
     $win->{_hidden} = 1;
+
+    # Ignore Window errors [code=3] closing multiple window at a time
+    if ($delete) {
+        $prevent_window_errors = AE::timer 0.1, 0, sub { $prevent_window_errors = undef };
+    }
 
     if ($delete and $win->{transient_for}) {
         delete $win->{transient_for}->{siblings}->{$wid};
@@ -499,6 +505,11 @@ sub FireInTheHole {
     # X11 Error handler
     add_event_cb(XCB_NONE(), sub($evt) {
         # https://www.x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Errors
+
+        # Ignore Window errors [code=3] closing multiple window at a time
+        return if 3 == ($evt->{error_code} || 0) and $prevent_window_errors;
+
+        # Log unexpected errors
         warn sprintf "X11 Error: code=%s seq=%s res=%s %s/%s", @{ $evt }{qw( error_code sequence
             resource_id major_code minor_code )};
     });
