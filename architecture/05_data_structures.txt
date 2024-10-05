@@ -1,39 +1,47 @@
 windows => {
     wid => {
-        _hidden => Bool,                    # Internal flag to avoid several window opeations
+        _hidden => Bool,                    # Internal flag to avoid several window opeations, true if the window is out of the screen
         id => wid,                          # X11 ID of the window
         sid => Int,                         # internal sequential ID. Unique for all windows
         on_tags => {},                      # hash of tags on which this window is shown
-        also_tags => {},                    # hash of tags on which this window is shown
+        also_tags => {},                    # hash of tags on which this window also shown
         always_on => undef / Screen,        # screen on which the window is always_on
         floating => Bool,                   # flag if window is floating
-        urgent => Bool,                     # flag if window is floating
+        maximized => Bool,                  # flag if window is maximized
+        urgent => Bool,                     # flag if window is urgent
         siblings => {},                     # hash keys = transient_for windows IDs, values always undef
         transient_for => Ptr,               # ref to transient_for window, or undef
         (x, y, w, h),                       # geometry of window requested in configure (or set to some defaults); used only for floating windows
         (real_x, real_y, real_w, real_h),   # real geometry of the window, set and saved by korgwm for internal purposes
         (real_i, real_j),                   # layout position, maybe irrelevant as not being cleaned anywhere
         real_bw,                            # real border width in case it is hidden
+        pref_position => [                  # array with preferred screen for each display configuration (see below)
+            undef,                          #  no preferred screen with 0 displays
+            [0, 1],                         #  $screens[0], $screen->tags->[1] are preferred with 1 display
+            [1, 0],                         #  $screens[1], $screen->tags->[0] are preferred with 2 displays
+            [2, 0],                         #  $screens[2], $screen->tags->[0] are preferred with 3 displays
+        ],
     },
 }
 
 screens => {
     0 => {
-        tags => {
-            1 => {
-                screen => Ptr,              # reference to screen
-                idx => Int,                 # position in the @screen->tags
-                max_window => Ptr,          # if defined, hide panel and maximize window
-                windows_tiled => [],        # list (performance bye-bye) of windows attached to this tag, also affects Panel tag visibility
-                windows_float => [],        # list of floating windows on the tag
-                windows_appended => [],     # list of windows that belongs to others tags and were appended using tag_append
-                urgent_windows => {},       # hash of windows with urgency flag
-                layout => Ref,              # reference to Layout object, or undef (when there is no tiled windows on tag)
-                focus => Ref,               # ref to a focused Window, used for selecting which one give the focus to during tag switching
-            },
-        },
+        tags => [
+            screen => Ptr,                  # reference to screen
+            idx => Int,                     # position in the @screen->tags
+            max_window => Ptr,              # if defined, hide panel and maximize window
+            windows_tiled => [],            # list (performance bye-bye) of windows attached to this tag, also affects Panel tag visibility
+            windows_float => [],            # list of floating windows on the tag
+            windows_appended => [],         # list of windows that belongs to others tags and were appended using tag_append
+            urgent_windows => {},           # hash of windows with urgency flag
+            layout => Ref,                  # reference to Layout object, or undef (when there is no tiled windows on tag)
+            focus => Ref,                   # ref to a focused Window, used for selecting which one give the focus to during tag switching
+        ],
+        idx => Int,                         # screen index inside @screens
         always_on => [],                    # list of windows to show on each tag on the screen, should be float
-        prev_tag => Int,                    # id of previous tag on this screen for switch rotation
+        tag_curr => Int,                    # id of current tag on this screen
+        tag_prev => Int,                    # id of previous tag on this screen for switch rotation
+        panel => Ref,                       # reference to a Panel instance
         (x, y, w, h),                       # basically, for pointer warp and xsetroot
         focus => Ptr,                       # reference to focused window, or undef; copied to %focus when switching to the screen
     },

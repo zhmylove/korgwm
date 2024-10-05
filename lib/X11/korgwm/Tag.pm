@@ -31,12 +31,23 @@ sub windows($self) {
 }
 
 sub destroy($self, $new_screen) {
-    # Move windows to some other place
-    my $new_tag = $new_screen->{tags}->[$self->{idx}] || $new_screen->{tags}->[0];
+    # Move windows to a $new_screen
+    my $old_screen = $self->{screen};
+    my $old_screen_idx = $old_screen->{idx};
+    my $old_tag_idx = $self->{idx};
+    my $new_tag = $new_screen->{tags}->[$old_tag_idx] || $new_screen->{tags}->[0];
+
     for my $win ($self->windows()) {
         $new_tag->win_add($win);
         $self->win_remove($win);
+
+        $win->floating_move_screen($old_screen, $new_screen);
+        $win->hide() unless $new_tag == $new_screen->current_tag();
+
+        # Save preferred screen to be able to restore window position
+        $win->{pref_position}->[@screens] = [$old_screen_idx, $old_tag_idx];
     }
+
     %{ $self } = ();
 }
 

@@ -133,14 +133,7 @@ our @parser = (
         $new_screen->{focus} = $win;
         $focus->{screen} = $new_screen;
 
-        if ($win->{floating}) {
-            my ($new_x, $new_y) = @{ $win }{qw( real_x real_y )};
-            $new_x -= $old_screen->{x};
-            $new_y -= $old_screen->{y};
-            $new_x += $new_screen->{x};
-            $new_y += $new_screen->{y};
-            $win->move($new_x, $new_y);
-        }
+        $win->floating_move_screen($old_screen, $new_screen);
 
         $old_screen->refresh();
         $new_screen->set_active($win);

@@ -30,13 +30,20 @@ sub new($class, $x, $y, $w, $h) {
 }
 
 sub destroy($self, $new_screen) {
-    # Remove tags
+    # Bring always_on windows back to current tag
+    for my $win (@{ $self->{always_on} }) {
+        $self->current_tag()->win_add($win);
+        $win->{always_on} = undef;
+    }
+    $self->{always_on} = [];
+
+    # Remove tags (maximized window will be transferred AS-IS)
     $_->destroy($new_screen) for @{ $self->{tags} };
 
     # Remove panel
     $self->{panel}->destroy();
 
-    # Undef other filds
+    # Undef other fields
     %{ $self } = ();
 }
 

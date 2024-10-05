@@ -26,7 +26,7 @@ my $wm_size_hints = "LllllllllllllllllL";
 
 sub new($class, $id) {
     # Full structure is defined in architecture/05_data_structures.txt
-    bless { id => $id, sid => $sid++, on_tags => {} }, $class;
+    bless { id => $id, sid => $sid++, on_tags => {}, pref_position => [] }, $class;
 }
 
 sub DESTROY($self) {
@@ -129,6 +129,21 @@ sub resize($self, $w, $h) {
     croak "Undefined window" unless $self->{id};
     @{ $self }{qw( real_w real_h )} = ($w, $h);
     $X->configure_window($self->{id}, CONFIG_WINDOW_WIDTH | CONFIG_WINDOW_HEIGHT, $w, $h);
+}
+
+# Move floating windows between screens
+sub floating_move_screen($self, $old_screen, $new_screen) {
+    return unless $self->{floating};
+
+    my ($new_x, $new_y) = @{ $self }{qw( real_x real_y )};
+    $new_x -= $old_screen->{x};
+    $new_y -= $old_screen->{y};
+    $new_x += $new_screen->{x};
+    $new_y += $new_screen->{y};
+    $self->move($new_x, $new_y);
+
+    # Fix configured geometry after it was modified by move()
+    @{ $self }{qw( x y )} = @{ $self }{qw( real_x real_y )};
 }
 
 # Put the window above others
@@ -295,6 +310,12 @@ sub show($self) {
 
     # Remove _hidden mark as it was requested manually
     delete $self->{_hidden};
+}
+
+# Move the window out of the screen and ask X11 to map it. It is used for opening windows in the background
+sub show_hidden($self) {
+    $self->_hide();
+    $X->map_window($self->{id});
 }
 
 sub tags($self) {
