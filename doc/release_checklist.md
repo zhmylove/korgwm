@@ -2,6 +2,7 @@
 
 - Write proper relnotes/changelog:
     - Changes
+- Based on `Changes` update all relevant documentation
 - Update VERSION in the following files:
     - lib/X11/korgwm.pm
 - Update copyright date in:
@@ -18,17 +19,27 @@
     - README.md
     - korgwm.conf.sample
     - API.md
+- Verify release candidate is buildable:
+    - `make distclean`
+    - check all the changed files `git status`
+    - `perl Makefile.PL`
+    - `make manifest`
+    - `make dist`
+    - `make disttest`
 - Prepare release tar.gz
-    - `make clean`
-    - `rm -f Makefile.old MANIFEST MANIFEST.bak`
+    - `make distclean`
+    - `rm -f Makefile.old MANIFEST MANIFEST.bak *.gz`
     - ensure everything is cleaned: `git status`
     - `perl Makefile.PL`
+    - `make manifest`
     - build an archive in clean tree: `make dist`
     - `make disttest`
     - carefully inspect what was created and contents of the archive
-- Commit changes with message `Release X.Y`
+- Commit changes with message `git commit -sm 'Release X.Y'`
 - Tag the commit `git tag X.Y`
 - Push both: commit and tag to remote repository
+    - `git push origin`
+    - `git push origin tag X.Y`
 - Upload the archive to CPAN
 - Wait some time and ensure CPAN tests were successful
 - Update FreeBSD port: `Makefile`, `distinfo` and `pkg-plist`

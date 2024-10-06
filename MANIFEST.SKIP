@@ -5,7 +5,6 @@
 ^META_new\.(?:json|yml)
 ^MYMETA\.
 ^Makefile$
-^RELEASE_CHECKLIST.md$
 ^TODO$
 ^\.travis\.yml
 ^architecture/
