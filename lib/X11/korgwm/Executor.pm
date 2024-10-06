@@ -23,6 +23,13 @@ our @parser = (
         die "Cannot fork(2)" unless defined $pid;
         return if $pid;
         close $_ for *STDOUT, *STDERR, *STDIN;
+
+        # No need to 'or die' here as we do not care
+        open STDIN, "+<", "/dev/null";
+        open STDOUT, ">&STDIN";
+        open STDERR, ">&STDIN";
+
+        # Should always succeed after fork(2)
         setsid();
         exec $arg;
         die "Cannot execute $arg";
