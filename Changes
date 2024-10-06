@@ -1,5 +1,65 @@
 Revision history for korgwm.
 
+4.0     2024-10-07
+    - Significantly improved multi-screen experience:
+        - Windows are now returning back to their preferred screen after connecting it back
+        - Destination tag now corresponds to the original one during screen destroy phase
+        - Fix issue with screen_select() after changing screen topology
+
+    - Improved Expose module a lot:
+        - Use XComposite extension to properly make hidden windows screenshots
+        - Use get_image_data_rgba() to properly handle BGRA colorspace
+        - Expose module edge-cases optimization with zero and one visible windows
+        - Other small cosmetic changes
+
+    - Made numerous improvements related to mouse pointer events and position:
+        - Rework Window->focus() to show transients of maximized window
+        - Prevent EnterNotify on focus_cycle() to visit every window
+        - Prevent EnterNotify unmaximizing a window
+        - Fix race condition with EnterNotify mapping floating windows
+        - Fix race condition with focus during maximized windows startup
+        - Improve focus logic for multiple screens (see comment in f364d604e)
+        - Fix rapid EnterNotify preventor to avoid race condition on tag switching
+        - Prevent rapid FocusIn events firing on EnterNotify and tag_select()
+        - Avoid warp_pointer if the window already owns it
+        - Implement tag->{focus} to select focus window on tag switching
+        - Fix leaked reference of always_on window in Tag->focus
+
+    - Reworked focus_prev functionality keeping a list of previously focused windows:
+        - Make focus_prev keep five instead of two last windows
+        - Fix issue calling focus_prev() to some window below maximized one
+        - Fix focus_prev behaviour inside FocusIn handler
+        - Fix focus_prev focus stealing and tag switching
+
+    - Made mouse-based window movement and resize smoothier giving those actions more CPU time.
+
+    - Implemented feature to respect WM_SIZE_HINTS for newly created windows making dialogs look prettier.
+
+    - Updated X11::XCB to 0.23 to use brand new shiny features.
+
+    - Started several markdown documents, especially Development.md describing korgwm history.
+
+    - Slightly updated default config:
+        - Rebind Fn keys to Mod+Alt because of a ThinkPad bug
+        - Make pointer follow the window during win_move_tag()
+        - Change Mattermost screen affinity
+        - Support KORGWM_DEBUG_PORT environment variable to avoid EADDRINUSE starting second korgwm instance
+        - Rename workspace names using only numbers
+
+    - Other minor improvements and fixes:
+        - exec() now tries to open STDIN, STDOUT, STDERR to /dev/null after closing them
+        - Add some fairness to X events poller
+        - Add doc/release_checklist.md describing the release procedure
+        - Implement KORGWM_DEBUG_API to enable debug API calls regardless debug config
+        - Implement dump_screens() debug API call
+        - Update .xinitrc to avoid several freezes and other issues
+        - Ignore "Window errors" caught when closing multiple windows at a time
+        - Replace redundant splice with grep
+        - Fix issue with pointer not warped on a maximized window
+        - Fix shameful memory leak inside Window DESTROY routine
+        - Fix typo in focus->{window}
+        - Add Gtk3::disable_setlocale() to avoid 0.5 value interpreted as 0
+
 3.1     2023-12-19
     - WM_STATE atom is now created manually unless it already exists to prevent crashes on unconfigured X server.
 

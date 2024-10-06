@@ -193,7 +193,7 @@ rules:
     floating: 1
   mattermost:
     follow: 1
-    screen: 2
+    screen: 3
     tag: 4
   urxvt-float:
     floating: 1

@@ -14,7 +14,7 @@ korgwm - a tiling window manager written in Perl
 Manages X11 windows in a tiling manner and supports all the stuff KorG needs.
 Built on top of XCB, AnyEvent, and Gtk3.
 It is not reparenting for purpose, so borders are rendered by X11 itself.
-There are no any command-line parameters, nor any environment variables.
+There are no any command-line parameters, (almost) nor any environment variables.
 The only way to start it is: just to execute C<korgwm> when no any other WM is running.
 Please see bundled README.md if you are interested in details.
 
