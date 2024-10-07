@@ -250,7 +250,7 @@ our @parser = (
 );
 
 # Define some debug internals
-DEBUG and push @parser,
+DEBUG_API and push @parser,
     [qr/dump_windows\(\)/, sub ($arg) { return sub ($hdl) {
         {
             require Data::Dumper;

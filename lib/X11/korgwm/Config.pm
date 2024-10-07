@@ -128,6 +128,7 @@ BEGIN {
 
     # Set the DEBUG
     *X11::korgwm::Common::DEBUG = $cfg->{debug} ? sub() { 1 } : sub() { undef };
+    *X11::korgwm::Common::DEBUG_API = (DEBUG or defined $ENV{KORGWM_DEBUG_API}) ? sub() { 1 } : sub() { undef };
 }
 
 1;
