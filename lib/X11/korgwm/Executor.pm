@@ -109,9 +109,10 @@ our @parser = (
 
     # Set active screen
     [qr/screen_select\((\d+)\)/, sub ($arg) { return sub {
-        while ($arg > 1) {
-            return $screens[$arg - 1]->set_active() if defined $screens[$arg - 1];
-            $arg--;
+        my $dst = $arg; # to avoid source sub corruption
+        while ($dst > 1) {
+            return $screens[$dst - 1]->set_active() if defined $screens[$dst - 1];
+            $dst--;
         }
         croak "No screens found" unless defined $screens[0];
         $screens[0]->set_active();
