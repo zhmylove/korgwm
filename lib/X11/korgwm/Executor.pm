@@ -269,6 +269,14 @@ DEBUG_API and push @parser,
             $hdl->push_write(Data::Dumper::Dumper($screen));
         }
     }}],
+    [qr/dump_screens\(\)/, sub ($arg) { return sub ($hdl) {
+        {
+            require Data::Dumper;
+            local $Data::Dumper::Sortkeys = 1;
+            local $Data::Dumper::Maxdepth = 3;
+            $hdl->push_write(Data::Dumper::Dumper(\@screens));
+        }
+    }}],
     [qr/dump_tag\((\d+\s*,\s*\d+)\)/, sub ($arg) { return sub ($hdl) {
         {
             my ($arg_screen, $arg_tag) = split /\s*,\s*/, $arg;
