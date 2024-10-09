@@ -6,6 +6,10 @@ export XDG_CURRENT_DESKTOP=generic
 systemctl --user import-environment DISPLAY XAUTHORITY
 systemctl --user restart xdg-desktop-portal-gtk
 
+## Tell Java that our WM is non reparenting
+# reference: src/java.desktop/unix/classes/sun/awt/X11/XWM.java
+export _JAVA_AWT_WM_NONREPARENTING=1
+
 ## Some startup commands
 flameshot &
 xrdb -merge $HOME/.Xresources
