@@ -246,7 +246,7 @@ our @parser = (
 
     # Exit from WM
     [qr/exit\(\)/, sub ($arg) { return sub {
-        $X11::korgwm::exit_trigger = 1;
+        $X11::korgwm::exit_trigger = "I can see, friends, we're in for a fabulous evening's apocalypse!";
     }}],
 );
 

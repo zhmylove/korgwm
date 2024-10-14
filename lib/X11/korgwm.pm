@@ -53,12 +53,22 @@ use X11::korgwm::Hotkeys;
 # ... though this code is written once to read never.
 
 ## Define internal variables
+# Ignore CHLD
 $SIG{CHLD} = "IGNORE";
+# Aliases for event masks
 my %evt_masks = (x => CONFIG_WINDOW_X, y => CONFIG_WINDOW_Y, w => CONFIG_WINDOW_WIDTH, h => CONFIG_WINDOW_HEIGHT);
-my ($ROOT, $atom_wmstate);
-our $exit_trigger = 0;
+# Default event mask for new windows
 my $new_window_event_mask = EVENT_MASK_ENTER_WINDOW | EVENT_MASK_PROPERTY_CHANGE | EVENT_MASK_FOCUS_CHANGE;
+# Caching variable for $X->root
+my $ROOT;
+# Caching variable for WM_STATE atom
+my $atom_wmstate;
+# Flag shows that we want to ignore errors with type "Window"
 my $prevent_window_errors;
+# Set to True whenever we want to exit
+our $exit_trigger;
+# Array for selecting preferred tag during screen change event
+my @preferred_tags = ();
 
 ## Define functions
 # Handles any screen change
@@ -77,7 +87,7 @@ sub handle_screens {
         my ($x, $y, $w, $h) = map { $s->rect->$_ } qw( x y width height );
         $curr_screens{"$x,$y,$w,$h"} = undef;
 
-        # Collect new information about visible area
+        # Update visible area information
         $visible_min_x = defined $visible_min_x ? min($visible_min_x, $x)      : $x;
         $visible_min_y = defined $visible_min_y ? min($visible_min_y, $y)      : $y;
         $visible_max_x = defined $visible_max_x ? max($visible_max_x, $x + $w) : $x + $w;
@@ -112,6 +122,9 @@ sub handle_screens {
             $_->{pref_position}->[@screens] = [$old_screen_idx, $old_tag_idx] for $tag->windows();
         }
     }
+
+    # Save preferred_tags
+    $preferred_tags[@screens] = [ map { $_->{tag_curr} } @screens ];
 
     # Call destroy on old screens and remove them saving pref_position for all their windows
     for my $s (@del_screens) {
@@ -149,13 +162,22 @@ sub handle_screens {
         # Below we consider the window belongs to a single screen and tag, so just check if they're preferred
         next if $old_screen->{idx} == $pref_position->[0];
 
-        my $new_screen = $screens[$pref_position->[0]] or croak "Impossible screen in pref_position";
-        my $new_tag = $new_screen->{tags}->[$pref_position->[1]] or croak "Impossible tag in pref_position";
+        my $new_screen = $screens[$pref_position->[0]] or croak "Invalid screen in pref_position";
+        my $new_tag = $new_screen->{tags}->[$pref_position->[1]] or croak "Invalid tag in pref_position";
 
         $new_tag->win_add($win);
         $old_tag->win_remove($win);
         $win->floating_move_screen($old_screen, $new_screen);
         $win->hide() unless $new_tag == $new_screen->current_tag();
+    }
+
+    # Select preferred tags, if possible
+    if (my $preferred_tags = $preferred_tags[@screens]) {
+        for my $geom (@new_screens) {
+            my $screen = $screens{$geom} // croak "Invalid screen in new_screens array";
+            my $pref_tag = $preferred_tags->[ $screen->{idx} ] // croak "Invalid tag in preferred_tags";
+            $screen->tag_set_active($pref_tag, 0);
+        }
     }
 
     # Refresh all the screens as we could've moved some windows around
