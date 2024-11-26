@@ -93,12 +93,13 @@ BEGIN {
     };
 
     $cfg->{rules} = {
-        "mattermost"    => { screen => 3, tag => 4, follow => 1, },
-        "evolution"     => { screen => 1, tag => 3, follow => 0, },
-        "galculator"    => { floating => 1 },
-        "urxvt-float"   => { floating => 1 },
-        "xeyes"         => { floating => 1 },
-        "evolution-alarm-notify" => { floating => 1, urgent => 1 },
+        "mattermost"                    => { screen => 3, tag => 4, follow => 1, },
+        "evolution"                     => { screen => 1, tag => 3, follow => 0, },
+        "org.gnome.Evolution"           => { screen => 1, tag => 3, follow => 0, },
+        "galculator"                    => { floating => 1 },
+        "urxvt-float"                   => { floating => 1 },
+        "xeyes"                         => { floating => 1 },
+        "evolution-alarm-notify"        => { floating => 1, urgent => 1 },
     };
 
     $cfg->{noclass_whitelist} = ["Event Tester"];

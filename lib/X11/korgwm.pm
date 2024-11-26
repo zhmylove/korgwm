@@ -173,8 +173,7 @@ sub handle_screens {
 
     # Select preferred tags, if possible
     if (my $preferred_tags = $preferred_tags[@screens]) {
-        for my $geom (@new_screens) {
-            my $screen = $screens{$geom} // croak "Invalid screen in new_screens array";
+        for my $screen (@screens) {
             my $pref_tag = $preferred_tags->[ $screen->{idx} ] // croak "Invalid tag in preferred_tags";
             $screen->tag_set_active($pref_tag, 0);
         }
