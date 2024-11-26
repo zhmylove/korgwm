@@ -105,7 +105,8 @@ sub init {
             $cpu_saver = 0.0001;
             replace_event_cb(MOTION_NOTIFY, \&_motion_resize);
         } else {
-            croak "We got unexpected mouse event, detail:" . $evt->{detail};
+            # Ignore other buttons (2 = middle, 4 = scroll down, 5 = scroll up)
+            carp "We got unexpected mouse event, detail:" . $evt->{detail};
         }
     });
 
