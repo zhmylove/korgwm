@@ -14,7 +14,7 @@ use X11::korgwm::Common;
 
 # Simplify object usage
 use Scalar::Util qw( refaddr );
-use overload '""' => sub {sprintf "%s [id:%d]", overload::StrVal($_[0]), $_[0]->{id} // "undef"};
+use overload '""' => sub { sprintf "%s[id:%d]", overload::StrVal($_[0]), $_[0]->{id} // "undef" };
 use overload '==' => sub { (refaddr($_[0]) // 0) == (refaddr($_[1]) // 0) };
 use overload '!=' => sub { (refaddr($_[0]) // 0) != (refaddr($_[1]) // 0) };
 
@@ -504,10 +504,13 @@ sub urgency_set($self, $urgency = 1) {
 # High-level wrapper
 sub urgency_clear($self) {
     $self->urgency_set(0);
+
     for my $tag ($self->tags()) {
         delete $tag->{urgent_windows}->{$self};
         $tag->{screen}->{panel}->ws_set_urgent($tag->{idx} + 1, 0) unless keys %{ $tag->{urgent_windows} };
     }
+
+    $self->{urgent} = undef;
 }
 
 # High-level wrapper
@@ -521,6 +524,8 @@ sub urgency_raise($self, $set_hint = undef) {
         $tag->{urgent_windows}->{$self} = undef;
         $tag->{screen}->{panel}->ws_set_urgent($tag->{idx} + 1, 1);
     }
+
+    $self->{urgent} = 1;
 }
 
 sub warp_pointer($self) {

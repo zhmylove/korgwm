@@ -1,13 +1,15 @@
+recommends 'Data::Dumper';
 requires 'AnyEvent';
+requires 'AnyEvent::DBus';
 requires 'AnyEvent::Handle';
 requires 'AnyEvent::Socket';
 requires 'Carp';
-recommends 'Data::Dumper';
 requires 'Encode';
 requires 'Exporter';
 requires 'Glib::Object::Introspection';
 requires 'Gtk3';
 requires 'List::Util';
+requires 'Net::DBus';
 requires 'POSIX';
 requires 'Scalar::Util';
 requires 'Storable';

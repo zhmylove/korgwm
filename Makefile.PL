@@ -28,6 +28,7 @@ WriteMakefile(
     },
     PREREQ_PM       => {
         "AnyEvent"                      => "0",
+        "AnyEvent::DBus"                => "0",
         "AnyEvent::Handle"              => "0",
         "AnyEvent::Socket"              => "0",
         "Carp"                          => "0",
@@ -37,6 +38,7 @@ WriteMakefile(
         "Glib::Object::Introspection"   => "0",
         "Gtk3"                          => "0",
         "List::Util"                    => "0",
+        "Net::DBus"                     => "0",
         "POSIX"                         => "0",
         "Scalar::Util"                  => "0",
         "Storable"                      => "0",

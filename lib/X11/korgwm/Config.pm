@@ -19,7 +19,7 @@ BEGIN {
     $cfg->{api_timeout} = 5;
     $cfg->{battery_format} = "%s";
     $cfg->{border_width} = 1;
-    $cfg->{clock_format} = " %a, %e %B %H:%M";
+    $cfg->{clock_format} = " %a %e %B %H:%M";
     $cfg->{color_battery_low} = '0xFF0000';
     $cfg->{color_bg} = '0x262729';
     $cfg->{color_border_focus} = '0xA3BABF';
@@ -39,6 +39,7 @@ BEGIN {
     $cfg->{lang_names} = { 0 => chr(0x00a3), 1 => chr(0x20bd) };
     $cfg->{mouse_follow} = 1;
     $cfg->{move_follow} = 1;
+    $cfg->{notification_server} = 1;
     $cfg->{panel_end} = [qw( battery clock lang )];
     $cfg->{panel_height} = 20;
     $cfg->{panel_hide} = undef;

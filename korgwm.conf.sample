@@ -4,6 +4,7 @@
 #   /usr/local/etc/korgwm/korgwm.conf
 #   $HOME/.korgwmrc
 #   $HOME/.config/korgwm/korgwm.conf
+# For each file found it tries to alter the configuration with its content
 ---
 ## API parameters
 # Set api_port = 0 to disable API server
@@ -26,6 +27,8 @@ initial_pointer_position: center
 mouse_follow: 1
 # If set: tag will be switched together with a window during win_move_tag(). Stay on current tag otherwise
 move_follow: 1
+# Start own notifications server to improve urgency experience. Disable if you want to use another one
+notification_server: 1
 # Command which is used to set relevant screen positions on each RandR event
 randr_cmd: 'xrandr --output HDMI-A-0 --left-of eDP --auto --output DisplayPort-0 --right-of eDP --auto'
 # Enable/disable setting the colour for root window
@@ -47,8 +50,8 @@ panel_end:
   - lang
 # Hide tags with no windows on the panel
 hide_empty_tags: 1
-battery_format: '%s'
 # Format strings for bar widgets
+battery_format: '%s'
 clock_format: ' %a, %e %B %H:%M'
 lang_format: ' %s '
 # Mapping of the languages to strings on the panel

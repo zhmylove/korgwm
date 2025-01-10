@@ -15,7 +15,7 @@ our @EXPORT = qw(
     DEBUG DEBUG_API DEBUG_EVENTS $X $cfg $focus $windows %screens %xcb_events %xcb_events_ignore @screens
     add_event_cb add_event_ignore hexnum init_extension replace_event_cb screen_by_xy pointer
     $visible_min_x $visible_min_y $visible_max_x $visible_max_y $prevent_focus_in $prevent_enter_notify $cpu_saver
-    focus_prev_push focus_prev_remove focus_prev_get prevent_focus_in prevent_enter_notify
+    focus_prev_push focus_prev_remove focus_prev_get prevent_focus_in prevent_enter_notify $cached_classes
     );
 
 # Set after parsing config
@@ -28,6 +28,7 @@ our $cfg;
 our $cpu_saver = 0.1; # number of seconds to sleep before events processing (100ms by default)
 our $focus;
 our $windows = {};
+our $cached_classes = {};
 our %screens;
 our %xcb_events;
 our %xcb_events_ignore;

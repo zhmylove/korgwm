@@ -44,6 +44,7 @@ use X11::korgwm::Expose;
 use X11::korgwm::API;
 use X11::korgwm::Mouse;
 use X11::korgwm::Hotkeys;
+use X11::korgwm::Notifications;
 
 # Should you want understand this, first read carefully:
 # - libxcb source code
@@ -227,6 +228,12 @@ sub handle_existing_windows {
 
         @{ $win }{qw( x y w h )} = ($x, $y, $w, $h);
 
+        my $class = $win->class();
+        if (defined $class) {
+            push @{ $cached_classes->{ lc $class } }, $win;
+            $win->{cached_class} = lc $class;
+        }
+
         $win->resize_and_move($x, $y, $w + 2 * $bw, $h + 2 * $bw);
         $screen->win_add($win)
     }
@@ -283,6 +290,11 @@ sub hide_window($wid, $delete=undef) {
     }
 
     focus_prev_remove($win) if $delete;
+
+    # Clean-up cached classes index
+    if ($delete and my $class = $win->{cached_class}) {
+        @{ $cached_classes->{ $class } } = grep { $win != $_ } @{ $cached_classes->{ $class } };
+    }
 }
 
 # Main routine
@@ -424,6 +436,12 @@ sub FireInTheHole {
             $win->{y} = $screen->{y} + int(($screen->{h} - $win->{h}) / 2);
         } elsif ($win->{x} < $screen->{x}) {
             $win->{x} += $screen->{x};
+        }
+
+        # Make index by initial value of WM_CLASS, save the value to Window as well for proper garbage collection
+        if (defined $class) {
+            push @{ $cached_classes->{ lc $class } }, $win;
+            $win->{cached_class} = lc $class;
         }
 
         DEBUG and warn "Mapping $win [$class] (@{ $win }{qw( x y w h )}) screen($screen->{id}) tag($tag->{idx})";
