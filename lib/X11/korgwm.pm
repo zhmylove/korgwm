@@ -620,7 +620,7 @@ sub FireInTheHole {
             last unless $evt;
 
             # MotionNotifies(6) are ignored anyways. No room for error
-            DEBUG and $evt->{response_type} != 6 and warn Dumper $evt;
+            DEBUG_EVENTS and $evt->{response_type} != 6 and warn Dumper $evt;
 
             # Highest bit indicates that the source is another client
             my $type = $evt->{response_type} & 0x7F;
@@ -628,7 +628,7 @@ sub FireInTheHole {
             if (defined(my $evt_cb = $xcb_events{$type})) {
                 $evt_cb->($evt);
             } elsif (exists $xcb_events_ignore{$type}) {
-                DEBUG and warn "Manually ignored event type: $type";
+                DEBUG_EVENTS and warn "Manually ignored event type: $type";
             } else {
                 warn "Warning: missing handler for event $type";
             }
