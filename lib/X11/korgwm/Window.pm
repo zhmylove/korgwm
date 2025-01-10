@@ -80,8 +80,9 @@ sub _class($wid) {
 }
 
 sub _title($wid) {
-    my $title = _get_property($wid, "_NET_WM_NAME", "UTF8_STRING", int($cfg->{title_max_len} / 4));
-    $title = _get_property($wid, "WM_NAME", "STRING", int($cfg->{title_max_len} / 4)) unless length $title;
+    # long_length is a 32-bit multiplies of data; UTF8 usually encodes a char up to 8 bytes, so multipler is 2:
+    my $title = _get_property($wid, "_NET_WM_NAME", "UTF8_STRING", 2 * $cfg->{title_max_len});
+    $title = _get_property($wid, "WM_NAME", "STRING", $cfg->{title_max_len}) unless length $title;
     $title;
 }
 
@@ -101,9 +102,9 @@ UNITCHECK {
         class
         configure_notify
         get_property
+        query_geometry
         title
         transient_for
-        query_geometry
         )) {
         *{__PACKAGE__ . "::$func"} = sub {
             my $self = shift;
