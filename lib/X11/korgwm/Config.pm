@@ -94,9 +94,9 @@ BEGIN {
     };
 
     $cfg->{rules} = {
-        "mattermost"                    => { screen => 3, tag => 4, follow => 1, },
-        "evolution"                     => { screen => 1, tag => 3, follow => 0, },
-        "org.gnome.Evolution"           => { screen => 1, tag => 3, follow => 0, },
+        "mattermost"                    => { placement => [undef, [1, 4], [2, 4], [3, 4]], follow => 1 },
+        "evolution"                     => { tag => 3, follow => 0 },
+        "org.gnome.Evolution"           => { screen => 1, tag => 3, follow => 0 },
         "galculator"                    => { floating => 1 },
         "urxvt-float"                   => { floating => 1 },
         "xeyes"                         => { floating => 1 },

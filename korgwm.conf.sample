@@ -184,20 +184,32 @@ hotkeys:
 
 ## Rules applied to new windows by WM_CLASS
 # floating  -- should the window be tiled (by default for non-transient) or floating
-# follow    -- focus new window and switch to it's screen&tag
+# follow    -- focus new window and switch to it's screen & tag
 # screen    -- preferred screen to attach the window to (starts with 1)
 # tag       -- preferred tag to attach the window to (starts with 1)
+# placement -- takes precedence over screen & tag (see description and example below)
+#
+# Placement is an array indexed over number of screens.
+# Value should be an undef (~) or an array of [ screen, tag ] (both starts with 1).
+# There is no any validation, so take care using 'placement'.
+# Either you connect more screens than specified, or the placement is undef; the default screen and tag will be used.
 rules:
   evolution:
     follow: 0
-    screen: 1
-    tag: 3
+    tag: 3      # place it on the first screen, tag #3
+  org.gnome.Evolution:
+    follow: 0
+    screen: 1   # place it on the first screen
+    tag: 3      # place it on the tag #3
   galculator:
     floating: 1
   mattermost:
+    placement:
+      - ~       # 0 screens: we don't care
+      - [1, 4]  # 1 screens: place it on the only screen, tag #4
+      - [2, 4]  # 2 screens: place it on the second screen, tag #4
+      - [3, 4]  # 3 screens: place it on the third screen, tag #4
     follow: 1
-    screen: 3
-    tag: 4
   urxvt-float:
     floating: 1
   xeyes:
@@ -214,4 +226,4 @@ noclass_whitelist:
 autostart:
   - 'exec(setxkbmap -layout us,ru -option grp:alt_shift_toggle,compose:ralt)'
 
-# vim: ft=yaml ts=2 sw=2 :
+# vim: ft=yaml ts=2 sw=2 cc=119 :

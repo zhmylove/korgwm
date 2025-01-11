@@ -147,8 +147,18 @@ sub handle_screens {
         next if $win->{always_on};
 
         # Try to get preferred position for the window
-        my $pref_position = $win->{pref_position}->[@screens];
-        next unless $pref_position;
+        my $pref_position = $win->{pref_position}->[ @screens ];
+        unless ($pref_position) {
+            # Here is the last chance for windows having no preferred position. We're almost ready to skip them
+            my $rules = $cfg->{rules}->{ $win->{cached_class} } or next;
+            ref(my $placement = $rules->{ placement }) eq 'ARRAY' or next;
+
+            my ($pref_screen, $pref_tag) = map { max($_ - 1, 0) } @{ $placement->[ @screens ] // next };
+            next if $pref_screen >= @screens or $pref_tag >= @{ $cfg->{ws_names} };
+
+            # I solemnly swear that I am up to no good
+            $pref_position = [ $pref_screen, $pref_tag ];
+        }
 
         my @win_screens = $win->screens();
         my @win_tags = $win->tags();
@@ -399,14 +409,22 @@ sub FireInTheHole {
             }
         }
 
-        # Apply rules
+        # Apply rules.  At this point both $screen and $tag are not defined
         my $rule = $cfg->{rules}->{$class // ""};
         if ($rule) {
-            # XXX awaiting bugs with idx 0
-            defined $rule->{screen} and $screen = $screens[$rule->{screen} - 1] // $screens[0];
-            defined $rule->{tag} and $tag = $screen->{tags}->[$rule->{tag} - 1];
             defined $rule->{follow} and $follow = $rule->{follow};
             defined $rule->{floating} and $floating = $rule->{floating};
+
+            # XXX awaiting bugs with idx 0
+            defined $rule->{screen} and $screen = $screens[ $rule->{screen} - 1 ] // $screens[0];
+            defined $rule->{tag} and $tag = $screen->{tags}->[ $rule->{tag} - 1 ];
+
+            # Process preferred position rules with optional fallback to previous $screen & $tag
+            my $preferred;
+            if (ref $rule->{placement} eq 'ARRAY' && ref($preferred = $rule->{placement}->[ @screens ]) eq 'ARRAY') {
+                $screen = $screens[ $preferred->[0] - 1 ] // $screen // $focus->{screen};
+                $tag = $screen->{tags}->[ $preferred->[1] - 1 ] // $tag // $screen->current_tag();
+            }
         }
 
         # Process transients
@@ -685,7 +703,8 @@ Firstly, it has pretty good config defaults.
 Then it reads several files during startup and merges the configuration.
 Note that it merges configs pretty silly.
 So it is recommended to completely specify rules or hotkeys if you want to change their parts.
-The files are being read in such an order: C</etc/korgwm/korgwm.conf>, C<$HOME/.korgwmrc>, C<$HOME/.config/korgwm/korgwm.conf>.
+The files are being read in such an order: C</etc/korgwm/korgwm.conf>, C</usr/local/etc/korgwm/korgwm.conf>,
+C<$HOME/.korgwmrc>, C<$HOME/.config/korgwm/korgwm.conf>.
 
 Please see bundled korgwm.conf.sample to get the full listing of available configuration parameters.
 
