@@ -13,6 +13,7 @@ use X11::XCB ':all';
 use X11::korgwm::Common;
 use Glib::Object::Introspection;
 use Gtk3;
+use Time::HiRes qw( usleep );
 
 unless ($X11::korgwm::gtk_init) {
     Gtk3::disable_setlocale();
@@ -90,15 +91,22 @@ sub expose {
     my $nwindows = keys %{ $windows };
     return unless $nwindows;
 
-    # If there is only one window we just want to focus it.
-    # Sorry for this ugly code. The logic is mostly copied from focus_prev() of Executor
-    if ($nwindows == 1) {{
+    # If there is only one window we just want to switch to it
+    if ($nwindows == 1) {
         my $win = (values %{ $windows })[0];
+
+        # Strange situation when $windows->{only} = undef, but double check to avoid bugs
         return carp "Unable to find single existing window to focus" unless $win;
 
-        last unless 1 == $win->tags();
-        $win->select() and return;
-    }}
+        # Changed from 'last' to 'return' as select() for this window inside expose callback won't do anycase
+        return unless 1 == $win->tags();
+
+        $win->select();
+
+        # Unconditionally return, even on errors in select()
+        # At this point there is only one window exist and Expose is useless
+        return;
+    }
 
     # Select current screen
     my $screen_curr = $focus->{screen};
@@ -212,9 +220,12 @@ sub expose {
     # Grab keyboard
     my $grab_status;
     my $grab_tries = 2**10;
+
     do {
         $grab_status = $display->get_default_seat()->grab($win_expose->get_window(), "keyboard", 0, (undef) x 4);
-    } while ($grab_tries-- and $grab_status eq 'already-grabbed');
+    } while ($grab_tries-- and $grab_status eq 'already-grabbed' and usleep(1000) >= 0);
+
+    warn "Expose was unable to grab keyboard for ~1 second, rc=$grab_status" if $grab_status ne 'success';
 }
 
 # TODO consider adding this right into Window.pm (if Expose will work good)
