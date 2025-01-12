@@ -70,6 +70,8 @@ BEGIN {
                 "mod_a"                 => "win_toggle_always_on()",
                 "mod_shift_ctrl_l"      => "exec(lock)",
                 "mod_e"                 => "expose()",
+                "mod_shift_s"           => "mark_window()",
+                "mod_s"                 => "mark_switch_window()",
                 "mod_f"                 => "win_toggle_floating()",
                 "mod_g"                 => "exec(google-chrome --simulate-outdated-no-au --new-window --incognito)",
                 "mod_shift_g"           => "exec(google-chrome --simulate-outdated-no-au --new-window)",

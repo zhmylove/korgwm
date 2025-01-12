@@ -35,6 +35,36 @@ our @parser = (
         die "Cannot execute $arg";
     }}],
 
+    # Switch to a marked window
+    [qr/mark_switch_window\(\)/, sub ($arg) { return sub {
+        &X11::korgwm::Hotkeys::grab_key(sub ($data) {
+                # $mask is ignored for now, but it is still available
+                my ($key, $mask) = @$data;
+                return unless defined $key;
+
+                my $win = $marked_windows{$key};
+                unless (defined $win) {
+                    DEBUG and warn "Cannot find any window with mark " . chr($key);
+                    return;
+                }
+
+                DEBUG and warn "Switching to a window $win with key " . chr($key);
+                $win->select();
+            });
+    }}],
+
+    # Mark a focused window with some character
+    [qr/mark_window\(\)/, sub ($arg) { return sub {
+        &X11::korgwm::Hotkeys::grab_key(sub ($data) {
+                # $mask is ignored for now, but it is still available
+                my ($key, $mask) = @$data;
+                return unless defined $key and defined $focus->{window};
+
+                DEBUG and warn "Marking window $focus->{window} with key " . chr($key);
+                $marked_windows{$key} = $focus->{window};
+            });
+    }}],
+
     # Set active tag
     [qr/tag_select\((\d+)\)/, sub ($arg) { return sub {
         # Prevent FocusIn events

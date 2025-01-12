@@ -632,7 +632,7 @@ sub size_hints_get($self) {
     return $hints;
 }
 
-# Switch from anywhere to this window. See expose() and focus_prev()
+# Switch from anywhere to this window. See expose(), focus_prev() and mark_switch_window()
 # Returns:
 # 0 - no errors
 # 1 - some warnings

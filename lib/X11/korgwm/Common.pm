@@ -13,7 +13,7 @@ use Scalar::Util qw( looks_like_number );
 
 our @EXPORT = qw(
     DEBUG DEBUG_API DEBUG_EVENTS $X $cfg $focus $windows %screens %xcb_events %xcb_events_ignore @screens
-    add_event_cb add_event_ignore hexnum init_extension replace_event_cb screen_by_xy pointer
+    add_event_cb add_event_ignore hexnum init_extension replace_event_cb screen_by_xy pointer %marked_windows
     $visible_min_x $visible_min_y $visible_max_x $visible_max_y $prevent_focus_in $prevent_enter_notify $cpu_saver
     focus_prev_push focus_prev_remove focus_prev_get prevent_focus_in prevent_enter_notify $cached_classes
     );
@@ -34,6 +34,7 @@ our %xcb_events;
 our %xcb_events_ignore;
 our @screens;
 our ($visible_min_x, $visible_min_y, $visible_max_x, $visible_max_y);
+our %marked_windows;
 
 # Sometimes we want to ignore FocusIn (see Mouse/ENTER_NOTIFY and Executor/tag_select)
 our $prevent_focus_in;

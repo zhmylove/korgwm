@@ -251,7 +251,7 @@ sub handle_existing_windows {
 }
 
 # Destroy and Unmap events handler
-sub hide_window($wid, $delete=undef) {
+sub hide_window($wid, $delete = undef) {
     my $win = $delete ? delete $windows->{$wid} : $windows->{$wid};
     return unless $win;
     $win->{_hidden} = 1;
@@ -304,6 +304,11 @@ sub hide_window($wid, $delete=undef) {
     # Clean-up cached classes index
     if ($delete and my $class = $win->{cached_class}) {
         @{ $cached_classes->{ $class } } = grep { $win != $_ } @{ $cached_classes->{ $class } };
+    }
+
+    # Delete $win reference from %marked_windows
+    if ($delete) {
+        delete $marked_windows{$_} for grep { $win == $marked_windows{$_} } keys %marked_windows;
     }
 }
 

@@ -38,6 +38,18 @@ my $keymap;     # a mapping between keycodes (arr index) and char codes from X11
 my $keycodes;   # reverse mapping for us
 my $hotkeys;    # hash with actual functions to run
 
+# Flag and result container for grab_key()
+my $grab_active;
+my $grab_result;
+
+# Switch to a mode to grab a single key
+sub grab_key($callback = undef) {
+    $grab_result = $callback;
+    $grab_active = 1;
+    $X->grab_keyboard(0, $X->root->id, TIME_CURRENT_TIME, GRAB_MODE_ASYNC, GRAB_MODE_ASYNC);
+    $X->flush();
+}
+
 # Register a hotkey
 sub hotkey($hotkey, $cmd) {
     my @keys = split /_/, $hotkey;
@@ -68,6 +80,23 @@ sub init {
     add_event_cb(KEY_PRESS(), sub($evt) {
         my $key = $keymap->[$evt->{detail}]->[0];
         my $mask = $evt->{state};
+
+        # If some routine asks us to grab the key, save it to an object and return
+        if ($grab_active) {
+            $grab_active = undef;
+
+            my $grab_data = [ $key, $mask ];
+
+            if (ref(my $callback = $grab_result) eq 'CODE') {
+                $callback->($grab_data);
+            }
+
+            $grab_result = $grab_data;
+
+            $X->ungrab_keyboard(TIME_CURRENT_TIME);
+            $X->flush();
+            return;
+        }
 
         # Sometimes we get modifiers itself from X11, so ignore them (constants took from <X11/keysymdef.h>)
         return carp "X11 sent us a modifier key $key mask $mask" if $key >= 0xffe1 and $key <= 0xffee;

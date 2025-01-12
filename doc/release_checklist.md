@@ -43,4 +43,4 @@
 - Upload the archive to CPAN
 - Wait some time and ensure CPAN tests were successful
 - Update FreeBSD port: `Makefile`, `distinfo` and `pkg-plist`
-- Update ArchLinux AUR paclage: `PKGBUILD` and `.SRCINFO`
+- Update ArchLinux AUR package: `PKGBUILD` and `.SRCINFO`

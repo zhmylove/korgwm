@@ -29,10 +29,13 @@ Supported API functions are:
 - Focus move: `focus_move(<DIRECTION>)`
 - Focus swap: `focus_swap(<DIRECTION>)`
 - Resize the layout: `layout_resize(<DIRECTION>)`
-- Expose windows: `expose()`
+- Expose windows: `expose()` -- shows window selection dialog
+- Mark a window with some key: `mark_window()` -- reads next key to mark a window with
+- Goto some window by a mark: `mark_switch_window()` -- reads next key to select a window by mark
 - Resize the layout from API: `layout_resize(<SCREEN NUM>, <TAG NUM>, <ROW NUM>, <COLUMN NUM>, <FLOAT>, <FLOAT>)`
 - Append windows from certain tag(s) to the active one: `tag_append(<TAG NUM>)`
 - Exit from WM: `exit()`
+- Do nothing: `nop()`, useful to null-route some keys
 
 ## Debug API
 

@@ -31,6 +31,7 @@ It uses several X11 extensions: RandR, Xinerama, Composite, Xkb, and maybe more.
 
 - Tiling and floating windows
 - Dynamic layout that could be resized and reconfigured using hotkeys
+- Vimish marks for windows: use them to instantly switch between them
 - EWMH support: full screen, gentle exit, urgency, title, size hints, ...
 - Always ON &mdash; floating windows that are displayed on each tag
 - TCP API to control over the network &mdash; see [API.md](API.md)
