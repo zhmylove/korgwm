@@ -105,7 +105,7 @@ BEGIN {
         "evolution-alarm-notify"        => { floating => 1, urgent => 1 },
     };
 
-    $cfg->{noclass_whitelist} = ["Event Tester"];
+    $cfg->{noclass_whitelist} = ["Event Tester", "glxgears"];
 
     $cfg->{autostart} = ["exec(setxkbmap -layout us,ru -option grp:alt_shift_toggle,compose:ralt)"];
 
@@ -131,6 +131,7 @@ BEGIN {
     $_ = hexnum for @{ $cfg }{grep /^color_/, keys %{ $cfg }};
 
     # Set the DEBUG
+    $cfg->{debug} = $1 if ($ENV{KORGWM_DEBUG} // "") =~ /^(\d+)$/ and $1 > 0;
     *X11::korgwm::Common::DEBUG = $cfg->{debug} ? sub() { 1 } : sub() { undef };
     *X11::korgwm::Common::DEBUG_API = (DEBUG or defined $ENV{KORGWM_DEBUG_API}) ? sub() { 1 } : sub() { undef };
     *X11::korgwm::Common::DEBUG_EVENTS = $cfg->{debug} >= 9 ? sub() { 1 } : sub() { undef };

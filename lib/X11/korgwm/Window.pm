@@ -343,9 +343,15 @@ sub screens($self) {
 
 # Recursively return all transient windows
 sub transients($self) {
-    my @siblings_xid = keys %{ $self->{siblings} };
-    return () unless @siblings_xid;
-    map { ($windows->{$_}->transients(), $windows->{$_}) } sort @siblings_xid;
+    my @children_xid = keys %{ $self->{children} };
+    return () unless @children_xid;
+    map { ($windows->{$_}->transients(), $windows->{$_}) } sort @children_xid;
+}
+
+# Returns true if $self is a transient for $grandparent with any nesting depth
+sub relative_for($self, $grandparent) {
+    return unless $grandparent and $self->{transient_for};
+    any { $self->{transient_for} == $_ } $grandparent->transients();
 }
 
 # Toggles or sets a particular floating

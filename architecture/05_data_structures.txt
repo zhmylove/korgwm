@@ -9,7 +9,7 @@ windows => {
         floating => Bool,                   # flag if window is floating
         maximized => Bool,                  # flag if window is maximized
         urgent => Bool,                     # flag if window is urgent
-        siblings => {},                     # hash keys = transient_for windows IDs, values always undef
+        children => {},                     # hash keys = transient_for windows IDs, values always undef
         transient_for => Ptr,               # ref to transient_for window, or undef
         (x, y, w, h),                       # geometry of window requested in configure (or set to some defaults); used only for floating windows
         (real_x, real_y, real_w, real_h),   # real geometry of the window, set and saved by korgwm for internal purposes

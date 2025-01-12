@@ -13,7 +13,7 @@ use X11::XCB 0.23 ':all';
 use X11::XCB::Connection;
 use Carp;
 use AnyEvent;
-use List::Util qw( any first min max );
+use List::Util qw( any first min max none );
 
 # Those two should be included prior any DEBUG stuf
 use X11::korgwm::Common;
@@ -215,7 +215,7 @@ sub handle_existing_windows {
     for my $wid (keys %transients) {
         my $win = ($windows->{$wid} = X11::korgwm::Window->new($wid));
         $win->{transient_for} = $windows->{$transients{$wid}};
-        $windows->{$transients{$wid}}->{siblings}->{$wid} = undef;
+        $windows->{$transients{$wid}}->{children}->{$wid} = undef;
     }
 
     # Set proper window information
@@ -262,7 +262,7 @@ sub hide_window($wid, $delete = undef) {
     }
 
     if ($delete and $win->{transient_for}) {
-        delete $win->{transient_for}->{siblings}->{$wid};
+        delete $win->{transient_for}->{children}->{$wid};
     }
 
     for my $tag ($win->tags()) {
@@ -332,6 +332,8 @@ sub FireInTheHole {
     );
     die "Looks like another WM is in use" if $X->request_check($wm->{sequence});
 
+    DEBUG and warn "It's time to chew bubble gum with debug level=$cfg->{debug}";
+
     # Set root color
     if ($cfg->{set_root_color}) {
         $X->change_window_attributes($ROOT->id, CW_BACK_PIXEL, $cfg->{color_bg});
@@ -376,7 +378,10 @@ sub FireInTheHole {
         my $class = X11::korgwm::Window::_class($wid);
         unless (defined $class) {
             my $wmname = X11::korgwm::Window::_title($wid) // return;
-            return unless $cfg->{noclass_whitelist}->{$wmname};
+            unless ($cfg->{noclass_whitelist}->{$wmname}) {
+                DEBUG and warn "Ignored window $wmname with no class";
+                return;
+            }
         }
 
         # Create a window if needed
@@ -442,7 +447,7 @@ sub FireInTheHole {
             $win->{floating} = 1;
             $rule->{follow} //= $cfg->{mouse_follow};
             $win->{transient_for} = $parent;
-            $parent->{siblings}->{$wid} = undef;
+            $parent->{children}->{$wid} = undef;
 
             $tag = ($parent->tags_visible())[0] // ($parent->tags())[0];
             $screen = $tag->{screen};
@@ -487,7 +492,12 @@ sub FireInTheHole {
         # The reason of floating does not matter here so checking the object directly
         prevent_enter_notify() if $win->{floating};
 
-        if ($follow) {
+        if ($tag->{max_window} and not $win->relative_for($tag->{max_window})) {
+            # There is some maximized window on the tag and $win is not transient for it or its children
+            # TODO consider if we want to respect $follow here
+            DEBUG and warn "Window $win is starting _hidden() behind some maximized one";
+            $win->show_hidden();
+        } elsif ($follow) {
             $screen->tag_set_active($tag->{idx}, 0);
             $screen->refresh();
             $win->focus();

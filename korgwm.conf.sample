@@ -221,6 +221,7 @@ rules:
 ## List of WM_NAME of windows which we want to see despite unset WM_CLASS
 noclass_whitelist:
   - Event Tester
+  - glxgears
 
 ## List of commands to execute during startup
 autostart:
