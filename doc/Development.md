@@ -4,6 +4,8 @@ status: work in progress. This line will be removed as soon as this paper become
 
 ## Introduction
 
+TODO
+
 ## Requirements
 
 Any development should obviously base on formal requirements and this case is not an exclusion.
@@ -15,7 +17,7 @@ I'm not sure presenting them all here worth it, but here are some examples just 
 - Req.19: WM should support not only regular hotkeys, but also media buttons in order to control volume, brightness and so on;
 - ...
 
-The full list of [the initial requirements](../architecture/00_requirements.txt) is saved in architecture directory.
+The full list of [the initial requirements](../architecture/00_requirements.txt) is saved in an architecture directory.
 
 ## Architectural decisions
 
@@ -41,12 +43,23 @@ So now I have to state that my comparison results reflect only my personal opini
 
 As you can see, Wayland has several advantages over X11: specifically modern screens support.
 But there are only FHD screens in my setups so I cannot see the real difference.
+*Later, I tried using korgwm on a 4k screen, and everything looked smooth*.
 I am also the only user of my PC/Laptop/etc, so I need no isolation or so.
+As for performance, I see no difference as well.
 
 At the same time X11 is much more mature than Wayland.
 Wayland initial release was somewhere around 2008.
 In six years it'll have the same age as X11 had by the time Wayland development started and it is still complex and not well documented.
 Taking into account that personally I come across 2+ UI issues in Wayland, I suppose the world deserves a better, clearer and more understandable display system than it.
+
+#### A couple of words regarding Wayland frameworks
+
+There are actually several frameworks that encapsulate a lot of Wayland-specific work.
+Such as: wlc, libweston, and wlroots.
+I'm not very familiar with them, but I am pretty sure they have their own limitations.
+In the [Way-cooler book](https://way-cooler.org/book/wlroots_introduction.html), wlroots are defined as: "*Pluggable, composable, unopinionated modules for building a Wayland compositor; or about 50,000 lines of code you were going to write anyway.*"
+I prefer not to write so many lines of code if possible ;-)
+Mostly due to a desire to obtain full control over the processes happening under the hood, I decided not to confine myself to the strict limits of those frameworks.
 
 **As a result**: my personal choice for writing the very first WM is definitely X11.
 
@@ -80,11 +93,11 @@ And I decided to use XCB as well.
 
 Most likely you can name at least 3 languages you'd choose for WM development.
 And even if you name 16 of them I still bet Perl would not be among them.
-Many people may consider too insane starting new project using Perl in a world with all those modern GPPL: Golang, Rust, C/C++, Lua, Python, ...
-Nowadays Perl become underestimated and pretty unpopular language.
-In spite that it is still being actively developed.
+Many people may consider way too insane starting new project using Perl in a world with all those modern GPPL: Golang, Rust, C/C++, Lua, Python, ...
+Unfortunately, nowadays Perl become underestimated and pretty unpopular language.
+In spite that it is still being actively developed and has a lot of pretty unique functionality.
 
-Several factors determined the choice of language for development, besides the fact that Perl actually is my native language.
+Several factors determined the choice of a language for development, besides the fact that Perl actually is my native language.
 
 1. Perl gives an extreme speed writing prototypes: you can use tons of existing CPAN modules and write only tens lines of code in order to create powerful applications.
 2. It's pretty easy to replace some parts of prototypes written in Perl with performant code in C -- Perl out of the box supports a lot of techniques for that: XSUB, FFI, even asynchronous micro-service architecture and fast IPC.
@@ -97,15 +110,47 @@ Given so much advantages using Perl I just did not find any drawbacks of it and 
 
 ### A word to PerlWM
 
+Speaking about window managers in Perl, it's impossible not to mention [perlwm](https://perlwm.sourceforge.net/).
+Being written around 2002---2004, I believe, it's the very first WM written entirely in Perl.
+
+This WM uses `X11::Protocol` under the hood and more-less looks like `twm`, the standard stacking window manager for X11.
+Having 3966 lines of Perl code, this WM covers a lot of functionality of stacking window managers.
+
+Fun fact: on the author's website, it says:
+"*So, rather than do _the right thing_ and contribute to an existing window manager, I decided to write my own - in perl.
+All the mature window managers looked pretty tricky to make any major changes - especially changes in behaviour.*"
+However, his twenty-year-old code is also too complex to modify or use as a base for new projects.
+Especially since `X11::Xlib` and `X11::XCB` emerged in 2009 instead of a raw `X11::Protocol`.
+
+Let this paragraph be a kind of tribute to PerlWM.
+
 ### X11-XCB and Michael
 
+The very first author of the XCB module for Perl is Michael Stapelberg, the creator of the well-known `i3` window manager.
+He wrote a rather raw version of the package, which allowed him to perform certain tasks needed for `i3` testing.
+It lacked some functionality related to the client and had nothing at all regarding the server-side part.
+Nevertheless, it was a working version that supported a portion of XCB functions.
+It's great that Michael chose Perl, as it's a cool and simple language, and he published his module on CPAN so others could use it.
+
+Naturally, the first thing I did was propose a rather large patch for `X11::XCB`, which introduced some functionality I needed.
+Michael and I had a chat, and since he's not as passionate about Perl now as he was in 2009---2011, we agreed that the maintenance of this package would be transferred to me.
+In return, before each release of `X11::XCB`, I would test it both with the latest stable tag of `i3` and its master branch.
+
+That's how I became the maintainer of `X11::XCB` and subsequently made several significant improvements, which now allow it to be used for managing the X11 server.
+
 ### Packages for ArchLinux and FreeBSD
+
+TODO
 
 ## Bad architectural decisions
 
 ### Window shown on multiple tags and Tags VS Workspaces
 
+TODO
+
 ### Windows re-arrangement on screen change
+
+TODO
 
 ### Expose module
 
@@ -135,11 +180,34 @@ One approach based on asking X11 to share pixmap memory of a window, while the o
 I've updated X11::XCB -- added support for XComposite extension and implemented `xcb_get_image_data()` function in order to get image data directly from Perl code.
 After a couple of hours refactoring Expose.pm I got a solution which consumed less memory and even was able to free some, reducing memory usage of a Perl program!
 At the time I'm writing this text this solution still uses pixbufs for scaling and rendering of those images but it works way better.
-The only issue now is that original images are in ARGB32 while Gtk3 pixbufs support only importing of RGB8 and this distorts thumbnail colours...
-Maybe later I'll manage to render TrueColor bitmaps directly over the Expose window.
+
+The images from X11 server are usually encoded into BGRA32 format, while Gtk3 pixbufs support importing of only RGB8 (8 bits per sample, including alpha channel).
+Each screenshot takes around 20 Mbytes, so in order to effectively translate colour channels I decided to add `get_image_data_rgba()` XS function to `X11::XCB`.
+This function does all the job much faster and allows using of Gtk3 GdkPixbufs with proper colors.
+And only after all those code fixes, Expose module became not so bad from an architectural point of view.
 
 ## Problems solved
 
-### Memory leak -- Devel::MAT and X11-XCB
+### Memory leaks -- Devel::MAT, window destruction and X11-XCB
+
+This part is not that interesting, so I'll be brief.
+During the development, I faced a couple of memory leaks.
+These kinds of situations can be resolved using the `Devel::MAT` module, which is a great and powerful tool for memory analysis in Perl.
+
+One leak was right inside the XS code of `X11::XCB`.
+I noticed that invoking Expose leads to a continuous increase in RSS (Resident Set Size) memory without any reasonable cause.
+After some research, I discovered that the XCB library's `xcb_get_image()` function returns an X11 image as a pointer to a memory buffer, allocating it behind the scenes.
+This resulted in a memory leak because XCB.xs did not properly use `free()` to clean up this memory.
+
+Another memory leak was due to my personal, typical, and pretty embarrassing error.
+While improving some functionality related to windows, I added an index structure that referred to windows by their references.
+Keeping in mind that those references must be undefined when the window is deleted, I, without much thought, wrote this code directly inside the `Window::DESTROY` handler.
+And that's it!
+In this case, `Devel::MAT` was even more helpful, as it allowed me to find cross-references and pinpoint the problematic part of the code.
 
 ## Conclusion
+
+Writing a window manager is not a very difficult task.
+It is more like an educational, creative, and fun amusement.
+If you have ever thought about writing a WM in a way that feels true to you, do not hold yourself back.
+I encourage you to grab your favourite language and create your own ideal window manager!

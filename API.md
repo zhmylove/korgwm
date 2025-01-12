@@ -21,15 +21,15 @@ Supported API functions are:
 - Set active tag: `tag_select(<TAG NUM>)`: 
 - Close focused window: `win_close()`
 - Window close or toggle floating / maximize / always\_on: `win_toggle_<floating|maximize|always_on>()`
-- Window move to a particular tag: `win_move_tag(<TAG NUM>)`: 
+- Move window to a particular tag: `win_move_tag(<TAG NUM>)`
 - Set active screen: `screen_select(<SCREEN NUM>)`
-- Window move to particular screen: `win_move_screen(<SCREEN NUM>)`
+- Move window to a particular screen: `win_move_screen(<SCREEN NUM>)`
 - Focus previous window (screen independent): `focus_prev()`
-- Cycle focus: `focus_cycle(<FOCUS DIRECTION>)`
-- Focus move: `focus_move(<DIRECTION>)`
-- Focus swap: `focus_swap(<DIRECTION>)`
+- Cycle focus over the windows on current tag: `focus_cycle(<FOCUS DIRECTION>)`
+- Focus move to a certain direction: `focus_move(<DIRECTION>)`
+- Swap focused window with another one in a certain direction: `focus_swap(<DIRECTION>)`
 - Resize the layout: `layout_resize(<DIRECTION>)`
-- Expose windows: `expose()` -- shows window selection dialog
+- Show window selection dialog using Expose module: `expose()`
 - Mark a window with some key: `mark_window()` -- reads next key to mark a window with
 - Goto some window by a mark: `mark_switch_window()` -- reads next key to select a window by mark
 - Resize the layout from API: `layout_resize(<SCREEN NUM>, <TAG NUM>, <ROW NUM>, <COLUMN NUM>, <FLOAT>, <FLOAT>)`
@@ -39,7 +39,7 @@ Supported API functions are:
 
 ## Debug API
 
-Several API calls are also available in case debug mode is ON.
+Several API calls are also available in case API debug mode is ON.
 All of them will respond with the dump of certain data structures.
 
 - `dump_windows()`
