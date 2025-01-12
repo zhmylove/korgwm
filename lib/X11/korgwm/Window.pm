@@ -174,6 +174,7 @@ sub _stack_place(@stack) {
     }
 }
 
+# NOTE most likely you want $self->select() instead of focus().  This one just restack windows and process focus
 sub focus($self) {
     croak "Undefined window" unless $self->{id};
 
@@ -274,7 +275,7 @@ sub reset_border($self) {
 
 sub update_title($self) {
     for my $screen ($self->screens) {
-        $screen->{panel}->title($self->title // "") if ($screen->{focus} // 0) == $self;
+        $screen->{panel}->title($self->title // "") if $self == $screen->{focus};
     }
 }
 
@@ -292,10 +293,10 @@ sub hide($self) {
     $self->_hide();
 
     # Drop panel title
-    $_->{panel}->title() for grep { ($_->{focus} // 0) == $self } $self->screens();
+    $_->{panel}->title() for grep { $self == $_->{focus} } $self->screens();
 
     # Drop focus saving $self to $focus_prev
-    if ($self == ($focus->{window} // 0)) {
+    if ($self == $focus->{window}) {
         focus_prev_push($focus->{window});
         $focus->{window} = undef;
     }
@@ -515,7 +516,7 @@ sub urgency_clear($self) {
 
 # High-level wrapper
 sub urgency_raise($self, $set_hint = undef) {
-    if (($focus->{window} // 0) == $self) {
+    if ($self == $focus->{window}) {
         return $self->urgency_clear();
     }
 
@@ -629,6 +630,39 @@ sub size_hints_get($self) {
 
     @{ $hints }{ @wm_size_hints } = unpack($wm_size_hints, $data->{value});
     return $hints;
+}
+
+# Switch from anywhere to this window. See expose() and focus_prev()
+# Returns:
+# 0 - no errors
+# 1 - some warnings
+# 2 - decided to silently skip
+# Options:
+# - bypass_prevent_enter_notify
+# - bypass_prevent_focus_in
+sub select($self, $opts = {}) {
+    my @tags = $self->tags();
+    my $tag = shift @tags // ($self->{always_on} && $self->{always_on}->current_tag());
+    return carp "Window $self is visible on multiple tags, do not know how to focus_prev() to it" if @tags;
+    return carp "Previous window $self has no tags and is not always_on" unless $tag;
+
+    # Do nothing if there is _another_ maximized window on that tag
+    return 2 if $self != ($tag->{max_window} // $self);
+
+    prevent_enter_notify() unless $opts->{bypass_prevent_enter_notify};
+    prevent_focus_in() unless $opts->{bypass_prevent_focus_in};
+
+    # Switch to a proper tag unless it is already active
+    unless (any { $tag == ($_->current_tag() // 0) } @screens) {
+        $tag->{screen}->{focus} = $self;
+        $tag->{screen}->tag_set_active($tag->{idx});
+        $tag->{screen}->refresh();
+    }
+
+    $self->focus();
+    $self->warp_pointer();
+
+    return 0;
 }
 
 1;

@@ -96,22 +96,8 @@ sub expose {
         my $win = (values %{ $windows })[0];
         return carp "Unable to find single existing window to focus" unless $win;
 
-        my @tags = $win->tags();
-        my $tag = shift @tags // ($win->{always_on} && $win->{always_on}->current_tag());
-
-        # "Window $win is visible on multiple tags, do not know how to focus_prev() to it" so return to main routine
-        last if @tags;
-
-        return carp "Window $win has no tags and is not always_on" unless $tag;
-
-        # Switch to proper tag unless it is already active
-        unless (any { $tag == ($_->current_tag() // 0) } @screens) {
-            $tag->{screen}->{focus} = $win;
-            $tag->{screen}->tag_set_active($tag->{idx});
-            $tag->{screen}->refresh();
-        }
-
-        $win->warp_pointer();
+        last unless 1 == $win->tags();
+        $win->select() and return;
     }}
 
     # Select current screen
@@ -161,11 +147,11 @@ sub expose {
             for my $win ($tag->windows()) {
                 # Event-independent callback
                 my $cb = sub {
-                    $screen->tag_set_active($tag->{idx}, 0);
-                    $screen->set_active($win);
+                    prevent_focus_in();
+                    prevent_enter_notify();
                     $win_expose->destroy();
                     $win_expose = undef;
-                    $screen->refresh();
+                    $win->select();
                 };
 
                 # Count them for quick path
