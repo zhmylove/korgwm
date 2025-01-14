@@ -37,8 +37,7 @@ sub Notify {
             $app_name, $icon, $hints->{"desktop-entry"};
 
         # We can surely call urgency_raise() only when there is a single window found
-        # TODO consider calling it with (1) to set ICCCM hint on a server side as well
-        $found[0]->urgency_raise() if @found == 1;
+        $found[0]->urgency_raise(1) if @found == 1;
 
         DEBUG and warn sprintf "Got urgent notification for windows [%s] with class one of (%s)", "@found",
             join "|", map { $_ // "" } $app_name, $icon, $hints->{'desktop-entry'};
