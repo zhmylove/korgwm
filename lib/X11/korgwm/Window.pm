@@ -17,6 +17,7 @@ use Scalar::Util qw( refaddr );
 use overload '""' => sub { sprintf "%s[id:%d]", overload::StrVal($_[0]), $_[0]->{id} // "undef" };
 use overload '==' => sub { (refaddr($_[0]) // 0) == (refaddr($_[1]) // 0) };
 use overload '!=' => sub { (refaddr($_[0]) // 0) != (refaddr($_[1]) // 0) };
+use overload cmp => sub { (refaddr($_[0]) // 0) cmp (refaddr($_[1]) // 0) };
 
 # Internal class variables
 my $sid = 1;
