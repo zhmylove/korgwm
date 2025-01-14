@@ -98,9 +98,6 @@ sub expose {
         # Strange situation when $windows->{only} = undef, but double check to avoid bugs
         return carp "Unable to find single existing window to focus" unless $win;
 
-        # Changed from 'last' to 'return' as select() for this window inside expose callback won't do anycase
-        return unless 1 == $win->tags();
-
         $win->select();
 
         # Unconditionally return, even on errors in select()
