@@ -30,7 +30,7 @@ sub new($class, $id) {
 }
 
 sub DESTROY($self) {
-    # Wanna free some resources? Do it inside Destroy handler: korgwm.pm/hide_window()
+    # Wanna free some resources? Do it inside Destroy handler: korgwm.pm/annihilate_window()
     1;
 }
 

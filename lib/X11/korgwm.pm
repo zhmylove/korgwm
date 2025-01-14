@@ -251,17 +251,15 @@ sub handle_existing_windows {
 }
 
 # Destroy and Unmap events handler
-sub hide_window($wid, $delete = undef) {
-    my $win = $delete ? delete $windows->{$wid} : $windows->{$wid};
+sub annihilate_window($wid) {
+    my $win = delete $windows->{$wid};
     return unless $win;
     $win->{_hidden} = 1;
 
     # Ignore Window errors [code=3] closing multiple window at a time
-    if ($delete) {
-        $prevent_window_errors = AE::timer 0.1, 0, sub { $prevent_window_errors = undef };
-    }
+    $prevent_window_errors = AE::timer 0.1, 0, sub { $prevent_window_errors = undef };
 
-    if ($delete and $win->{transient_for}) {
+    if ($win->{transient_for}) {
         delete $win->{transient_for}->{children}->{$wid};
     }
 
@@ -299,17 +297,15 @@ sub hide_window($wid, $delete = undef) {
         $focus->{screen}->focus();
     }
 
-    focus_prev_remove($win) if $delete;
+    focus_prev_remove($win);
 
     # Clean-up cached classes index
-    if ($delete and my $class = $win->{cached_class}) {
+    if (my $class = $win->{cached_class}) {
         @{ $cached_classes->{ $class } } = grep { $win != $_ } @{ $cached_classes->{ $class } };
     }
 
     # Delete $win reference from %marked_windows
-    if ($delete) {
-        delete $marked_windows{$_} for grep { $win == $marked_windows{$_} } keys %marked_windows;
-    }
+    delete $marked_windows{$_} for grep { $win == $marked_windows{$_} } keys %marked_windows;
 }
 
 # Main routine
@@ -515,76 +511,77 @@ sub FireInTheHole {
     });
 
     add_event_cb(DESTROY_NOTIFY(), sub($evt) {
-        hide_window($evt->{window}, 1);
+        annihilate_window($evt->{window});
     });
 
     add_event_cb(UNMAP_NOTIFY(), sub($evt) {
-        # Handle only client unmap requests as we do not call unmap anymore. So we're fine to delete win here as well
-        hide_window($evt->{window}, 1);
+        # We do not call unmap(), so delete any window that is being unmapped by client
+        annihilate_window($evt->{window});
     });
 
     add_event_cb(CONFIGURE_REQUEST(), sub($evt) {
         # Configure window on the server
         my $win_id = $evt->{window};
 
-        if (my $win = $windows->{$win_id}) {
-            # This ugly code is an answer to bad apps like Google Chrome
-            my %geom;
-            my $bw = $cfg->{border_width};
-
-            # Parse masked fields from $evt
-            $evt->{value_mask} & $evt_masks{$_} and $geom{$_} = $evt->{$_} for qw( x y w h );
-
-            # Try to extract missing fields
-            $geom{$_} //= $win->{$_} // $win->{"real_$_"} for qw( x y w h );
-
-            # Ignore events for not fully configured windows. We've done our best.
-            return unless 4 == grep defined, values %geom;
-
-            # Save desired x y w h
-            $win->{$_} = $geom{$_} for keys %geom;
-
-            # Fix y
-            $geom{y} = $cfg->{panel_height} if $geom{y} < $cfg->{panel_height};
-
-            # Handle floating windows properly
-            if ($win->{floating}) {
-                # Prevent ConfigureRequest moving the window out of already assigned screen (if real_* set)
-                # Otherwise: set new_screen using required win geometry if possible, or use currently focused screen.
-                my $new_screen = screen_by_xy(@{ $win }{qw( real_x real_y )}) //
-                    screen_by_xy(@geom{qw( x y )}) // $focus->{screen};
-
-                # Fix window position if it asked to place it outside of selected screen
-                unless ($new_screen->contains_xy(@geom{qw( x y )})) {
-                    $geom{x} = $new_screen->{x} + int(($new_screen->{w} - $geom{w}) / 2);
-                    $geom{y} = $new_screen->{y} + int(($new_screen->{h} - $geom{h}) / 2);
-
-                    # Certainly save new position
-                    @{ $win }{qw( x y )} = @geom{qw( x y )};
-                }
-
-                # For floating we need fixup border
-                $win->resize_and_move($geom{x}, $geom{y}, $geom{w} + 2 * $bw, $geom{h} + 2 * $bw);
-            } else {
-                # If window is tiled or maximized, tell it it's real size
-                @geom{qw( x y w h )} = @{ $win }{qw( real_x real_y real_w real_h )};
-
-                # Two reasons: 1. some windows prefer not to know about their border; 2. $Layout::hide_border
-                $bw = 0 if 0 == ($win->{real_bw} // $cfg->{border_width});
-                $geom{x} += $bw;
-                $geom{y} += $bw;
-                $geom{w} -= 2 * $bw;
-                $geom{h} -= 2 * $bw;
-            }
-
-            # Send notification to the client and return
-            $win->configure_notify($evt->{sequence}, @geom{qw( x y w h )}, 0, 0, $bw);
+        my $win = $windows->{$win_id};
+        unless ($win) {
+            # Send xcb_configure_notify_event_t to the window's client
+            X11::korgwm::Window::_configure_notify($win_id, @{ $evt }{qw( sequence x y w h )});
             $X->flush();
             return;
         }
 
-        # Send xcb_configure_notify_event_t to the window's client
-        X11::korgwm::Window::_configure_notify($win_id, @{ $evt }{qw( sequence x y w h )});
+        # This ugly code is an answer to bad apps like Google Chrome
+        my %geom;
+        my $bw = $cfg->{border_width};
+
+        # Parse masked fields from $evt
+        $evt->{value_mask} & $evt_masks{$_} and $geom{$_} = $evt->{$_} for qw( x y w h );
+
+        # Try to extract missing fields
+        $geom{$_} //= $win->{$_} // $win->{"real_$_"} for qw( x y w h );
+
+        # Ignore events for not fully configured windows. We've done our best.
+        return unless 4 == grep defined, values %geom;
+
+        # Save desired x y w h
+        $win->{$_} = $geom{$_} for keys %geom;
+
+        # Fix y
+        $geom{y} = $cfg->{panel_height} if $geom{y} < $cfg->{panel_height};
+
+        # Handle floating windows properly
+        if ($win->{floating}) {
+            # Prevent ConfigureRequest moving the window out of already assigned screen (if real_* set)
+            # Otherwise: set new_screen using required win geometry if possible, or use currently focused screen.
+            my $new_screen = screen_by_xy(@{ $win }{qw( real_x real_y )}) //
+                screen_by_xy(@geom{qw( x y )}) // $focus->{screen};
+
+            # Fix window position if it asked to place it outside of selected screen
+            unless ($new_screen->contains_xy(@geom{qw( x y )})) {
+                $geom{x} = $new_screen->{x} + int(($new_screen->{w} - $geom{w}) / 2);
+                $geom{y} = $new_screen->{y} + int(($new_screen->{h} - $geom{h}) / 2);
+
+                # Certainly save new position
+                @{ $win }{qw( x y )} = @geom{qw( x y )};
+            }
+
+            # For floating we need fixup border
+            $win->resize_and_move($geom{x}, $geom{y}, $geom{w} + 2 * $bw, $geom{h} + 2 * $bw);
+        } else {
+            # If window is tiled or maximized, tell it it's real size
+            @geom{qw( x y w h )} = @{ $win }{qw( real_x real_y real_w real_h )};
+
+            # Two reasons: 1. some windows prefer not to know about their border; 2. $Layout::hide_border
+            $bw = 0 if 0 == ($win->{real_bw} // $cfg->{border_width});
+            $geom{x} += $bw;
+            $geom{y} += $bw;
+            $geom{w} -= 2 * $bw;
+            $geom{h} -= 2 * $bw;
+        }
+
+        # Send notification to the client and return
+        $win->configure_notify($evt->{sequence}, @geom{qw( x y w h )}, 0, 0, $bw);
         $X->flush();
     });
 
