@@ -351,7 +351,7 @@ sub transients($self) {
 # Returns true if $self is a transient for $grandparent with any nesting depth
 sub relative_for($self, $grandparent) {
     return unless $grandparent and $self->{transient_for};
-    any { $self->{transient_for} == $_ } $grandparent->transients();
+    any { $self == $_ } $grandparent->transients();
 }
 
 # Toggles or sets a particular floating
