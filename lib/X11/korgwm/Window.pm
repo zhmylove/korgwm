@@ -360,6 +360,9 @@ sub toggle_floating($self, $set_floating = undef) {
     # There is no way to disable floating for transient windows
     return if $self->{transient_for};
 
+    # Bypass maximized
+    return if $self->{maximized};
+
     return if defined $set_floating and $set_floating == ($self->{floating} // 0);
     $self->{floating} = defined $set_floating ? 1 : ! $self->{floating};
 
@@ -406,6 +409,8 @@ sub toggle_floating($self, $set_floating = undef) {
     }
 
     @{ $self }{qw( x y w h )} = ($x, $y, $w, $h);
+
+    prevent_enter_notify();
 
     $self->resize_and_move($x, $y, $w, $h);
     $_->win_float($self, $self->{floating}) for $self->tags();

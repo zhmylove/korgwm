@@ -87,11 +87,11 @@ sub focus_prev_get() {
 }
 
 # Preventor functions to avoid code copy-pasting
-sub prevent_focus_in($timeout = 0.2) {
+sub prevent_focus_in($timeout = 0.11) {
     $prevent_focus_in = AE::timer $timeout, 0, sub { $prevent_focus_in = undef };
 }
 
-sub prevent_enter_notify($timeout = 0.2) {
+sub prevent_enter_notify($timeout = 0.11) {
     $prevent_enter_notify = AE::timer $timeout, 0, sub { $prevent_enter_notify = undef };
 }
 
