@@ -101,14 +101,18 @@ sub show($self) {
     # Handle focus change
     $focus->{screen} = $self->{screen};
     my $focus_win = $self->{screen}->{focus};
-    if (defined $focus_win and exists $focus_win->{on_tags}->{$self} ) {
+    if (defined $focus_win and exists $focus_win->{on_tags}->{$self}) {
         # If this window is focused on this tag, just give it a focus
         $focus_win->focus();
     } else {
         # Try to focus previously focused window (or any window)
-        my $win = $self->{focus} || $self->first_window();
-        # XXX maybe drop focus otherwise? UPD: no. I want visible window to be focused this case
-        $win->focus() if $win;
+        if (my $win = $self->{focus} || $self->first_window()) {
+            if ($win->{floating} or $win->{maximized}) {
+                $win->focus(); # floating, maximized, always_on
+            } else {
+                $win->select(); # tiled
+            }
+        }
     }
 
     $X->flush();

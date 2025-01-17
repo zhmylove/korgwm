@@ -67,8 +67,9 @@ our @parser = (
 
     # Set active tag
     [qr/tag_select\((\d+)\)/, sub ($arg) { return sub {
-        # Prevent FocusIn events
+        # Prevent pointer events
         prevent_focus_in();
+        prevent_enter_notify();
 
         $focus->{screen}->tag_set_active($arg - 1);
         $focus->{screen}->refresh();
