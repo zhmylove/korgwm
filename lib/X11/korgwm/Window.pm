@@ -6,7 +6,7 @@ use strict;
 use warnings;
 use feature 'signatures';
 
-use List::Util qw( any first sum0 );
+use List::Util qw( any first sum0 uniq );
 use Encode qw( encode decode );
 use X11::XCB ':all';
 use X11::korgwm::Common;
@@ -538,6 +538,18 @@ sub urgency_raise($self, $set_hint = undef) {
     }
 
     $self->{urgent} = 1;
+}
+
+# Look up for a window by a list of possible classes and make it urgent
+sub urgent_by_class(@classes) {
+    my @found = uniq sort map { @$_ } grep defined, map { $cached_classes->{$_} }
+        uniq sort map lc, grep defined, @classes;
+
+    # We can surely call urgency_raise() only when there is a single window found
+    $found[0]->urgency_raise(1) if @found == 1;
+
+    # Returns found windows
+    @found;
 }
 
 sub warp_pointer($self) {

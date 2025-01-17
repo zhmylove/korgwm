@@ -8,9 +8,8 @@ use strict;
 use warnings;
 use feature 'signatures';
 
-use List::Util qw( uniq );
-use Net::DBus::Exporter qw(org.freedesktop.Notifications);
 use X11::korgwm::Common;
+use Net::DBus::Exporter qw(org.freedesktop.Notifications);
 use base qw(Net::DBus::Object);
 
 my $id = 1;
@@ -32,12 +31,8 @@ sub Notify {
 
     # So far I'll ignore messages with urgency == 0
     if (ref $hints eq 'HASH' && $hints->{urgency}) {
-        # Find windows w/ WM_CLASS == ($app_name OR $icon OR $hints->{desktop-entry})
-        my @found = uniq sort map { @$_ } grep defined, map { $cached_classes->{$_} } uniq sort map lc, grep defined,
-            $app_name, $icon, $hints->{"desktop-entry"};
-
-        # We can surely call urgency_raise() only when there is a single window found
-        $found[0]->urgency_raise(1) if @found == 1;
+        # Make a window w/ WM_CLASS == ($app_name OR $icon OR $hints->{desktop-entry}) urgent if single match
+        my @found = &X11::korgwm::Window::urgent_by_class($app_name, $icon, $hints->{"desktop-entry"});
 
         DEBUG7 and carp sprintf "Got urgent notification for windows [%s] with class one of (%s)", "@found",
             join "|", map { $_ // "" } $app_name, $icon, $hints->{'desktop-entry'};

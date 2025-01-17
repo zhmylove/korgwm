@@ -241,6 +241,11 @@ our @parser = (
         &X11::korgwm::Expose::expose();
     }}],
 
+    # Make some window urgent by class
+    [qr/urgent_by_class\((.+)\)/, sub ($arg) { return sub {
+        &X11::korgwm::Window::urgent_by_class($arg);
+    }}],
+
     # Resize the layout from API
     [qr/layout_resize\((\d+\s*,\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,\s*-?0\.\d+\s*,\s*-?0\.\d+)\)/, sub ($arg) { return sub {
         my ($arg_screen, $arg_tag, $arg_i, $arg_j, $arg_delta_x, $arg_delta_y) = split /\s*,\s*/, $arg;

@@ -34,6 +34,7 @@ Supported API functions are:
 - Goto some window by a mark: `mark_switch_window()` -- reads next key to select a window by mark
 - Resize the layout from API: `layout_resize(<SCREEN NUM>, <TAG NUM>, <ROW NUM>, <COLUMN NUM>, <FLOAT>, <FLOAT>)`
 - Append windows from certain tag(s) to the active one: `tag_append(<TAG NUM>)`
+- Make some window urgent by `WM_CLASS`: `urgent_by_class(<STRING>)`
 - Exit from WM: `exit()`
 - Do nothing: `nop()`, useful to null-route some keys
 
