@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 use ExtUtils::MakeMaker;
- 
+
 my $repo = 'https://github.com/zhmylove/korgwm';
 
 WriteMakefile(

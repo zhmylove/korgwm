@@ -18,7 +18,7 @@ Possible tokens:
 Supported API functions are:
 
 - Run shell command: `exec(<STRING>)`
-- Set active tag: `tag_select(<TAG NUM>)`: 
+- Set active tag: `tag_select(<TAG NUM>)`
 - Close focused window: `win_close()`
 - Window close or toggle floating / maximize / always\_on: `win_toggle_<floating|maximize|always_on>()`
 - Move window to a particular tag: `win_move_tag(<TAG NUM>)`

@@ -6,7 +6,6 @@ use strict;
 use warnings;
 use feature 'signatures';
 
-use Carp;
 use Gtk3;
 use Glib::Object::Introspection;
 use AnyEvent;

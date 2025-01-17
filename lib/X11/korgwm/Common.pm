@@ -12,16 +12,14 @@ use List::Util qw( any first );
 use Scalar::Util qw( looks_like_number );
 
 our @EXPORT = qw(
-    DEBUG DEBUG_API DEBUG_EVENTS $X $cfg $focus $windows %screens %xcb_events %xcb_events_ignore @screens
+    carp croak S_DEBUG DEBUG_API $X $cfg $focus $windows %screens %xcb_events %xcb_events_ignore @screens
     add_event_cb add_event_ignore hexnum init_extension replace_event_cb screen_by_xy pointer %marked_windows
     $visible_min_x $visible_min_y $visible_max_x $visible_max_y $prevent_focus_in $prevent_enter_notify $cpu_saver
     focus_prev_push focus_prev_remove focus_prev_get prevent_focus_in prevent_enter_notify $cached_classes
     );
 
-# Set after parsing config
-sub DEBUG;
-sub DEBUG_API;
-sub DEBUG_EVENTS;
+# NOTE all the debug functions are defined in Config.pm
+push @EXPORT, "DEBUG$_" for 1..9;
 
 our $X;
 our $cfg;
@@ -62,11 +60,11 @@ sub replace_event_cb($id, $sub) {
 
 sub init_extension($name, $first_event) {
     my $ext = $X->query_extension_reply($X->query_extension(length($name), $name)->{sequence});
-    die "$name extension not available" unless $ext->{present};
+    croak "$name extension not available" unless $ext->{present};
 
     # We can skip this part unless we're interested getting event
     return unless defined $first_event;
-    die "Could not get $name first_event" unless $$first_event = $ext->{first_event};
+    croak "Could not get $name first_event" unless $$first_event = $ext->{first_event};
 }
 
 # focus_prev helpers

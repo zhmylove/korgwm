@@ -130,11 +130,24 @@ BEGIN {
     # Normalize numeric values
     $_ = hexnum for @{ $cfg }{grep /^color_/, keys %{ $cfg }};
 
-    # Set the DEBUG
+    # Setup the DEBUG
+    ## Allow override via environment and create a closure
     $cfg->{debug} = $1 if ($ENV{KORGWM_DEBUG} // "") =~ /^(\d+)$/ and $1 > 0;
-    *X11::korgwm::Common::DEBUG = $cfg->{debug} ? sub() { 1 } : sub() { undef };
-    *X11::korgwm::Common::DEBUG_API = (DEBUG or defined $ENV{KORGWM_DEBUG_API}) ? sub() { 1 } : sub() { undef };
-    *X11::korgwm::Common::DEBUG_EVENTS = $cfg->{debug} >= 9 ? sub() { 1 } : sub() { undef };
+    my $dbglvl = $cfg->{debug};
+
+    ## Append backtrace for higher levels
+    $Carp::Verbose = 1 if $dbglvl >= 3;
+
+    ## Export common functions
+    *X11::korgwm::Common::DEBUG_API = ($dbglvl or defined $ENV{KORGWM_DEBUG_API}) ? sub() {1} : sub() {undef};
+
+    ## Create per-level constant functions
+    ## Create slow S_DEBUG function that can be used within return clause
+    {
+        no strict 'refs';
+        *{"X11::korgwm::Common::DEBUG$_"} = $dbglvl >= $_ ? sub() {1} : sub() {undef} for 1..9;
+        *{"X11::korgwm::Common::S_DEBUG"} = sub($lvl, $msg) { $dbglvl >= $lvl and carp $msg; $dbglvl >= $lvl };
+    }
 }
 
 1;

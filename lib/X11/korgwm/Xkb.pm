@@ -6,7 +6,6 @@ use strict;
 use warnings;
 use feature 'signatures';
 
-use Carp;
 use X11::XCB ':all';
 use X11::korgwm::Common;
 require X11::korgwm::Panel::Lang;

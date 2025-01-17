@@ -6,7 +6,6 @@ use strict;
 use warnings;
 use feature 'signatures';
 
-use Carp;
 use List::Util qw( any first sum0 );
 use Encode qw( encode decode );
 use X11::XCB ':all';
@@ -192,7 +191,7 @@ sub focus($self) {
 
     # XXX Currently it's not supported, so croak
     if (@focus_screens != 1) {
-        warn "Bad window: $self tags: " . join " ", map { "$_->{screen}: tag #$_->{idx}" } $self->tags();
+        carp "Bad window: $self tags: " . join " ", map { "$_->{screen}: tag #$_->{idx}" } $self->tags();
         croak "Unimplemented focus for multiple screens (@focus_screens)" . join " ", map { $_->{id} } @focus_screens;
     }
 
@@ -655,7 +654,7 @@ sub size_hints_get($self) {
 sub select($self, $opts = {}) {
     my @tags = $self->tags();
     my $tag = shift @tags // ($self->{always_on} && $self->{always_on}->current_tag());
-    return carp "Window $self is visible on multiple tags, do not know how to focus_prev() to it" if @tags;
+    return carp "Window $self is visible on multiple tags, do not know how to select() it" if @tags;
     return carp "Previous window $self has no tags and is not always_on" unless $tag;
 
     # Do nothing if there is _another_ maximized window on that tag

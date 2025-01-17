@@ -33,7 +33,7 @@ notification_server: 1
 randr_cmd: 'xrandr --output HDMI-A-0 --left-of eDP --auto --output DisplayPort-0 --right-of eDP --auto'
 # Enable/disable setting the colour for root window
 set_root_color: 0
-# Enable debug output (9 for maximum debug, MAY LEAK SENSITIVE INFORMATION)
+# Debug level 1--9. Levels >= 7 MAY LEAK SENSITIVE INFORMATION
 debug: 0
 
 ## Bar settings

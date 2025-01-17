@@ -6,7 +6,6 @@ use strict;
 use warnings;
 use feature 'signatures';
 
-use Carp;
 use POSIX qw( ceil floor round );
 use Storable qw( dclone );
 use X11::korgwm::Common;
@@ -30,7 +29,7 @@ by one to match the selected scheme.
 
 Layout relies on grid division of the screen.  Firstly it divides the screen
 into number of rows, then into columns.  "default" layout for 5 windows looks
-like: 
+like:
 
     {
         'cols' => [

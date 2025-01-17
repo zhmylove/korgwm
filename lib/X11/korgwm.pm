@@ -11,7 +11,6 @@ our $VERSION = "4.0";
 # Third-party includes
 use X11::XCB 0.23 ':all';
 use X11::XCB::Connection;
-use Carp;
 use AnyEvent;
 use List::Util qw( any first min max none );
 
@@ -21,9 +20,7 @@ use X11::korgwm::Config;
 
 # Early initialize debug output, if needed. Should run after Common & Config
 BEGIN {
-    DEBUG and do {
-        require Devel::SimpleTrace;
-        Devel::SimpleTrace->import();
+    DEBUG1 and do {
         require Data::Dumper;
         Data::Dumper->import();
         $Data::Dumper::Sortkeys = 1;
@@ -111,7 +108,7 @@ sub handle_screens {
     $screen_for_abandoned_windows = $screens{$screen_for_abandoned_windows};
     croak "Unable to get the screen for abandoned windows" unless defined $screen_for_abandoned_windows;
 
-    DEBUG and warn "Moving stale windows to screen: $screen_for_abandoned_windows";
+    DEBUG1 and carp "Moving stale windows to screen: $screen_for_abandoned_windows";
 
     # Unfortunately, in case we have to change screen configuration, we must save preferred position for all windows
     # Now iterate over the screens we're not going to delete (the latter will be processed inside destroy() below)
@@ -134,9 +131,9 @@ sub handle_screens {
     }
 
     # Sort screens based on X axis and store them in @screens
-    DEBUG and warn "Old screens: (@screens)";
+    DEBUG1 and carp "Old screens: (@screens)";
     @screens = map { $screens{$_} } sort { (split /,/, $a)[0] <=> (split /,/, $b)[0] or $a <=> $b } keys %screens;
-    DEBUG and warn "New screens: (@screens)";
+    DEBUG1 and carp "New screens: (@screens)";
 
     # Assign indexes to use them during possible next handle_screens events
     $screens[$_]->{idx} = $_ for 0..$#screens;
@@ -328,7 +325,7 @@ sub FireInTheHole {
     );
     die "Looks like another WM is in use" if $X->request_check($wm->{sequence});
 
-    DEBUG and warn "It's time to chew bubble gum with debug level=$cfg->{debug}";
+    DEBUG1 and carp "It's time to chew bubble gum with debug level=$cfg->{debug}";
 
     # Set root color
     if ($cfg->{set_root_color}) {
@@ -374,10 +371,7 @@ sub FireInTheHole {
         my $class = X11::korgwm::Window::_class($wid);
         unless (defined $class) {
             my $wmname = X11::korgwm::Window::_title($wid) // return;
-            unless ($cfg->{noclass_whitelist}->{$wmname}) {
-                DEBUG and warn "Ignored window $wmname with no class";
-                return;
-            }
+            return S_DEBUG(1, "Ignored window $wmname with no class") unless $cfg->{noclass_whitelist}->{$wmname};
         }
 
         # Create a window if needed
@@ -468,7 +462,7 @@ sub FireInTheHole {
             $win->{cached_class} = lc $class;
         }
 
-        DEBUG and warn "Mapping $win [$class] (@{ $win }{qw( x y w h )}) screen($screen->{id}) tag($tag->{idx})";
+        DEBUG3 and carp "Mapping $win [$class] (@{ $win }{qw( x y w h )}) screen($screen->{id}) tag($tag->{idx})";
 
         # Just add win to a proper tag. win->show() will be called from tag->show() during screen->refresh()
         $tag->win_add($win);
@@ -491,7 +485,7 @@ sub FireInTheHole {
         if ($tag->{max_window} and not $win->relative_for($tag->{max_window})) {
             # There is some maximized window on the tag and $win is not transient for it or its children
             # TODO consider if we want to respect $follow here
-            DEBUG and warn "Window $win is starting _hidden() behind some maximized one";
+            DEBUG2 and carp "Window $win is starting _hidden() behind some maximized one";
             $win->show_hidden();
         } elsif ($follow) {
             $screen->tag_set_active($tag->{idx}, 0);
@@ -614,7 +608,7 @@ sub FireInTheHole {
         return if 3 == ($evt->{error_code} || 0) and $prevent_window_errors;
 
         # Log unexpected errors
-        warn sprintf "X11 Error: code=%s seq=%s res=%s %s/%s", @{ $evt }{qw( error_code sequence
+        carp sprintf "X11 Error: code=%s seq=%s res=%s %s/%s", @{ $evt }{qw( error_code sequence
             resource_id major_code minor_code )};
     });
 
@@ -652,7 +646,7 @@ sub FireInTheHole {
             last unless $evt;
 
             # MotionNotifies(6) are ignored anyways. No room for error
-            DEBUG_EVENTS and $evt->{response_type} != 6 and warn Dumper $evt;
+            DEBUG9 and $evt->{response_type} != 6 and warn Dumper $evt;
 
             # Highest bit indicates that the source is another client
             my $type = $evt->{response_type} & 0x7F;
@@ -660,9 +654,9 @@ sub FireInTheHole {
             if (defined(my $evt_cb = $xcb_events{$type})) {
                 $evt_cb->($evt);
             } elsif (exists $xcb_events_ignore{$type}) {
-                DEBUG_EVENTS and warn "Manually ignored event type: $type";
+                DEBUG9 and carp "Manually ignored event type: $type";
             } else {
-                warn "Warning: missing handler for event $type";
+                carp "Warning: missing handler for event $type";
             }
         }
 

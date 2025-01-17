@@ -27,7 +27,7 @@ dbus_method("Notify",
 sub Notify {
     # See libnotify/notification-spec.xml for more info
     my ($self, $app_name, $replace_id, $icon, $summary, $body, $actions, $hints, $expiration) = @_;
-    DEBUG_EVENTS and warn sprintf "Got D-Bus notification: (%s)", join ", ", map { $_ // "" }
+    DEBUG9 and carp sprintf "Got D-Bus notification: (%s)", join ", ", map { $_ // "" }
         $app_name, $replace_id, $icon, $summary, $body, $expiration;
 
     # So far I'll ignore messages with urgency == 0
@@ -39,7 +39,7 @@ sub Notify {
         # We can surely call urgency_raise() only when there is a single window found
         $found[0]->urgency_raise(1) if @found == 1;
 
-        DEBUG and warn sprintf "Got urgent notification for windows [%s] with class one of (%s)", "@found",
+        DEBUG7 and carp sprintf "Got urgent notification for windows [%s] with class one of (%s)", "@found",
             join "|", map { $_ // "" } $app_name, $icon, $hints->{'desktop-entry'};
     }
 

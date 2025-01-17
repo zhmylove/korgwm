@@ -6,7 +6,6 @@ use strict;
 use warnings;
 use feature 'signatures';
 
-use Carp;
 use POSIX qw( setsid );
 use List::Util qw( any );
 use X11::XCB ':all';
@@ -24,7 +23,7 @@ our @parser = (
         return if $pid;
         close $_ for *STDOUT, *STDERR, *STDIN;
 
-        # No need to 'or die' here as we do not care
+        # Intentionally ignoring open(2) errors
         open STDIN, "+<", "/dev/null";
         open STDOUT, ">&STDIN";
         open STDERR, ">&STDIN";
@@ -43,12 +42,9 @@ our @parser = (
                 return unless defined $key;
 
                 my $win = $marked_windows{$key};
-                unless (defined $win) {
-                    DEBUG and warn "Cannot find any window with mark " . chr($key);
-                    return;
-                }
+                return S_DEBUG(5, "Cannot find any window with mark " . chr($key)) unless defined $win;
 
-                DEBUG and warn "Switching to a window $win with key " . chr($key);
+                DEBUG5 and carp "Switching to a window $win with key " . chr($key);
                 $win->select();
             });
     }}],
@@ -60,7 +56,7 @@ our @parser = (
                 my ($key, $mask) = @$data;
                 return unless defined $key and defined $focus->{window};
 
-                DEBUG and warn "Marking window $focus->{window} with key " . chr($key);
+                DEBUG4 and carp "Marking window $focus->{window} with key " . chr($key);
                 $marked_windows{$key} = $focus->{window};
             });
     }}],
@@ -310,8 +306,6 @@ sub parse($cmd) {
         return $known->[1]->($1) if $cmd =~ m{^$known->[0]$}s;
     }
     croak "Don't know how to parse $cmd";
-    # In case I decide to move back to carp here
-    # sub { warn "Unimplemented cmd for key pressed: $cmd" };
 }
 
 1;

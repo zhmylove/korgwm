@@ -8,7 +8,6 @@ use feature 'signatures';
 
 use List::Util qw( first );
 use Scalar::Util qw( weaken );
-use Carp;
 use X11::XCB ':all';
 use X11::korgwm::Common;
 use X11::korgwm::Layout;

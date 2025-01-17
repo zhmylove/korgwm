@@ -6,7 +6,6 @@ use strict;
 use warnings;
 use feature 'signatures';
 
-use Carp;
 use AnyEvent;
 use AnyEvent::Handle;
 use AnyEvent::Socket;

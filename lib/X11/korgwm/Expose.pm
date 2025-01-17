@@ -6,7 +6,6 @@ use strict;
 use warnings;
 use feature 'signatures';
 
-use Carp;
 use List::Util qw( any );
 use POSIX qw( ceil );
 use X11::XCB ':all';
@@ -222,13 +221,13 @@ sub expose {
         $grab_status = $display->get_default_seat()->grab($win_expose->get_window(), "keyboard", 0, (undef) x 4);
     } while ($grab_tries-- and $grab_status eq 'already-grabbed' and usleep(1000) >= 0);
 
-    warn "Expose was unable to grab keyboard for ~1 second, rc=$grab_status" if $grab_status ne 'success';
+    carp "Expose was unable to grab keyboard for ~1 second, rc=$grab_status" if $grab_status ne 'success';
 }
 
 # TODO consider adding this right into Window.pm (if Expose will work good)
 # Inverse approach is used in order to simplify Expose deletion / re-implementation
 BEGIN {
-    # Insert some pixbuf-specific methods 
+    # Insert some pixbuf-specific methods
     sub X11::korgwm::Window::_get_pixbuf($self) {
         # If the window was not mapped, draw it in black
         return Gtk3::GdkPixbuf::Pixbuf->new_from_xpm_data(['1 1 1 1', 'a c #262729', 'a'])
