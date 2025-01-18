@@ -284,7 +284,7 @@ sub _hide($self) {
     # We do not actually unmap them anymore, just move out of screen and mark as '_hidden'.
     $self->{_hidden} = 1;
 
-    # Ask X11 to move it
+    # Ask X11 to move it left real_* intact
     $X->configure_window($self->{id}, CONFIG_WINDOW_X | CONFIG_WINDOW_Y, $self->{sid} * 4096, $visible_max_y * 2);
 }
 
@@ -305,7 +305,7 @@ sub hide($self) {
 sub show($self) {
     # Not using $self->move() to avoid garbage in real_*
     $X->configure_window($self->{id}, CONFIG_WINDOW_X | CONFIG_WINDOW_Y, @{ $self }{qw( x y )})
-        if $self->{floating} and $self->{_hidden};
+        if $self->{floating} and $self->{_hidden} and not $self->{maximized};
 
     # Map anyways as client could've unmapped on their own
     $X->map_window($self->{id});
@@ -415,24 +415,63 @@ sub toggle_floating($self, $set_floating = undef) {
     $_->win_float($self, $self->{floating}) for $self->tags();
 }
 
-sub toggle_maximize($self, $action = undef) {
-    # Parse action: 0 => normal, 1 => fullscreen, undef => toggle
-    $action = $self->{maximized} ? 0 : 1 unless defined $action;
+# Set, unset or toggle 'maximize' for a window
+# Actions:
+# - 0 => set normal
+# - 1 => set fullscreen
+# - 2 => toggle them
+# Options:
+# - allow_invisible => do not skip windows on hidden tags
+sub toggle_maximize($self, $action, %opts) {
+    # Parse action: 0 => normal, 1 => fullscreen, 2 => toggle
+    $action = ! $self->{maximized} if $action == 2;
+
+    # Tag to operate with
+    my $tag;
+
+    # Flag if the window is actually invisible
+    my $invisible_win;
+
+    DEBUG5 and carp "toggle_maximize($self, $action, @{[%opts]})";
+
+    # Firstly we'll try to process toggle for visible window
+    my @visible_tags = $self->tags_visible();
+    croak "Maximizing a window on several visible tags is not implemented" if @visible_tags > 1;
+
+    if (@visible_tags == 1) {
+        # Got it, keep going
+        $tag = $visible_tags[0];
+    } else {
+        # No visible tags for the window found
+        # Give it another try if we allow invisible windows
+        if ($opts{allow_invisible}) {
+            # But this make sence only when $self has exactly one tag
+            my @tags = $self->tags();
+            if (@tags == 1) {
+                $tag = $tags[0];
+                $invisible_win = 1;
+            }
+        }
+
+        # Return if no tag found
+        return S_DEBUG(3, "Ignoring toggle_maximize($self, $action) for invisible window") unless $tag;
+        DEBUG4 and carp "Executing toggle_maximize($self, $action) for invisible window";
+    }
 
     # Set self property
     $self->{maximized} = !! $action;
 
-    # Check condition and get the tag
-    my @visible_tags = $self->tags_visible();
-    croak "Maximizing a window on several visible tags is not implemented" if @visible_tags > 1;
-    return unless @visible_tags; # ignore maximize requests for invisibe windows
-    my $tag = $visible_tags[0];
-
     # There is race condition creating new maximized windows like starting evince in a fullscreen mode
     # To avoid that we want to ignore FocusIn and EnterNotify for a short time
     # I also want to prevent EnterNotify unmaximizing a window to avoid focus switch, so calling it unconditionally
-    prevent_focus_in();
-    prevent_enter_notify();
+    unless ($invisible_win) {
+        prevent_focus_in();
+        prevent_enter_notify();
+    }
+
+    # Reflect the change to the client for ugly applications like Mozilla Firefox
+    $X->change_property(PROP_MODE_REPLACE, $self->{id}, atom("_NET_WM_STATE"), atom("ATOM"), 32,
+        $action ? (1, pack L => atom("_NET_WM_STATE_FULLSCREEN")) : (0, 0));
 
     # Execute toggle
     if ($action) {
@@ -443,9 +482,10 @@ sub toggle_maximize($self, $action = undef) {
         $_->_hide() for $tag->windows();
     } else {
         $tag->{max_window} = undef;
-        $self->resize_and_move(@{ $self }{qw( x y w h )});
+        $self->resize_and_move(@{ $self }{qw( x y w h )}) unless $invisible_win;
     }
-    $tag->show();
+
+    $tag->show() unless $invisible_win;
 }
 
 sub toggle_always_on($self) {
@@ -663,7 +703,7 @@ sub size_hints_get($self) {
 # Options:
 # - bypass_prevent_enter_notify
 # - bypass_prevent_focus_in
-sub select($self, $opts = {}) {
+sub select($self, %opts) {
     my @tags = $self->tags();
     my $tag = shift @tags // ($self->{always_on} && $self->{always_on}->current_tag());
     return carp "Window $self is visible on multiple tags, do not know how to select() it" if @tags;
@@ -672,8 +712,8 @@ sub select($self, $opts = {}) {
     # Do nothing if there is _another_ maximized window on that tag
     return 2 if $self != ($tag->{max_window} // $self);
 
-    prevent_enter_notify() unless $opts->{bypass_prevent_enter_notify};
-    prevent_focus_in() unless $opts->{bypass_prevent_focus_in};
+    prevent_enter_notify() unless $opts{bypass_prevent_enter_notify};
+    prevent_focus_in() unless $opts{bypass_prevent_focus_in};
 
     # Switch to a proper tag unless it is already active
     unless (any { $tag == ($_->current_tag() // 0) } @screens) {

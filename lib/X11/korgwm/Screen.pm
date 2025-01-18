@@ -49,8 +49,8 @@ sub destroy($self, $new_screen) {
 }
 
 # Set $tag_new_id visible for $self screen
-# Supported options:
-# - rotate -- switch to previously selected tag if $tag_new_id is already active
+# Options:
+# - rotate => switch to previously selected tag if $tag_new_id is already active
 # Options are also passed to $tag->show() as-is
 sub tag_set_active($self, $tag_new_id, %opts) {
     $opts{rotate} //= 1;

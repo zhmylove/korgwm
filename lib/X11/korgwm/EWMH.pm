@@ -47,11 +47,11 @@ sub icccm_update_maximize($evt) {
 
     # Ok, now we're sure we were requested to change the fullscreen hint
     if ($action == _NET_WM_STATE_ADD) {
-        $win->toggle_maximize(1);
+        $win->toggle_maximize(1, allow_invisible => 1);
     } elsif ($action == _NET_WM_STATE_REMOVE) {
-        $win->toggle_maximize(0);
+        $win->toggle_maximize(0, allow_invisible => 1);
     } elsif ($action == _NET_WM_STATE_TOGGLE) {
-        $win->toggle_maximize();
+        $win->toggle_maximize(2, allow_invisible => 1);
     } else {
         croak "Unknown action specified in _NET_WM_STATE EWMH";
     }

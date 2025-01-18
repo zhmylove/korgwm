@@ -91,7 +91,7 @@ our @parser = (
         # Call relevant function
         $arg eq "close"             ? $win->close()             :
         $arg eq "toggle_floating"   ? $win->toggle_floating()   :
-        $arg eq "toggle_maximize"   ? $win->toggle_maximize()   :
+        $arg eq "toggle_maximize"   ? $win->toggle_maximize(2)  :
         $arg eq "toggle_always_on"  ? $win->toggle_always_on()  :
         croak "Unknown win_toggle_$arg function called"         ;
 

@@ -63,8 +63,8 @@ sub hide($self) {
 }
 
 # Makes the $self tag visible
-# Supported options:
-# - noselect -- do not call select() to avoid warp_pointer()
+# Options:
+# - noselect => do not call select() to avoid warp_pointer()
 sub show($self, %opts) {
     # Redefine layout if needed
     $self->{layout} //= X11::korgwm::Layout->new();
