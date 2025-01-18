@@ -253,7 +253,6 @@ BEGIN {
 
 sub init {
     # Set up extension
-    Glib::Object::Introspection->setup(basename => "GdkX11", version  => "3.0", package  => "Gtk3::Gdk");
     Glib::Object::Introspection->setup(basename => "GdkPixbuf", version  => "2.0", package  => "Gtk3::GdkPixbuf");
     $display = Gtk3::Gdk::Display::get_default();
     $font = Pango::FontDescription::from_string($cfg->{font});

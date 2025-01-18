@@ -348,6 +348,9 @@ sub FireInTheHole {
     handle_screens();
     die "No screens found" unless keys %screens;
 
+    # Update EWMH supported declaration
+    &X11::korgwm::EWMH::declare_support();
+
     # Initial fill of focus structure
     $focus = {
         screen => $screens[0],

@@ -120,6 +120,7 @@ UNITCHECK {
 
 sub resize_and_move($self, $x, $y, $w, $h, $bw=$cfg->{border_width}) {
     croak "Undefined window" unless $self->{id};
+    DEBUG8 and carp "resize_and_move($self, $x, $y, $w, $h, $bw)";
     @{ $self }{qw( real_x real_y real_w real_h real_bw )} = ($x, $y, $w, $h, $bw);
     _resize_and_move($self->{id}, $x, $y, $w, $h, $bw);
 }

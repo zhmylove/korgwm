@@ -68,6 +68,7 @@ sub hide($self) {
 sub show($self, %opts) {
     # Redefine layout if needed
     $self->{layout} //= X11::korgwm::Layout->new();
+    DEBUG8 and carp "tag->show($self, @{[%opts]})";
 
     # Map all windows from the tag
     my ($w, $h, $x, $y) = @{ $self->{screen} }{qw( w h x y )};

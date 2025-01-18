@@ -20,6 +20,7 @@ unless ($X11::korgwm::gtk_init) {
 # Prepare internal variables
 my ($ready, $color_fg , $color_bg , $color_urgent_bg, $color_urgent_fg, $color_append_bg, $color_append_fg, @ws_names);
 sub _init {
+    Glib::Object::Introspection->setup(basename => "GdkX11", version  => "3.0", package  => "Gtk3::Gdk");
     Glib::Object::set_property(Gtk3::Settings::get_default(), "gtk-font-name", $cfg->{font});
     $color_fg = sprintf "#%x", $cfg->{color_fg};
     $color_bg = sprintf "#%x", $cfg->{color_bg};
@@ -208,6 +209,11 @@ sub iter {
 
 sub visbile_ws($self) {
     grep { $_->{ebox}->get_visible() } @{ $self->{ws} };
+}
+
+# X11 id of the panel
+sub xid($self) {
+    Gtk3::Gdk::X11Window::get_xid($self->{window}->get_window());
 }
 
 1;
