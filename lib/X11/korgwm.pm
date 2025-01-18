@@ -315,7 +315,7 @@ sub FireInTheHole {
     $ROOT = $X->root;
 
     # Preload some atoms, create non-existent ones
-    $atom_wmstate = $X->intern_atom_reply($X->intern_atom(0, length("WM_STATE"), "WM_STATE")->{sequence})->{atom};
+    $atom_wmstate = atom("WM_STATE");
 
     # Check for another WM
     my $wm = $X->change_window_attributes_checked($ROOT->id, CW_EVENT_MASK,

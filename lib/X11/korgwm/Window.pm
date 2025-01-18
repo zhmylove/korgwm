@@ -35,14 +35,18 @@ sub DESTROY($self) {
 }
 
 sub _get_property($wid, $prop_name, $prop_type='UTF8_STRING', $ret_length=8) {
-    my $aname = $X->atom(name => $prop_name)->id;
-    my $atype = $X->atom(name => $prop_type)->id;
+    my $aname = atom($prop_name);
+    my $atype = atom($prop_type);
     my $cookie = $X->get_property(0, $wid, $aname, $atype, 0, $ret_length);
+
     my $prop;
     eval { $prop = $X->get_property_reply($cookie->{sequence}); 1} or return undef;
     my $value = $prop ? $prop->{value} : undef;
+
+    # Convert to internal format
     $value = decode('UTF-8', $value) if defined $value and $prop_type eq 'UTF8_STRING';
     ($value) = unpack('L', $value) if defined $value and $prop_type eq 'WINDOW';
+
     return wantarray ? ($value, $prop) : $value;
 }
 
@@ -505,14 +509,14 @@ sub toggle_always_on($self) {
 }
 
 sub close($self) {
-    my $icccm_del_win = $X->atom(name => 'WM_DELETE_WINDOW')->id;
+    my $icccm_del_win = atom("WM_DELETE_WINDOW");
     my ($value, $prop) = _get_property($self->{id}, "WM_PROTOCOLS", "ATOM", 16);
     my $len = $prop->{value_len};
 
     # Use ICCCM to gently ask client to close the window
     if ($len and first { $_ == $icccm_del_win } unpack "L" x $len, $value) {
-        my $packed = pack('CCSLLLL', CLIENT_MESSAGE, 32, 0, $self->{id}, $X->atom(name => 'WM_PROTOCOLS')->id,
-            $X->atom(name => 'WM_DELETE_WINDOW')->id, TIME_CURRENT_TIME);
+        my $packed = pack('CCSLLLL', CLIENT_MESSAGE, 32, 0, $self->{id}, atom("WM_PROTOCOLS"),
+            atom("WM_DELETE_WINDOW"), TIME_CURRENT_TIME);
         $X->send_event(0, $self->{id}, EVENT_MASK_STRUCTURE_NOTIFY, $packed);
     } else {
         # XXX xcb_destroy_window() instead of kill?
@@ -686,7 +690,7 @@ sub swap($self, $new) {
 sub size_hints_get($self) {
     my $hints = { flags => 0 };
 
-    my $req = $X->get_property(0, $self->{id}, ATOM_WM_NORMAL_HINTS, ATOM_WM_SIZE_HINTS, 0, 64);
+    my $req = $X->get_property(0, $self->{id}, atom("WM_NORMAL_HINTS"), atom("WM_SIZE_HINTS"), 0, 64);
     my $data = $X->get_property_reply($req->{sequence});
 
     return $hints unless defined $data->{value};

@@ -12,16 +12,17 @@ use List::Util qw( any first );
 use Scalar::Util qw( looks_like_number );
 
 our @EXPORT = qw(
-    carp croak S_DEBUG DEBUG_API $X $cfg $focus $windows %screens %xcb_events %xcb_events_ignore @screens
+    carp croak S_DEBUG DEBUG_API $X $cfg $focus $windows %screens %xcb_events %xcb_events_ignore @screens %atoms
     add_event_cb add_event_ignore hexnum init_extension replace_event_cb screen_by_xy pointer %marked_windows
     $visible_min_x $visible_min_y $visible_max_x $visible_max_y $prevent_focus_in $prevent_enter_notify $cpu_saver
-    focus_prev_push focus_prev_remove focus_prev_get prevent_focus_in prevent_enter_notify $cached_classes
+    focus_prev_push focus_prev_remove focus_prev_get prevent_focus_in prevent_enter_notify $cached_classes atom
     );
 
 # NOTE all the debug functions are defined in Config.pm
 push @EXPORT, "DEBUG$_" for 1..9;
 
 our $X;
+our %atoms;
 our $cfg;
 our $cpu_saver = 0.1; # number of seconds to sleep before events processing (100ms by default)
 our $focus;
@@ -105,6 +106,12 @@ sub hexnum($str = $_) {
 
 sub pointer($wid = $X->root->id) {
     $X->query_pointer_reply($X->query_pointer($wid)->{sequence}) // {};
+}
+
+# Caching function to resolve and create atoms
+sub atom($name) {
+    return $atoms{$name} if defined $atoms{$name};
+    $atoms{$name} = $X->intern_atom_reply($X->intern_atom(0, length($name), $name)->{sequence})->{atom};
 }
 
 1;

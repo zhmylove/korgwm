@@ -65,10 +65,14 @@ our $icccm_handlers = {
     "_NET_WM_STATE" => \&icccm_update_maximize,
 };
 
+sub fill_icccm_atoms {
+    $icccm_atoms->{atom($_)} = $_ for keys %{ $icccm_handlers };
+}
+
 sub init {
     # Populate current atom ids
-    $icccm_atoms->{$X->atom(name => $_)->id()} = $_ for keys %{ $icccm_handlers };
-    $atom_fullscreen = $X->atom(name => "_NET_WM_STATE_FULLSCREEN")->id();
+    fill_icccm_atoms unless keys %{ $icccm_atoms };
+    $atom_fullscreen = atom("_NET_WM_STATE_FULLSCREEN");
 
     # Set up event handlers
     add_event_cb(CLIENT_MESSAGE(), sub ($evt) {
