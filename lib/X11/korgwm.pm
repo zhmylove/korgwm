@@ -183,7 +183,7 @@ sub handle_screens {
     if (my $preferred_tags = $preferred_tags[@screens]) {
         for my $screen (@screens) {
             my $pref_tag = $preferred_tags->[ $screen->{idx} ] // croak "Invalid tag in preferred_tags";
-            $screen->tag_set_active($pref_tag, 0);
+            $screen->tag_set_active($pref_tag, rotate => 0);
         }
     }
 
@@ -488,7 +488,7 @@ sub FireInTheHole {
             DEBUG2 and carp "Window $win is starting _hidden() behind some maximized one";
             $win->show_hidden();
         } elsif ($follow) {
-            $screen->tag_set_active($tag->{idx}, 0);
+            $screen->tag_set_active($tag->{idx}, rotate => 0);
             $screen->refresh();
             $win->focus();
             $win->warp_pointer() if $rule->{follow};

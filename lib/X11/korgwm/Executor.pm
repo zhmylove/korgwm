@@ -125,7 +125,7 @@ our @parser = (
             prevent_focus_in();
 
             $screen->{focus} = $win;
-            $screen->tag_set_active($new_tag->{idx}, 0);
+            $screen->tag_set_active($new_tag->{idx}, rotate => 0);
         }
 
         $screen->refresh();

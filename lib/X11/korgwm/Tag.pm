@@ -62,7 +62,10 @@ sub hide($self) {
     $X->flush();
 }
 
-sub show($self) {
+# Makes the $self tag visible
+# Supported options:
+# - noselect -- do not call select() to avoid warp_pointer()
+sub show($self, %opts) {
     # Redefine layout if needed
     $self->{layout} //= X11::korgwm::Layout->new();
 
@@ -106,7 +109,7 @@ sub show($self) {
     } else {
         # Try to focus previously focused window (or any window)
         if (my $win = $self->{focus} || $self->first_window()) {
-            if ($win->{floating} or $win->{maximized}) {
+            if ($win->{floating} or $win->{maximized} or $opts{noselect}) {
                 $win->focus(); # floating, maximized, always_on
             } else {
                 $win->select(); # tiled
