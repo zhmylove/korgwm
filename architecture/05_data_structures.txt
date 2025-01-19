@@ -1,16 +1,17 @@
-windows => {
+$windows => {
     wid => {
         _hidden => Bool,                    # Internal flag to avoid several window opeations, true if the window is out of the screen
         id => wid,                          # X11 ID of the window
         sid => Int,                         # internal sequential ID. Unique for all windows
-        on_tags => {},                      # hash of tags on which this window is shown
-        also_tags => {},                    # hash of tags on which this window also shown
+        on_tags => {},                      # hash of tags on which this window is shown, key & value = Ref on tag
+        also_tags => {},                    # hash of tags on which this window also shown, key & value = Ref on tag
         always_on => undef / Screen,        # screen on which the window is always_on
         floating => Bool,                   # flag if window is floating
         maximized => Bool,                  # flag if window is maximized
         urgent => Bool,                     # flag if window is urgent
         children => {},                     # hash keys = transient_for windows IDs, values always undef
-        transient_for => Ptr,               # ref to transient_for window, or undef
+        transient_for => Ref,               # ref to transient_for window, or undef
+        cached_class => Str,                # initial value of WM_CLASS for urgent_by_class()
         (x, y, w, h),                       # geometry of window requested in configure (or set to some defaults); used only for floating windows
         (real_x, real_y, real_w, real_h),   # real geometry of the window, set and saved by korgwm for internal purposes
         (real_i, real_j),                   # layout position, maybe irrelevant as not being cleaned anywhere
@@ -24,12 +25,13 @@ windows => {
     },
 }
 
-screens => {
-    0 => {
+@screens = [Ref, ...]                       # references on existing screens sorted by $x
+%screens = (                                # hash, not a hashref
+    "$x,$y,$w,$h" => {                      # key is the screen's geometry
         tags => [
-            screen => Ptr,                  # reference to screen
-            idx => Int,                     # position in the @screen->tags
-            max_window => Ptr,              # if defined, hide panel and maximize window
+            screen => Ref,                  # reference to screen
+            idx => Int,                     # position in the @$tags
+            max_window => Ref,              # if defined, hide panel and maximize window
             windows_tiled => [],            # list (performance bye-bye) of windows attached to this tag, also affects Panel tag visibility
             windows_float => [],            # list of floating windows on the tag
             windows_appended => [],         # list of windows that belongs to others tags and were appended using tag_append
@@ -43,11 +45,11 @@ screens => {
         tag_prev => Int,                    # id of previous tag on this screen for switch rotation
         panel => Ref,                       # reference to a Panel instance
         (x, y, w, h),                       # basically, for pointer warp and xsetroot
-        focus => Ptr,                       # reference to focused window, or undef; copied to %focus when switching to the screen
+        focus => Ref,                       # reference to focused window, or undef; copied to %focus when switching to the screen
     },
-}
+)
 
-focus => {
-    screen => Ptr,                          # reference to focused screen
-    window => Ptr,                          # reference to focused window
+$focus => {
+    screen => Ref,                          # reference to focused screen
+    window => Ref,                          # reference to focused window
 }
