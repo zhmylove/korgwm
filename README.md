@@ -44,7 +44,7 @@ It uses several X11 extensions: RandR, Xinerama, Composite, Xkb, and maybe more.
 - Expose mode to show all windows from all tags and quickly switch between them
 - YAML config &mdash; see [korgwm.conf.sample](korgwm.conf.sample)
 - Display rules for certain windows: screen & tag affinity, floating by default, ...
-- Handle D-Bus notifications and make relevant windows urgent
+- D-Bus notifications handling and relevant windows urgency
 - ... and many more.
 
 ## Screenshots

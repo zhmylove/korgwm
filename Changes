@@ -1,5 +1,41 @@
 Revision history for korgwm.
 
+5.0     2025-01-22
+    - Introduce vimish marks for windows:
+        - Add API calls to remember focused window and quicky select it when needed
+
+    - Improve multiple screens handling:
+        - Windows are moved to their preferred screens upon their reconnection
+        - Screen affinity is configurable in config file via the "placement" rule
+        - WM keeps track of the selected tag for particular screen configuration
+
+    - Implement D-Bus notifications server:
+        - Mark notifying windows as urgent when the server is in use
+        - Support API call to raise urgency by WM_CLASS
+
+    - Rework debug subsystem:
+        - Switch to debug levels: 1-9
+        - Introduce DEBUGx constant function for each debug level
+        - Introduce slow S_DEBUG function to use it within return statements
+        - Replace die/warn with croak/carp in applicable places
+        - Remove stale Devel::SimpleTrace dependency
+        - Set Carp::Verbose for debug level 3 or above
+
+    - Implement toggle_maximize() for invisible windows
+        - Replace implicit toggle with explicit set via parameter
+        - Support toggling for invisible windows
+
+    - Other minor improvements and fixes:
+        - Prevent windows from being mapped over any maximized one
+        - Implement _NET_SUPPORTED EWMH
+        - Fix Java AWT rendering issue without reparenting
+        - Add atom() caching function that creates them on demand
+        - Replace croak with carp for unknown ButtonPress events
+        - Fix buffer size to properly handle UTF-8 in Window->title()
+        - Implement Window->select() to simplify switching to window from anywhere
+        - Improve Expose grab keyboard timings
+        - Other small code refactoring
+
 4.0     2024-10-07
     - Significantly improved multi-screen experience:
         - Windows are now returning back to their preferred screen after connecting it back

@@ -144,6 +144,7 @@ hotkeys:
   mod_l: 'focus_move(l)'
   mod_m: 'win_toggle_maximize()'
   mod_r: 'exec(xkb-switch -s us; rofi -show drun)'
+  mod_s: 'mark_window()'
   mod_ctrl_1: 'tag_append(1)'
   mod_ctrl_2: 'tag_append(2)'
   mod_ctrl_3: 'tag_append(3)'
@@ -179,6 +180,7 @@ hotkeys:
   mod_shift_j: 'focus_swap(j)'
   mod_shift_k: 'focus_swap(k)'
   mod_shift_l: 'focus_swap(l)'
+  mod_shift_s: 'mark_switch_window()'
   mod_shift_w: 'exec(firefox --new-instance)'
   mod_w: 'exec(firefox --new-instance --private-window)'
 
