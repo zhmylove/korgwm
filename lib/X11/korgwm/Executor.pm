@@ -106,7 +106,9 @@ our @parser = (
 
         return if $win->{always_on};
 
-        my $screen = $focus->{screen};
+        my ($screen, @multiple) = $win->screens();
+        croak "win_move_tag() not implemented for windows on multiple screens" if @multiple;
+
         my $new_tag = $screen->{tags}->[$arg - 1] or return;
         my $curr_tag = $screen->current_tag();
         return if $new_tag == $curr_tag;
@@ -117,11 +119,8 @@ our @parser = (
 
         # Follow the window if required
         if ($cfg->{move_follow}) {
-            # Move pointer out of the window to avoid EnterNotify
-            $X->warp_pointer(0, $X->root->id, 0, 0, 0, 0, 0, 0);
-            $X->flush();
-
-            # Prevent FocusIn events
+            # Prevent unwanted events
+            prevent_enter_notify();
             prevent_focus_in();
 
             $screen->{focus} = $win;
@@ -152,13 +151,12 @@ our @parser = (
         return unless defined $win;
 
         my $new_screen = $screens[$arg - 1] or return;
-        my $old_screen = $focus->{screen};
+        my ($old_screen, @multiple) = $win->screens();
+        croak "win_move_screen() not implemented for windows on multiple screens" if @multiple;
         return if $new_screen == $old_screen;
         return if $new_screen->current_tag->{max_window} and $win->{maximized};
 
-        # Move pointer out of the window to avoid EnterNotify
-        $X->warp_pointer(0, $X->root->id, 0, 0, 0, 0, 0, 0);
-        $X->flush();
+        prevent_enter_notify();
 
         my $always_on = $win->{always_on};
         $old_screen->win_remove($win, 1);
