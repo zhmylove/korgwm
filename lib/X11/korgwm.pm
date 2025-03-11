@@ -131,9 +131,9 @@ sub handle_screens {
     }
 
     # Sort screens based on X axis and store them in @screens
-    DEBUG1 and carp "Old screens: (@screens)";
+    DEBUG2 and carp "Old screens: (@screens)";
     @screens = map { $screens{$_} } sort { (split /,/, $a)[0] <=> (split /,/, $b)[0] or $a <=> $b } keys %screens;
-    DEBUG1 and carp "New screens: (@screens)";
+    DEBUG2 and carp "New screens: (@screens)";
 
     # Assign indexes to use them during possible next handle_screens events
     $screens[$_]->{idx} = $_ for 0..$#screens;

@@ -487,7 +487,10 @@ sub toggle_maximize($self, $action, %opts) {
         $_->_hide() for $tag->windows();
     } else {
         $tag->{max_window} = undef;
-        $self->resize_and_move(@{ $self }{qw( x y w h )}) unless $invisible_win;
+        unless ($invisible_win) {
+            $self->resize_and_move(@{ $self }{qw( x y w h )});
+            $self->warp_pointer() if $cfg->{mouse_follow} and 1 < $tag->windows();
+        }
     }
 
     $tag->show() unless $invisible_win;

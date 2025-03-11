@@ -44,3 +44,4 @@
 - Wait some time and ensure CPAN tests were successful
 - Update FreeBSD port: `Makefile`, `distinfo` and `pkg-plist`
 - Update ArchLinux AUR package: `PKGBUILD` and `.SRCINFO`
+- Create Release on Github
