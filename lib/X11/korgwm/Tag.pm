@@ -118,7 +118,7 @@ sub show($self, %opts) {
             if ($win->{floating} or $win->{maximized} or $opts{noselect}) {
                 $win->focus(); # floating, maximized, always_on
             } else {
-                $win->select(); # tiled
+                $win->select(bypass_single_window_warp => 1); # tiled
             }
         }
     }

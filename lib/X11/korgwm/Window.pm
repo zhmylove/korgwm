@@ -711,6 +711,7 @@ sub size_hints_get($self) {
 # Options:
 # - bypass_prevent_enter_notify
 # - bypass_prevent_focus_in
+# - bypass_single_window_warp       do not warp if the window is the only window on it's tag
 sub select($self, %opts) {
     my @tags = $self->tags();
     my $tag = shift @tags // ($self->{always_on} && $self->{always_on}->current_tag());
@@ -731,7 +732,13 @@ sub select($self, %opts) {
     }
 
     $self->focus();
-    $self->warp_pointer();
+
+    # Warp pointer if needed
+    if ($opts{bypass_single_window_warp}) {
+        $self->warp_pointer() unless 1 == $tag->windows();
+    } else {
+        $self->warp_pointer();
+    }
 
     return 0;
 }
