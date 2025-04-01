@@ -67,6 +67,8 @@ my $prevent_window_errors;
 our $exit_trigger;
 # Array for selecting preferred tag during screen change event
 my @preferred_tags = ();
+# Array of CODErefs to be called at the end of handle_screens()
+our @handle_screens_post_hooks;
 
 ## Define functions
 # Handles any screen change
@@ -189,6 +191,9 @@ sub handle_screens {
 
     # Refresh all the screens as we could've moved some windows around
     $_->refresh() for @screens;
+
+    # Call all required hooks at the end of handle_screens()
+    $_->() for @handle_screens_post_hooks;
 }
 
 # Scan for existing windows and handle them

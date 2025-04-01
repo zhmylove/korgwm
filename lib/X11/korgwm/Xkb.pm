@@ -40,6 +40,9 @@ sub init {
         lang_update();
     });
 
+    # Register handle_screens post hook to update language labels
+    push @X11::korgwm::handle_screens_post_hooks, \&lang_update;
+
     # Subscribe for events
     my $mask = XKB_EVENT_TYPE_INDICATOR_STATE_NOTIFY;
     $X->xkb_select_events(XKB_ID_USE_CORE_KBD, $mask, 0, $mask, 0, 0, 0);
