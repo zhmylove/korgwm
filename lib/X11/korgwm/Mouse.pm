@@ -84,7 +84,14 @@ sub init {
     add_event_cb(BUTTON_PRESS, sub($evt) {
         # Skip clicks on root and non-floating windows
         $_motion_win = $windows->{ $evt->{child} };
-        return unless $_motion_win and $_motion_win->{floating};
+        return unless $_motion_win;
+
+        # TODO There is a case when focused window is not the one I want to. I still cannot reproduce it to debug.
+        # In this case I want mod+click to forcefully focus the window under the pointer.
+        $_motion_win->focus() unless $focus->{window} == $_motion_win;
+
+        # The code below works only for floating windows
+        return unless $_motion_win->{floating};
 
         # Determine how did we got here and set proper motion notify handler
         if ($evt->{detail} == 1) {
@@ -137,7 +144,7 @@ sub init {
         my $new_screen = screen_by_xy($evt->{root_x}, $evt->{root_y});
         $focus->{screen} = $new_screen;
 
-        $win->focus() if ($focus->{window} // 0) != $win;
+        $win->focus() if $focus->{window} != $win;
     });
 
     # Grab pointer
