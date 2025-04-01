@@ -36,6 +36,7 @@ sub init {
                         $cb = X11::korgwm::Executor::parse($_[1]);
                         1;
                     } or return $close->();
+                    DEBUG7 and warn "API: executing $_[1]";
                     ref $cb eq "CODE" and $cb->($hdl);
                 })
             },

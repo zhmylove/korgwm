@@ -10,16 +10,26 @@ use X11::XCB ':all';
 use X11::korgwm::Common;
 require X11::korgwm::Panel::Lang;
 
+my $XKB_EVENT_BASE;
+
 # Update language on the panel
-sub lang_update {
+sub lang_update(@update_screens) {
+    # Skip any lang updates before Xkb initialization
+    return unless $XKB_EVENT_BASE;
+
+    # Update panels on each screen unless some specified
+    @update_screens = values %screens unless @update_screens;
+
+    # Get $lang name
     my $lang = $X->xkb_get_state_reply($X->xkb_get_state(XKB_ID_USE_CORE_KBD)->{sequence})->{group};
     $lang = $cfg->{lang_names}->{$lang} // $lang;
-    $_->{panel}->lang_set($lang) for values %screens;
+
+    # Update panel(s)
+    $_->{panel}->lang_set($lang) for @update_screens;
 }
 
 sub init {
     # Set up extension
-    my $XKB_EVENT_BASE;
     $X->xkb_use_extension(1, 1);
     init_extension("XKEYBOARD", \$XKB_EVENT_BASE);
     croak "Unable to init Xkb" unless $XKB_EVENT_BASE;
