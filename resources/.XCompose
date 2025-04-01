@@ -2,12 +2,38 @@
 <Multi_key> <2>             : "«"   guillemotleft   # LEFT-POINTING DOUBLE ANGLE QUOTATION MARK
 <Multi_key> <3>             : "»"   guillemotright  # RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK
 <Multi_key> <4>             : "–"   U2013           # EN DASH
-<Multi_key> <5>             : "̈"    U0308           # COMBINING DIAERESIS
-<Multi_key> <6>             : "̃"    U0303           # COMBINING TILDE
+<Multi_key> <5>             : "—"   U2014           # EM DASH
+<Multi_key> <6>             : "̈"    U0308           # COMBINING DIAERESIS
+<Multi_key> <7>             : "̃"    U0303           # COMBINING TILDE
+<Multi_key> <0>             : "«»"  guillemotleft guillemotright
 <Multi_key> <minus> <minus> : "—"   U2014           # EM DASH
 <Multi_key> <minus> <plus>  : "±"   plusminus       # PLUS-MINUS SIGN
 <Multi_key> <plus> <minus>  : "±"   plusminus       # PLUS-MINUS SIGN
 <Multi_key> <period>        : "…"   ellipsis        # HORIZONTAL ELLIPSIS
+<Multi_key> <equal>         : "≠"   U2260           # NOT EQUAL TO
+
+<Multi_key> <e>             : "😍"  U1F60D          # HEART EYES EMOJI
+<Multi_key> <Cyrillic_u>    : "😍"  U1F60D          # HEART EYES EMOJI
+<Multi_key> <f>             : "🔥"  U1F525          # FIRE EMOJI
+<Multi_key> <Cyrillic_a>    : "🔥"  U1F525          # FIRE EMOJI
+<Multi_key> <h>             : "❤️"   U2764           # HEART EMOJI
+<Multi_key> <Cyrillic_er>   : "❤️"   U2764           # HEART EMOJI
+<Multi_key> <d>             : "🤣"  U1F923          # LOL EMOJI
+<Multi_key> <Cyrillic_ve>   : "🤣"  U1F923          # LOL EMOJI
+<Multi_key> <l>             : "🤣"  U1F923          # LOL EMOJI
+<Multi_key> <Cyrillic_de>   : "🤣"  U1F923          # LOL EMOJI
+<Multi_key> <m>             : "🙈"  U1F648          # SEE NO EVIL EMOJI
+<Multi_key> <Cyrillic_softsign> : "🙈"  U1F648          # SEE NO EVIL EMOJI
+<Multi_key> <p>             : "🤦🏼‍♀️" U1F926  # WOMAN FACEPALMING
+<Multi_key> <Cyrillic_ze>   : "🤦🏼‍♀️" U1F926  # WOMAN FACEPALMING
+<Multi_key> <r>             : "🌹"  U1F339          # ROSE EMOJI
+<Multi_key> <Cyrillic_k>    : "🌹"  U1F339          # ROSE EMOJI
+<Multi_key> <w>             : "🤷🏼‍♀️" U1F937  # WOMAN SHRUGGING
+<Multi_key> <Cyrillic_tse>  : "🤷🏼‍♀️" U1F937  # WOMAN SHRUGGING
+<Multi_key> <s>             : "🤷🏼‍♀️" U1F937  # WOMAN SHRUGGING
+<Multi_key> <Cyrillic_yeru> : "🤷🏼‍♀️" U1F937  # WOMAN SHRUGGING
+<Multi_key> <t>             : "🎉"  U1F389          # TADA EMOJI
+<Multi_key> <Cyrillic_ie>   : "🎉"  U1F389          # TADA EMOJI
 
 <Multi_key> <Cyrillic_e>    : "́"    U0301           # COMBINING ACUTE ACCENT
 <Multi_key> <Cyrillic_be>   : "«"   guillemotleft   # LEFT-POINTING DOUBLE ANGLE QUOTATION MARK
