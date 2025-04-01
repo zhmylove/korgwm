@@ -104,9 +104,14 @@ sub show($self, %opts) {
     # Handle focus change
     $focus->{screen} = $self->{screen};
     my $focus_win = $self->{screen}->{focus};
-    if (defined $focus_win and exists $focus_win->{on_tags}->{$self}) {
-        # If this window is focused on this tag, just give it a focus
-        $focus_win->focus();
+    if (defined $focus_win) {
+        if (exists $focus_win->{on_tags}->{$self}) {
+            # If this window is focused on this tag, just give it a focus
+            $focus_win->focus();
+        } else {
+            # If focused window is hidden (it's on the same screen and another tag) we want to drop focus
+            $focus->{screen}->focus();
+        }
     } else {
         # Try to focus previously focused window (or any window)
         if (my $win = $self->{focus} || $self->first_window()) {
