@@ -21,7 +21,7 @@ $_ = <>;
 exit 1 unless defined;
 s/\s*$//;
 s/^\s*//;
-s/.\010//g;
+1 while s/.\010//;
 s/\010//g;
 exit 1 unless length;
 exit 0 if Authen::Simple::PAM->new->authenticate("".getpwuid($<), $_);
