@@ -600,10 +600,14 @@ sub urgent_by_class(@classes) {
     @found;
 }
 
-sub warp_pointer($self) {
+# Almost just warp pointer to the window. Does nothing if the window already owns the pointer.
+sub warp_pointer($self, %opts) {
     # Do nothing if this window already owns the pointer not in (0, 0) position
     my $ptr = pointer();
     return if $self->{id} == ($ptr->{child} // 0) and sum0 map { $ptr->{$_} // () } qw( root_x root_y );
+
+    # Do nothing if user does not want to warp pointer out of the korgwm windows
+    return if $cfg->{warp_ignore_korgwm} and $ptr->{child} and _class($ptr->{child}) eq "korgwm";
 
     # We have to re-stack windows if the win is floating, so call focus() explicitly
     $self->focus() if $self->{floating};
@@ -733,12 +737,10 @@ sub select($self, %opts) {
 
     $self->focus();
 
+    return 0 if $opts{bypass_single_window_warp} and 1 == $tag->windows();
+
     # Warp pointer if needed
-    if ($opts{bypass_single_window_warp}) {
-        $self->warp_pointer() unless 1 == $tag->windows();
-    } else {
-        $self->warp_pointer();
-    }
+    $self->warp_pointer();
 
     return 0;
 }

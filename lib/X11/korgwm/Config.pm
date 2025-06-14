@@ -39,6 +39,7 @@ BEGIN {
     $cfg->{lang_names} = { 0 => chr(0x00a3), 1 => chr(0x20bd) };
     $cfg->{mouse_follow} = 1;
     $cfg->{move_follow} = 1;
+    $cfg->{warp_ignore_korgwm} = 1;
     $cfg->{notification_server} = 1;
     $cfg->{panel_end} = [qw( battery clock lang )];
     $cfg->{panel_height} = 20;
@@ -66,7 +67,7 @@ BEGIN {
                 "alt_TAB"               => "focus_cycle(forward)",
                 "alt_shift_TAB"         => "focus_cycle(backward)",
                 "mod_CR"                => "exec(urxvt)",
-                "mod_shift_CR"          => "exec(urxvt -name urxvt-float)",
+                "mod_shift_CR"          => "exec(urxvt -name urxvt-float -g 120x32)",
                 "mod_a"                 => "win_toggle_always_on()",
                 "mod_shift_ctrl_l"      => "exec(lock)",
                 "mod_e"                 => "expose()",

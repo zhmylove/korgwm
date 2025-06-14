@@ -27,6 +27,8 @@ initial_pointer_position: center
 mouse_follow: 1
 # If set: tag will be switched together with a window during win_move_tag(). Stay on current tag otherwise
 move_follow: 1
+# Do not warp mouse pointer whenever it is over any korgwm window (panel, expose, etc.)
+warp_ignore_korgwm: 1
 # Start own notifications server to improve urgency experience. Disable if you want to use another one
 notification_server: 1
 # Command which is used to set relevant screen positions on each RandR event

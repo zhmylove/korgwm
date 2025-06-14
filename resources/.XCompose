@@ -1,3 +1,5 @@
+# /usr/share/X11/xkb/symbols/ru
+
 <Multi_key> <1>             : "́"    U0301           # COMBINING ACUTE ACCENT
 <Multi_key> <2>             : "«"   guillemotleft   # LEFT-POINTING DOUBLE ANGLE QUOTATION MARK
 <Multi_key> <3>             : "»"   guillemotright  # RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK
@@ -27,7 +29,7 @@
 <Multi_key> <p>             : "🤦🏼‍♀️" U1F926  # WOMAN FACEPALMING
 <Multi_key> <Cyrillic_ze>   : "🤦🏼‍♀️" U1F926  # WOMAN FACEPALMING
 <Multi_key> <r>             : "🌹"  U1F339          # ROSE EMOJI
-<Multi_key> <Cyrillic_k>    : "🌹"  U1F339          # ROSE EMOJI
+<Multi_key> <Cyrillic_ka>   : "🌹"  U1F339          # ROSE EMOJI
 <Multi_key> <w>             : "🤷🏼‍♀️" U1F937  # WOMAN SHRUGGING
 <Multi_key> <Cyrillic_tse>  : "🤷🏼‍♀️" U1F937  # WOMAN SHRUGGING
 <Multi_key> <s>             : "🤷🏼‍♀️" U1F937  # WOMAN SHRUGGING
