@@ -11,7 +11,7 @@ use X11::korgwm::Common;
 use X11::korgwm::Panel;
 
 # Add panel element
-&X11::korgwm::Panel::add_element("battery", sub($el) {
+&X11::korgwm::Panel::add_element("battery", sub($el, $ebox) {
     AE::timer 0, 30, sub {
         my ($val, $txt, $fd, $battery_low);
 

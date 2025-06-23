@@ -146,7 +146,7 @@ sub gtk_init() {
         background-color: $color_expose;
     }
 
-    .active {
+    .active, calendar:selected {
         background-color: $color_fg;
         color: $color_bg;
     }
@@ -163,6 +163,19 @@ sub gtk_init() {
 
     .battery-low {
         color: $color_battery_low;
+    }
+
+    calendar {
+        border-color: $color_border;
+        border: $cfg->{border_width}px solid;
+    }
+
+    calendar.header {
+        border-bottom: 0px;
+    }
+
+    calendar:indeterminate {
+        color: alpha(currentColor, 0.3);
     }
     CSS
 

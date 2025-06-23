@@ -148,9 +148,12 @@ sub new($class, $panel_id, $panel_width, $panel_x, $ws_cb) {
         croak "Unknown element [$_] in cfg->{panel_end}" unless exists $elements{$_};
         my $el = Gtk3::Label->new();
         $el->set_yalign(0.9);
-        $hdbar->pack_end($el, 0, 0, 0);
+        my $ebox = Gtk3::EventBox->new();
+        $ebox->add($el);
+        $hdbar->pack_end($ebox, 0, 0, 0);
         $panel->{$_} = $el;
-        $panel->{"_w:$_"} = $elements{$_}->($el) if defined $elements{$_};
+        $panel->{"_ebox:$_"} = $ebox;
+        $panel->{"_w:$_"} = $elements{$_}->($el, $ebox) if defined $elements{$_};
     }
 
     # Map window

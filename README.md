@@ -39,7 +39,7 @@ It uses several X11 extensions: RandR, Xinerama, Composite, Xkb, and maybe more.
 - Excessive hotkeys including media keys
 - Move and resize using mouse
 - Bar on GTK3 &mdash; supports UTF-8 and has extensible plugin system
-- Included bar plugins to show info about battery, clock, XKB language
+- Included bar plugins to show info about battery, clock, calendar, XKB language
 - Mouse pointer warp system
 - Expose mode to show all windows from all tags and quickly switch between them
 - YAML config &mdash; see [korgwm.conf.sample](korgwm.conf.sample)
