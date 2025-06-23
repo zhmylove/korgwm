@@ -11,7 +11,7 @@ use X11::korgwm::Panel;
 
 # Export function to Panel class
 sub X11::korgwm::Panel::lang_set($self, $lang = "") {
-    $self->{lang}->txt(sprintf($cfg->{lang_format}, $lang));
+    $self->{lang}->set_text(sprintf($cfg->{lang_format}, $lang));
 }
 
 # Add panel element

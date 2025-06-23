@@ -14,21 +14,17 @@ use Glib::Object::Introspection;
 use Gtk3;
 use Time::HiRes qw( usleep );
 
-unless ($X11::korgwm::gtk_init) {
-    Gtk3::disable_setlocale();
-    Gtk3::init();
-    $X11::korgwm::gtk_init = 1;
-}
+# Initialize GTK
+gtk_init();
 
 my $display;
 my $win_expose;
-my $font;
-my ($color_fg, $color_bg, $color_expose);
-my ($color_gdk_fg, $color_gdk_bg, $color_gdk_expose);
 
 sub _create_thumbnail($scale, $win, $title, $id, $cb) {
     my $vbox = Gtk3::Box->new(vertical => 0);
+    $vbox->get_style_context->add_class('expose');
     my $vbox_inner = Gtk3::Box->new(vertical => 0);
+    $vbox_inner->get_style_context->add_class('expose');
     my $pixbuf = $win->_get_pixbuf();
 
     # Normalize size
@@ -40,24 +36,26 @@ sub _create_thumbnail($scale, $win, $title, $id, $cb) {
     # Prepare image
     my $thumbnail = $pixbuf->scale_simple($w, $h, 'bilinear');
     my $image = Gtk3::Image->new_from_pixbuf($thumbnail);
-    $image->override_background_color(normal => $color_gdk_fg);
 
     # Put a frame around it
     my $frame = Gtk3::Frame->new();
     my $hbox = Gtk3::Box->new(horizontal => 0);
     $frame->add($image);
     $hbox->set_center_widget($frame);
+    $hbox->get_style_context->add_class('expose');
 
     # Prepare label
     my $label = Gtk3::Label->new();
-    $label->txt($title); # this imlicitly depends on the hack from X11::korgwm::Panel
+    $label->set_text($title);
     $label->set_margin_top(5);
     $label->set_ellipsize('middle');
+    $label->get_style_context->add_class('expose');
 
     # Prepare id label
     my $label_id = Gtk3::Label->new();
-    $label_id->txt($id); # this imlicitly depends on the hack from X11::korgwm::Panel
+    $label_id->set_text($id);
     $label_id->set_margin_bottom(5);
+    $label_id->get_style_context->add_class('expose');
 
     # Place elements
     $vbox_inner->pack_start($label_id, 0, 0, 0) if $cfg->{expose_show_id};
@@ -109,10 +107,8 @@ sub expose {
 
     # Create a window for expose
     $win_expose = Gtk3::Window->new('popup');
-    $win_expose->modify_font($font);
     $win_expose->set_default_size(@{ $screen_curr }{qw( w h )});
     $win_expose->move(@{ $screen_curr }{qw( x y )});
-    $win_expose->override_background_color(normal => $color_gdk_expose);
 
     # Create a grid
     my $grid = Gtk3::Grid->new();
@@ -188,14 +184,14 @@ sub expose {
             $win_expose = undef;
         } elsif ($e->keyval() == 0xff08) { # XK_Backspace
             $shortcut_str = substr $shortcut_str, 0, -1;
-            $shortcut->txt($shortcut_str);
+            $shortcut->set_text($shortcut_str);
         } elsif ($e->keyval() >= 0x30 and $e->keyval() <= 0x39) {
             $shortcut_str .= chr($e->keyval());
-            $shortcut->txt($shortcut_str);
+            $shortcut->set_text($shortcut_str);
             $callbacks{"[$shortcut_str]"}->() if $callbacks{"[$shortcut_str]"};
         } elsif ($e->keyval() == 0x20 or $e->keyval() == 0xff0d) { # XK_Space or XK_Return
             $shortcut_str = "";
-            $shortcut->txt($shortcut_str);
+            $shortcut->set_text($shortcut_str);
         }
     });
 
@@ -205,8 +201,10 @@ sub expose {
         my $vbox = Gtk3::Box->new(vertical => 0);
         $vbox->pack_start($shortcut, 0, 0, $cfg->{expose_spacing});
         $vbox->set_center_widget($grid);
+        $vbox->get_style_context->add_class('expose');
         $win_expose->add($vbox);
     } else {
+        $grid->get_style_context->add_class('expose');
         $win_expose->add($grid);
     }
 
@@ -255,13 +253,6 @@ sub init {
     # Set up extension
     Glib::Object::Introspection->setup(basename => "GdkPixbuf", version  => "2.0", package  => "Gtk3::GdkPixbuf");
     $display = Gtk3::Gdk::Display::get_default();
-    $font = Pango::FontDescription::from_string($cfg->{font});
-    $color_fg = sprintf "#%x", $cfg->{color_fg};
-    $color_bg = sprintf "#%x", $cfg->{color_bg};
-    $color_expose = sprintf "#%x", $cfg->{color_expose};
-    $color_gdk_fg = Gtk3::Gdk::RGBA::parse($color_fg);
-    $color_gdk_bg = Gtk3::Gdk::RGBA::parse($color_bg);
-    $color_gdk_expose = Gtk3::Gdk::RGBA::parse($color_expose);
 }
 
 push @X11::korgwm::extensions, \&init;

@@ -13,7 +13,7 @@ use X11::korgwm::Panel;
 
 # Add panel element
 &X11::korgwm::Panel::add_element("clock", sub($el) {
-    AE::timer 0, 1, sub { $el->txt(strftime($cfg->{clock_format}, localtime) =~ s/  +/ /gr) };
+    AE::timer 0, 1, sub { $el->set_text(strftime($cfg->{clock_format}, localtime) =~ s/  +/ /gr) };
 });
 
 1;

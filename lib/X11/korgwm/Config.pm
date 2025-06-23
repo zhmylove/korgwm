@@ -28,8 +28,8 @@ BEGIN {
     $cfg->{color_border} = '0x232426';
     $cfg->{color_expose} = '0x232426';
     $cfg->{color_fg} = '0xA3BABF';
-    $cfg->{color_urgent_bg} = '0x464729';
-    $cfg->{color_urgent_fg} = '0xFFFF00';
+    $cfg->{color_urgent_bg} = '0xFFFF00';
+    $cfg->{color_urgent_fg} = '0x464729';
     $cfg->{color_append_bg} = '0x262729';
     $cfg->{color_append_fg} = '0xF502C8';
     $cfg->{expose_spacing} = 15;

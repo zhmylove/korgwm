@@ -96,8 +96,8 @@ color_expose: 0x232426
 # Regular fg colour, basically for text everywhere
 color_fg: 0xA3BABF
 # How to mark a tag if it has urgent windows and is not active
-color_urgent_bg: 0x464729
-color_urgent_fg: 0xFFFF00
+color_urgent_bg: 0xFFFF00
+color_urgent_fg: 0x464729
 
 ## Hotkeys, see API.pm for description of possible functions
 hotkeys:

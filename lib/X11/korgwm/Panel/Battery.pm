@@ -13,12 +13,12 @@ use X11::korgwm::Panel;
 # Add panel element
 &X11::korgwm::Panel::add_element("battery", sub($el) {
     AE::timer 0, 30, sub {
-        my ($val, $txt, $fd, $color);
+        my ($val, $txt, $fd, $battery_low);
 
         # Get current value
         open $fd, "<", "/sys/class/power_supply/BAT0/capacity" or return;
         $val = 0 + <$fd>;
-        $color = sprintf '#%x', $cfg->{color_battery_low} if $val < 16;
+        $battery_low = 1 if $val <= 16;
         close $fd;
 
         # Prepare percentage text
@@ -32,7 +32,9 @@ use X11::korgwm::Panel;
         }
         close $fd;
 
-        $el->txt($txt, $color ? $color : ());
+        $el->set_text($txt);
+        $el->get_style_context()->remove_class($_) for @{ $el->get_style_context()->list_classes() // [] };
+        $el->get_style_context()->add_class('battery-low') if $battery_low;
     };
 });
 
