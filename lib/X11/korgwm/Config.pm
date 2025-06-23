@@ -17,7 +17,9 @@ BEGIN {
     $cfg->{api_port} = ($ENV{KORGWM_DEBUG_PORT} // "") =~ m/^(\d+)$/s ? $1 : 27015;
 
     $cfg->{api_timeout} = 5;
+    $cfg->{battery_charging_character} = chr(0x2234);
     $cfg->{battery_format} = "%s";
+    $cfg->{battery_hide_charged} = 1;
     $cfg->{border_width} = 1;
     $cfg->{clock_format} = " %a %e %B %H:%M";
     $cfg->{color_battery_low} = '0xFF0000';

@@ -52,9 +52,15 @@ panel_end:
   - lang
 # Hide tags with no windows on the panel
 hide_empty_tags: 1
-# Format strings for bar widgets
+# The character which is used to show that the battery is charging
+battery_charging_character: '∴'
+# Format string for the battery percentage, use %% to add percent sign
 battery_format: '%s'
+# Enable/disable display of the battery percentage when it's full
+battery_hide_charged: 1
+# Format string for the clock, see strftime(3)
 clock_format: ' %a, %e %B %H:%M'
+# Format string for the language selector
 lang_format: ' %s '
 # Mapping of the languages to strings on the panel
 lang_names:
