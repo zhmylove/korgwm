@@ -120,6 +120,7 @@ hotkeys:
   mod_7: 'tag_select(7)'
   mod_8: 'tag_select(8)'
   mod_9: 'tag_select(9)'
+  mod_-: 'toggle_calendar()'
   mod_=: 'exec(galculator)'
   mod_CR: 'exec(urxvt)'
   mod_F1: 'screen_select(1)'

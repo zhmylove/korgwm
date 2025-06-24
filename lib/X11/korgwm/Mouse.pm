@@ -86,9 +86,9 @@ sub init {
         $_motion_win = $windows->{ $evt->{child} };
         return unless $_motion_win;
 
-        # TODO There is a case when focused window is not the one I want to. I still cannot reproduce it to debug.
+        # There is a case when some 'popup' (unknown to WM) window stole input focus.
         # In this case I want mod+click to forcefully focus the window under the pointer.
-        $_motion_win->focus() unless $focus->{window} == $_motion_win;
+        $_motion_win->focus();
 
         # The code below works only for floating windows
         return unless $_motion_win->{floating};

@@ -11,6 +11,7 @@ use X11::korgwm::Tag;
 use X11::korgwm::Common;
 
 sub new($class, $x, $y, $w, $h) {
+    # tags iterator
     my $idx = 0;
     my $self = bless {}, $class;
     $self->{id} = "$x,$y,$w,$h";
