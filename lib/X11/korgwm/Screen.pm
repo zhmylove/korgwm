@@ -111,8 +111,9 @@ sub win_remove($self, $win, $norefresh = undef) {
     }
 }
 
-sub focus($self) {
+sub focus($self, %params) {
     my $tag = $self->current_tag();
+    my $warp_method = $params{warp_method} // "select";
 
     if (defined $self->{focus} and exists $self->{focus}->{on_tags}->{$tag}) {
         # self->focus already points to some window on active tag
@@ -126,7 +127,7 @@ sub focus($self) {
     # If there is a win, focus it; otherwise just reset panel title and update focus structure
     if (defined $self->{focus}) {
         # This will set focus->{screen} as well
-        $self->{focus}->focus();
+        $self->{focus}->$warp_method();
     } else {
         $focus->{screen} = $self;
         $self->{panel}->title();
@@ -137,9 +138,12 @@ sub set_active($self, $window = undef) {
     $self->focus();
     $self->refresh();
     if ($window) {
-        $window->warp_pointer();
+        $window->select();
     } else {
-        $X->root->warp_pointer(int($self->{x} + $self->{w} / 2 - 1), int($self->{h} / 2 - 1));
+        # Warp pointer only when pointer does not already belong to the screen
+        my ($ptr_x, $ptr_y) = map { ($_->{root_x}, $_->{root_y}) } pointer();
+        $X->root->warp_pointer(int($self->{x} + $self->{w} / 2 - 1), int($self->{h} / 2 - 1))
+        unless defined $ptr_x and defined $ptr_y and $self->contains_xy($ptr_x, $ptr_y);
     }
     $X->flush();
 }

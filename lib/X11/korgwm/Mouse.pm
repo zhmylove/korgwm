@@ -23,7 +23,7 @@ sub _motion_regular($evt) {
     return if $focus->{screen} == $screen;
 
     # This code runs only during inter-screen movement
-    $screen->focus();
+    $screen->focus(warp_method => "focus");
     $X->flush();
 }
 
