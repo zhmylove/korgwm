@@ -115,10 +115,15 @@ sub focus($self, %params) {
     my $tag = $self->current_tag();
     my $warp_method = $params{warp_method} // "select";
 
-    if (defined $self->{focus} and exists $self->{focus}->{on_tags}->{$tag}) {
+    if (defined $self->{focus} and exists $self->{focus}->{on_tags}->{ $tag }) {
         # self->focus already points to some window on active tag
         # This condition just looks prettier in this way, so if-clause is empty
     } else {
+        # Either: $self->{focus} undefined or it does not belong to the $tag
+
+        # Drop input focus to avoid input on hidden windows
+        $X->set_input_focus(INPUT_FOCUS_POINTER_ROOT, $X->root->id, TIME_CURRENT_TIME);
+
         # Focus some window on active tag. It's ok if it return undef
         my $win = $tag->first_window();
         $self->{focus} = $win;
