@@ -170,6 +170,10 @@ sub gtk_init() {
         border: $cfg->{border_width}px solid;
     }
 
+    calendar > * {
+        padding: 0 10px;
+    }
+
     calendar.header {
         border-bottom: 0px;
     }
