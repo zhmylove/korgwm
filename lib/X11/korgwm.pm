@@ -187,6 +187,14 @@ sub handle_screens {
             my $pref_tag = $preferred_tags->[ $screen->{idx} ] // croak "Invalid tag in preferred_tags";
             $screen->tag_set_active($pref_tag, rotate => 0);
         }
+    } else {
+        # there is no $preferred_tags for this screen configuration, try to select the only tag with a window
+        for my $screen (@screens) {
+            my @tags_with_windows = grep { defined $_->first_window(1) } @{ $screen->{tags} };
+            next if @tags_with_windows != 1;
+            next if $screen->current_tag() == $tags_with_windows[0];
+            $screen->tag_set_active($tags_with_windows[0]->{idx}, rotate => 0);
+        }
     }
 
     # Refresh all the screens as we could've moved some windows around

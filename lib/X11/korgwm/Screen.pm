@@ -48,7 +48,7 @@ sub destroy($self, $new_screen) {
     %{ $self } = ();
 }
 
-# Set $tag_new_id visible for $self screen
+# Set $tag_new_id visible for $self screen ($tag_new_id starting from 0)
 # Options:
 # - rotate => switch to previously selected tag if $tag_new_id is already active
 # Options are also passed to $tag->show() as-is
