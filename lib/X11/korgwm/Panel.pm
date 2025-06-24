@@ -133,6 +133,12 @@ sub new($class, $panel_id, $panel_width, $panel_x, $ws_cb) {
     $label->set_yalign(0.9);
     $panel->{title} = $label;
 
+    # Save X coordinate for event handlers
+    $panel->{x} = $panel_x;
+    $panel->{y} = 0;
+    $panel->{width} = $panel_width;
+    $panel->{height} = $cfg->{panel_height};
+
     # Create @workspaces
     @workspaces = map { $panel->ws_create($_, $ws_cb) } @ws_names;
     $panel->{ws} = \@workspaces;
@@ -153,7 +159,7 @@ sub new($class, $panel_id, $panel_width, $panel_x, $ws_cb) {
         $hdbar->pack_end($ebox, 0, 0, 0);
         $panel->{$_} = $el;
         $panel->{"_ebox:$_"} = $ebox;
-        $panel->{"_w:$_"} = $elements{$_}->($el, $ebox) if defined $elements{$_};
+        $panel->{"_w:$_"} = $elements{$_}->($el, ebox => $ebox, panel => $panel) if defined $elements{$_};
     }
 
     # Map window
@@ -171,6 +177,7 @@ sub new($class, $panel_id, $panel_width, $panel_x, $ws_cb) {
 
 sub destroy($self) {
     $self->{window}->destroy();
+    $self->{calendar}->destroy() if $self->{calendar};
     %{ $self } = ();
 }
 

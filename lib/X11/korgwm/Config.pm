@@ -82,6 +82,7 @@ BEGIN {
                 "mod_r"                 => "exec(xkb-switch -s us; rofi -show drun)",
                 "mod_w"                 => "exec(firefox --new-instance --private-window)",
                 "mod_shift_w"           => "exec(firefox --new-instance)",
+                "mod_-"                 => "toggle_calendar()",
                 "mod_="                 => "exec(galculator)",
                 "mod_ctrl_shift_q"      => "exit()",
                 "Print"                 => "exec(flameshot gui)",

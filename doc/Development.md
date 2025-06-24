@@ -186,6 +186,18 @@ Each screenshot takes around 20 Mbytes, so in order to effectively translate col
 This function does all the job much faster and allows using of Gtk3 GdkPixbufs with proper colors.
 And only after all those code fixes, Expose module became not so bad from an architectural point of view.
 
+**Lesson learnt**: use profiling and measure resources on little proof-of-concept helpers to avoid bottlenecks as early as possible.
+
+### Improper colour control
+
+As I did not have a lot of experience creating GTK applications, I used almost deprecated methods of manipulating colours of all the GUI elements: panel, expose window, etc.
+Due to this, it was a bit complex to implement new functionality and maintain all the existing.
+
+When I started to implement calendar widget, I faced the situation that GtkCalendar uses a de facto standard mechanism to tune its look: CSS rules.
+I dove a little into this and finally decided to refactor all colours-related code to a single module and make it in a proper way.
+
+**Lesson learnt**: starting development in any new field/knowledge domain, it's a good idea to read some existing code to obtain a little sense of best practice.
+
 ## Problems solved
 
 ### Memory leaks -- Devel::MAT, window destruction and X11-XCB
@@ -211,3 +223,5 @@ Writing a window manager is not a very difficult task.
 It is more like an educational, creative, and fun amusement.
 If you have ever thought about writing a WM in a way that feels true to you, do not hold yourself back.
 I encourage you to grab your favourite language and create your own ideal window manager!
+
+With love, Sergei Zhmylev (zhmylove).

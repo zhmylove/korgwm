@@ -239,6 +239,23 @@ our @parser = (
         &X11::korgwm::Expose::expose();
     }}],
 
+    # Open the calendar
+    [qr/toggle_calendar\(\)/, sub ($arg) { return sub {
+        my $screen = $focus->{screen} // return carp "Focus screen undefined";
+        my $ebox = $screen->{panel}->{"_ebox:clock"} // return carp "_ebox:clock undefined";
+        my $win = $ebox->get_window() // return carp "Can't find relevant Panel window";
+        my $display = $win->get_display() // return carp "Can't find Panel display";
+        my $device_manager = $display->get_device_manager() // return carp "Can't find device manager";
+        my $device = $device_manager->get_client_pointer() // return carp "Can't find mouse pointer device";
+
+        my $event = Gtk3::Gdk::Event->new('button-press');
+        $event->button(Gtk3::Gdk::BUTTON_PRIMARY());
+        $event->window($win);
+        $event->send_event(Gtk3::true());
+        $event->device($device);
+        Gtk3::main_do_event($event);
+    }}],
+
     # Make some window urgent by class
     [qr/urgent_by_class\((.+)\)/, sub ($arg) { return sub {
         &X11::korgwm::Window::urgent_by_class($arg);

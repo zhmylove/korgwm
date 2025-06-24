@@ -12,11 +12,20 @@ use X11::korgwm::Common;
 use X11::korgwm::Panel;
 
 # Add panel element
-&X11::korgwm::Panel::add_element("clock", sub($el, $ebox) {
+&X11::korgwm::Panel::add_element("clock", sub($el, %params) {
+    my $ebox = $params{ebox} or croak "Clock EventBox undefined";
+    my $panel = $params{panel} or croak "Clock Panel undefined";
+
     # Handle separate calendar for each panel
     my $calendar;
+    my $calendar_x_base = $panel->{x} + $panel->{width};
+    my $calendar_y_base = $panel->{y} + $panel->{height};
 
-    # Implement calendar popup
+    # Save the calendar to panel
+    $panel->{calendar}->destroy(), delete $panel->{calendar} if $panel->{calendar};
+    $panel->{calendar} = $calendar;
+
+    # Create new GtkCalendar window
     $ebox->signal_connect('button-press-event', sub ($obj, $e) {
         return $calendar->destroy(), undef $calendar if $calendar;
 
@@ -36,8 +45,7 @@ use X11::korgwm::Panel;
         $calendar->show_all;
 
         # Move it to the right side of the relevant screen
-        my $screen = screen_by_xy($e->x_root, $e->y_root) or return carp "Can't find a screen for calendar";
-        $calendar->move($screen->{x} + $screen->{w} - ($calendar->get_size())[0], $cfg->{panel_height});
+        $calendar->move($calendar_x_base - ($calendar->get_size())[0], $calendar_y_base);
     });
 
     # Return watcher

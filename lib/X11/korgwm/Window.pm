@@ -87,6 +87,7 @@ sub _title($wid) {
     # long_length is a 32-bit multiplies of data; UTF8 usually encodes a char up to 8 bytes, so multipler is 2:
     my $title = _get_property($wid, "_NET_WM_NAME", "UTF8_STRING", 2 * $cfg->{title_max_len});
     $title = _get_property($wid, "WM_NAME", "STRING", $cfg->{title_max_len}) unless length $title;
+    return "" unless defined $title;
     $title =~ s/\n/ /g;
     $title =~ s/ *$//g;
     $title =~ s/^ *//g;
