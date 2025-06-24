@@ -11,26 +11,27 @@ use POSIX qw( strftime );
 use X11::korgwm::Common;
 use X11::korgwm::Panel;
 
-my $calendar;
-
 # Add panel element
 &X11::korgwm::Panel::add_element("clock", sub($el, $ebox) {
+    # Handle separate calendar for each panel
+    my $calendar;
+
     # Implement calendar popup
     $ebox->signal_connect('button-press-event', sub ($obj, $e) {
         return $calendar->destroy(), undef $calendar if $calendar;
 
         # Create and show the calendar
         $calendar = Gtk3::Window->new('popup');
-	    my $widget = Gtk3::Calendar->new();
+        my $widget = Gtk3::Calendar->new();
         $widget->signal_connect("month-changed" => sub {
-                my ($d, $m, $y) = (localtime)[3, 4, 5];
-                $y += 1900;
-                if ($widget->get_property('month') == $m and $widget->get_property('year') == $y) {
-                    $widget->select_day($d)
-                } else {
-                    $widget->select_day(0);
-                }
-            });
+            my ($d, $m, $y) = (localtime)[3, 4, 5];
+            $y += 1900;
+            if ($widget->get_property('month') == $m and $widget->get_property('year') == $y) {
+                $widget->select_day($d)
+            } else {
+                $widget->select_day(0);
+            }
+        });
         $calendar->add($widget);
         $calendar->show_all;
 
