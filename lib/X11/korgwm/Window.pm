@@ -29,6 +29,11 @@ sub new($class, $id) {
     bless { id => $id, sid => $sid++, on_tags => {}, pref_position => [] }, $class;
 }
 
+# ctor for mock windows when we need blessed objects
+sub mock($class, $id) {
+    bless { id => $id }, $class;
+}
+
 sub DESTROY($self) {
     # Wanna free some resources? Do it inside Destroy handler: korgwm.pm/annihilate_window()
     1;
@@ -174,10 +179,7 @@ sub _stack_place(@stack) {
 
     # Infuse @stack with pinned windows, removing duplicates
     my @pinned = pinned_list();
-    if (@pinned) {
-        @stack = grep { not pinned_check($_) } @stack;
-        unshift @stack, @pinned;
-    }
+    @stack = @pinned, grep { not pinned_check($_) } @stack if @pinned;
 
     my $above = shift @stack;
     my %seen = ($above => undef);

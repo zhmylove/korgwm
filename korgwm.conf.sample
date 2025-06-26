@@ -216,9 +216,10 @@ rules:
   evolution-alarm-notify:
     floating: 1
     urgent: 1
+  flameshot:
+    pinned: 1
   galculator:
     floating: 1
-    pinned: 1
   mattermost:
     placement:
       - ~       # 0 screens: we don't care

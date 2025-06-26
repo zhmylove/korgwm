@@ -263,7 +263,13 @@ sub handle_existing_windows {
 # Destroy and Unmap events handler
 sub annihilate_window($wid) {
     my $win = delete $windows->{$wid};
-    return unless $win;
+
+    # Window is unmanaged or unknown, teardown and return
+    unless ($win) {
+        pinned_remove(X11::korgwm::Window->mock($wid));
+        return;
+    }
+
     $win->{_hidden} = 1;
 
     # Ignore Window errors [code=3] closing multiple window at a time
@@ -376,9 +382,19 @@ sub FireInTheHole {
 
     # Ignore not interesting events
     add_event_ignore(CREATE_NOTIFY());
-    add_event_ignore(MAP_NOTIFY());
     add_event_ignore(CONFIGURE_NOTIFY());
     add_event_ignore(FOCUS_OUT());
+
+    # We have to parse MapNotifies as some windows ignore substructure redirection
+    add_event_cb(MAP_NOTIFY(), sub($evt) {
+        my $wid = $evt->{window};
+        return if exists $windows->{$wid};
+
+        # Process rules for unmanaged windows
+        my $class = X11::korgwm::Window::_class($wid) or return;
+        my $rule = $cfg->{rules}->{$class} or return;
+        $rule->{pinned} and pinned_add(X11::korgwm::Window->mock($wid));
+    });
 
     # Add several important event handlers
     add_event_cb(MAP_REQUEST(), sub($evt) {

@@ -24,7 +24,7 @@ use X11::korgwm::Panel;
     # Allocate a destructor
     my $calendar_destroy = sub {
         return unless $calendar;
-        pinned_remove(bless { id => $calendar->get_window()->get_xid() }, "X11::korgwm::Window");
+        pinned_remove(X11::korgwm::Window->mock($calendar->get_window()->get_xid()));
         $calendar->destroy();
         undef $calendar;
     };
@@ -47,7 +47,7 @@ use X11::korgwm::Panel;
         });
         $calendar->add($widget);
         $calendar->show_all;
-        pinned_add(bless { id => $calendar->get_window()->get_xid() }, "X11::korgwm::Window");
+        pinned_add(X11::korgwm::Window->mock($calendar->get_window()->get_xid()));
 
         # Move it to the right side of the relevant screen
         $calendar->move($calendar_x_base - ($calendar->get_size())[0], $calendar_y_base);
