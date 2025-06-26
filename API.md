@@ -20,7 +20,8 @@ Supported API functions are:
 - Run shell command: `exec(<STRING>)`
 - Set active tag: `tag_select(<TAG NUM>)`
 - Close focused window: `win_close()`
-- Window close or toggle floating / maximize / always\_on: `win_toggle_<floating|maximize|always_on>()`
+- Window close or toggle floating / maximize / always\_on / pinned: `win_toggle_<floating|maximize|always_on|pinned>()`
+- Open calendar: `toggle_calendar()`
 - Move window to a particular tag: `win_move_tag(<TAG NUM>)`
 - Set active screen: `screen_select(<SCREEN NUM>)`
 - Move window to a particular screen: `win_move_screen(<SCREEN NUM>)`

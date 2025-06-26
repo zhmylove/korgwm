@@ -308,6 +308,7 @@ sub annihilate_window($wid) {
     }
 
     focus_prev_remove($win);
+    pinned_remove($win);
 
     # Clean-up cached classes index
     if (my $class = $win->{cached_class}) {
@@ -494,6 +495,7 @@ sub FireInTheHole {
         # This lines will apply rules
         $win->toggle_floating(1) if $floating;
         $win->urgency_raise(1) if $rule->{urgent};
+        $win->toggle_pinned() if $rule->{pinned};
 
         # The reason of floating does not matter here so checking the object directly
         prevent_enter_notify() if $win->{floating};

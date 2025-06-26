@@ -196,6 +196,7 @@ hotkeys:
 ## Rules applied to new windows by WM_CLASS
 # floating  -- should the window be tiled (by default for non-transient) or floating
 # follow    -- focus new window and switch to it's screen & tag
+# pinned    -- make the window always ahead of others
 # screen    -- preferred screen to attach the window to (starts with 1)
 # tag       -- preferred tag to attach the window to (starts with 1)
 # placement -- takes precedence over screen & tag (see description and example below)
@@ -212,8 +213,12 @@ rules:
     follow: 0
     screen: 1   # place it on the first screen
     tag: 3      # place it on the tag #3
+  evolution-alarm-notify:
+    floating: 1
+    urgent: 1
   galculator:
     floating: 1
+    pinned: 1
   mattermost:
     placement:
       - ~       # 0 screens: we don't care
@@ -225,9 +230,6 @@ rules:
     floating: 1
   xeyes:
     floating: 1
-  evolution-alarm-notify:
-    floating: 1
-    urgent: 1
 
 ## List of WM_NAME of windows which we want to see despite unset WM_CLASS
 noclass_whitelist:

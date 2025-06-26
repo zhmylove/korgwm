@@ -21,13 +21,17 @@ use X11::korgwm::Panel;
     my $calendar_x_base = $panel->{x} + $panel->{width};
     my $calendar_y_base = $panel->{y} + $panel->{height};
 
-    # Save the calendar to panel
-    $panel->{calendar}->destroy(), delete $panel->{calendar} if $panel->{calendar};
-    $panel->{calendar} = $calendar;
+    # Allocate a destructor
+    my $calendar_destroy = sub {
+        return unless $calendar;
+        pinned_remove(bless { id => $calendar->get_window()->get_xid() }, "X11::korgwm::Window");
+        $calendar->destroy();
+        undef $calendar;
+    };
 
     # Create new GtkCalendar window
     $ebox->signal_connect('button-press-event', sub ($obj, $e) {
-        return $calendar->destroy(), undef $calendar if $calendar;
+        return $calendar_destroy->() if $calendar;
 
         # Create and show the calendar
         $calendar = Gtk3::Window->new('popup');
@@ -43,6 +47,7 @@ use X11::korgwm::Panel;
         });
         $calendar->add($widget);
         $calendar->show_all;
+        pinned_add(bless { id => $calendar->get_window()->get_xid() }, "X11::korgwm::Window");
 
         # Move it to the right side of the relevant screen
         $calendar->move($calendar_x_base - ($calendar->get_size())[0], $calendar_y_base);

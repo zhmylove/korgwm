@@ -16,7 +16,7 @@ our @EXPORT = qw(
     add_event_cb add_event_ignore hexnum init_extension replace_event_cb screen_by_xy pointer %marked_windows
     $visible_min_x $visible_min_y $visible_max_x $visible_max_y $prevent_focus_in $prevent_enter_notify $cpu_saver
     focus_prev_push focus_prev_remove focus_prev_get prevent_focus_in prevent_enter_notify $cached_classes atom
-    gtk_init
+    gtk_init pinned_list pinned_add pinned_remove pinned_check
     );
 
 # NOTE all the debug functions are defined in Config.pm
@@ -43,6 +43,9 @@ our $prevent_enter_notify;
 # focus_prev() is now implemented as a functional interface and allows switch between more than two windows
 my @focus_prev;
 my $focus_prev_size = 5;
+
+# Some windows could be always on top of the stack; to avoid confusion with "always_on [tag]" I name them "pinned"
+my %pinned_windows;
 
 # Helpers for extensions
 sub add_event_cb($id, $sub) {
@@ -84,6 +87,23 @@ sub focus_prev_remove($win) {
 
 sub focus_prev_get() {
     (grep { $_ != $focus->{window} } @focus_prev)[-1];
+}
+
+# pinned_windows helpers
+sub pinned_add($win) {
+    $pinned_windows{ $win->{id} } = $win;
+}
+
+sub pinned_remove($win) {
+    delete $pinned_windows{ $win->{id} };
+}
+
+sub pinned_list() {
+    values %pinned_windows;
+}
+
+sub pinned_check($win) {
+    exists $pinned_windows{ $win->{id} };
 }
 
 # Preventor functions to avoid code copy-pasting

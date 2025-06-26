@@ -76,6 +76,7 @@ BEGIN {
                 "mod_shift_s"           => "mark_window()",
                 "mod_s"                 => "mark_switch_window()",
                 "mod_f"                 => "win_toggle_floating()",
+                "mod_p"                 => "win_toggle_pinned()",
                 "mod_g"                 => "exec(google-chrome --simulate-outdated-no-au --new-window --incognito)",
                 "mod_shift_g"           => "exec(google-chrome --simulate-outdated-no-au --new-window)",
                 "mod_m"                 => "win_toggle_maximize()",
@@ -100,13 +101,13 @@ BEGIN {
     };
 
     $cfg->{rules} = {
-        "mattermost"                    => { placement => [undef, [1, 4], [2, 4], [3, 4]], follow => 1 },
         "evolution"                     => { tag => 3, follow => 0 },
+        "evolution-alarm-notify"        => { floating => 1, urgent => 1 },
         "org.gnome.Evolution"           => { screen => 1, tag => 3, follow => 0 },
-        "galculator"                    => { floating => 1 },
+        "galculator"                    => { pinned => 1, floating => 1 },
+        "mattermost"                    => { placement => [undef, [1, 4], [2, 4], [3, 4]], follow => 1 },
         "urxvt-float"                   => { floating => 1 },
         "xeyes"                         => { floating => 1 },
-        "evolution-alarm-notify"        => { floating => 1, urgent => 1 },
     };
 
     $cfg->{noclass_whitelist} = ["Event Tester", "glxgears"];

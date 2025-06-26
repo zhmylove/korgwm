@@ -84,7 +84,7 @@ our @parser = (
     }}],
 
     # Window close or toggle floating / maximize / always_on
-    [qr/win_(close|toggle_(?:floating|maximize|always_on))\(\)/, sub ($arg) { return sub {
+    [qr/win_(close|toggle_(?:floating|maximize|always_on|pinned))\(\)/, sub ($arg) { return sub {
         my $win = $focus->{window};
         return unless defined $win;
 
@@ -93,6 +93,7 @@ our @parser = (
         $arg eq "toggle_floating"   ? $win->toggle_floating()   :
         $arg eq "toggle_maximize"   ? $win->toggle_maximize(2)  :
         $arg eq "toggle_always_on"  ? $win->toggle_always_on()  :
+        $arg eq "toggle_pinned"     ? $win->toggle_pinned()     :
         croak "Unknown win_toggle_$arg function called"         ;
 
         $focus->{screen}->refresh();

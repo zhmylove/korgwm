@@ -171,13 +171,21 @@ sub _stack_below($self, $top) {
 # Place windows in a stack calling above/below only once per window
 sub _stack_place(@stack) {
     return unless @stack;
+
+    # Infuse @stack with pinned windows, removing duplicates
+    my @pinned = pinned_list();
+    if (@pinned) {
+        @stack = grep { not pinned_check($_) } @stack;
+        unshift @stack, @pinned;
+    }
+
     my $above = shift @stack;
     my %seen = ($above => undef);
     $above->_stack_above();
 
     for my $win (@stack) {
-        next if exists $seen{$win};
-        $seen{$win} = undef;
+        next if exists $seen{ $win->{id} };
+        $seen{ $win->{id} } = undef;
         $win->_stack_below($above);
         $above = $win;
     }
@@ -498,6 +506,10 @@ sub toggle_maximize($self, $action, %opts) {
     }
 
     $tag->show() unless $invisible_win;
+}
+
+sub toggle_pinned($self) {
+    pinned_remove($self) or pinned_add($self);
 }
 
 sub toggle_always_on($self) {
