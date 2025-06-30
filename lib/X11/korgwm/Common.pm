@@ -166,11 +166,6 @@ sub gtk_init() {
         background-color: $color_expose;
     }
 
-    .active, calendar:selected {
-        background-color: $color_fg;
-        color: $color_bg;
-    }
-
     .append {
         background-color: $color_append_bg;
         color: $color_append_fg;
@@ -200,6 +195,11 @@ sub gtk_init() {
 
     calendar:indeterminate {
         color: alpha(currentColor, 0.3);
+    }
+
+    .active, calendar:selected {
+        background-color: $color_fg;
+        color: $color_bg;
     }
     CSS
 

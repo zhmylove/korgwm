@@ -122,7 +122,7 @@ hotkeys:
   mod_9: 'tag_select(9)'
   mod_-: 'toggle_calendar()'
   mod_=: 'exec(galculator)'
-  mod_CR: 'exec(urxvt)'
+  mod_CR: 'exec(xkb-switch -s us; urxvt)'
   mod_F1: 'screen_select(1)'
   mod_F2: 'screen_select(2)'
   mod_F3: 'screen_select(3)'
@@ -172,7 +172,7 @@ hotkeys:
   mod_shift_7: 'win_move_tag(7)'
   mod_shift_8: 'win_move_tag(8)'
   mod_shift_9: 'win_move_tag(9)'
-  mod_shift_CR: 'exec(urxvt -name urxvt-float)'
+  mod_shift_CR: 'exec(xkb-switch -s us; urxvt -name urxvt-float)'
   mod_shift_F1: 'win_move_screen(1)'
   mod_shift_F2: 'win_move_screen(2)'
   mod_shift_F3: 'win_move_screen(3)'
@@ -216,6 +216,8 @@ rules:
   evolution-alarm-notify:
     floating: 1
     urgent: 1
+  rofi:
+    pinned: 1
   flameshot:
     pinned: 1
   galculator:
@@ -241,4 +243,4 @@ noclass_whitelist:
 autostart:
   - 'exec(setxkbmap -layout us,ru -option grp:alt_shift_toggle,compose:ralt)'
 
-# vim: ft=yaml ts=2 sw=2 cc=119 :
+# vim: set ft=yaml ts=2 sw=2 cc=119 :

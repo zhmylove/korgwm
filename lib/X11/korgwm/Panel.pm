@@ -69,10 +69,6 @@ sub ws_set_active($self, $new_active) {
 # Set workspace urgency
 sub ws_set_urgent($self, $ws_id, $urgent = 1) {
     my $ws = $self->{ws}->[$ws_id - 1];
-    $ws->{urgent} = $urgent ? 1 : undef;
-
-    return if $urgent and $ws->{active};
-
     $self->_ws_class_action($urgent ? "add_class" : "remove_class", $ws->{id}, 'urgent');
 }
 

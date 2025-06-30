@@ -4,3 +4,5 @@ MYMETA.yml
 Makefile
 blib
 pm_to_blib
+cscope.*
+local/

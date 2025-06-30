@@ -129,7 +129,10 @@ sub show($self, %opts) {
 sub win_add($self, $win) {
     $win->{on_tags}->{$self} = $self;
 
-    $self->{urgent_windows}->{$win} = undef if $win->urgency_get();
+    if ($win->urgency_get()) {
+        $self->{urgent_windows}->{$win} = undef
+        $self->{screen}->{panel}->ws_set_urgent($self->{idx} + 1, 1);
+    }
     $self->{screen}->{panel}->ws_set_visible($self->{idx} + 1);
 
     $self->{max_window} = $win if $win->{maximized};
@@ -142,7 +145,10 @@ sub win_add($self, $win) {
 # XXX this function is also used for appended windows
 sub win_remove($self, $win, $norefresh = undef) {
     delete $win->{on_tags}->{$self};
+
+    # Process urgency
     delete $self->{urgent_windows}->{$win};
+    $self->{screen}->{panel}->ws_set_urgent($self->{idx} + 1, 0) unless keys %{ $self->{urgent_windows} };
 
     $self->{max_window} = undef if $win == ($self->{max_window} // 0);
 
