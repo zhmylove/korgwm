@@ -35,17 +35,21 @@ sub icccm_update_wm_hints($evt) {
     $win->{urgent} = $urgency_new > 0;
 }
 
-# Fullscreen handlers
-my $atom_fullscreen;
-sub icccm_update_maximize($evt) {
-    my $win = $windows->{$evt->{window}} or return;
+# _WM_STATE Attention handler
+sub net_wm_attention($action, $win) {
+    if ($action == _NET_WM_STATE_ADD) {
+        $win->urgency_raise();
+    } elsif ($action == _NET_WM_STATE_REMOVE) {
+        $win->urgency_clear();
+    } elsif ($action == _NET_WM_STATE_TOGGLE) {
+        $win->{urgent} ? $win->urgency_clear() : $win->urgency_raise();
+    } else {
+        croak "(attention) Unknown action specified in _NET_WM_STATE EWMH: $action";
+    }
+}
 
-    # Ignore irrelevant events
-    my ($action, $first, $second, $source_indication) = unpack "LLLL", $evt->{data} // return;
-    $second //= $first //= 0;
-    return unless $first == $atom_fullscreen or $second == $atom_fullscreen;
-
-    # Ok, now we're sure we were requested to change the fullscreen hint
+# _WM_STATE Fullscreen handler
+sub net_wm_fullscreen($action, $win) {
     if ($action == _NET_WM_STATE_ADD) {
         $win->toggle_maximize(1, allow_invisible => 1);
     } elsif ($action == _NET_WM_STATE_REMOVE) {
@@ -53,8 +57,23 @@ sub icccm_update_maximize($evt) {
     } elsif ($action == _NET_WM_STATE_TOGGLE) {
         $win->toggle_maximize(2, allow_invisible => 1);
     } else {
-        croak "Unknown action specified in _NET_WM_STATE EWMH";
+        croak "(fullscreen) Unknown action specified in _NET_WM_STATE EWMH: $action";
     }
+}
+
+# _NET_WM_STATE handlers
+my $atom_fullscreen;
+my $atom_netwm_attention;
+my %wm_state_handlers;
+sub icccm_update_wm_state($evt) {
+    my $win = $windows->{$evt->{window}} or return;
+
+    # Extract event from the data
+    my ($action, $first, $second, $source_indication) = unpack "LLLL", $evt->{data} // return;
+    $second //= $first //= 0;
+
+    # Execute handler for each known atom
+    $_->($action, $win) for grep defined, map { $wm_state_handlers{$_} } $first, $second;
 }
 
 our $icccm_atoms = {};
@@ -62,9 +81,10 @@ our $icccm_handlers = {
     "WM_HINTS" => \&icccm_update_wm_hints,
     "WM_NAME" => \&icccm_update_title,
     "_NET_WM_NAME" => \&icccm_update_title,
-    "_NET_WM_STATE" => \&icccm_update_maximize,
+    "_NET_WM_STATE" => \&icccm_update_wm_state,
     "_NET_SUPPORTED" => undef,
     "_NET_SUPPORTING_WM_CHECK" => undef,
+    "_NET_WM_STATE_DEMANDS_ATTENTION" => undef,
     "_NET_WM_STATE_FULLSCREEN" => undef,
 };
 
@@ -95,7 +115,12 @@ sub declare_support {
 sub init {
     # Populate current atom ids
     fill_icccm_atoms unless keys %{ $icccm_atoms };
+
     $atom_fullscreen = atom("_NET_WM_STATE_FULLSCREEN");
+    $wm_state_handlers{ $atom_fullscreen } = \&net_wm_fullscreen;
+
+    $atom_netwm_attention = atom("_NET_WM_STATE_DEMANDS_ATTENTION");
+    $wm_state_handlers{ $atom_netwm_attention } = \&net_wm_attention;
 
     # Set up event handlers
     add_event_cb(CLIENT_MESSAGE(), sub ($evt) {
