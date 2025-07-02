@@ -130,7 +130,7 @@ sub win_add($self, $win) {
     $win->{on_tags}->{$self} = $self;
 
     if ($win->urgency_get()) {
-        $self->{urgent_windows}->{$win} = undef
+        $self->{urgent_windows}->{$win} = undef;
         $self->{screen}->{panel}->ws_set_urgent($self->{idx} + 1, 1);
     }
     $self->{screen}->{panel}->ws_set_visible($self->{idx} + 1);
