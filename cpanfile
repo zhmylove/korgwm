@@ -13,5 +13,5 @@ requires 'Net::DBus';
 requires 'POSIX';
 requires 'Scalar::Util';
 requires 'Storable';
-requires 'X11::XCB', '0.23';
+requires 'X11::XCB', '0.24';
 requires 'YAML::Tiny';

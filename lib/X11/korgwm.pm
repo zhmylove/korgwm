@@ -9,7 +9,7 @@ use feature 'signatures';
 our $VERSION = "5.0";
 
 # Third-party includes
-use X11::XCB 0.23 ':all';
+use X11::XCB 0.24 ':all';
 use X11::XCB::Connection;
 use AnyEvent;
 use List::Util qw( any first min max none );

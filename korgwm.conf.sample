@@ -223,6 +223,7 @@ rules:
   rofi:
     pinned: 1
   flameshot:
+    floating: 1
     pinned: 1
   galculator:
     floating: 1
