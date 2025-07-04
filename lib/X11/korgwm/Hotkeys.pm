@@ -22,6 +22,10 @@ my $keys = {
     "XF86AudioLowerVolume"  => 0x1008FF11,
     "XF86AudioMute"         => 0x1008FF12,
     "XF86AudioRaiseVolume"  => 0x1008FF13,
+    "XF86AudioPlay"         => 0x1008FF14,
+    "XF86AudioStop"         => 0x1008FF15,
+    "XF86AudioPrev"         => 0x1008FF16,
+    "XF86AudioNext"         => 0x1008FF17,
     "XF86WakeUp"            => 0x1008FF2B,
 };
 
