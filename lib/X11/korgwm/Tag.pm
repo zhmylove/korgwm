@@ -104,23 +104,20 @@ sub show($self, %opts) {
     # Handle focus change
     $focus->{screen} = $self->{screen};
     my $focus_win = $self->{screen}->{focus};
-    if (defined $focus_win) {
-        if (exists $focus_win->{on_tags}->{$self}) {
-            # If this window is focused on this tag, just give it a focus
-            $focus_win->focus();
+    if (defined $focus_win and exists $focus_win->{on_tags}->{$self}) {
+        # If this window is focused on this tag, just give it a focus
+        $focus_win->focus();
+    } elsif (my $win = $self->{focus} || $self->first_window()) {
+        # Try to focus previously focused window (or any window on the tag)
+        if ($opts{noselect}) {
+            # Looks like for the situations, when we do not want to warp any case (see Screen.pm /panel)
+            $win->focus();
         } else {
-            # If focused window is hidden (it's on the same screen and another tag) we want to drop focus
-            $focus->{screen}->focus();
+            $win->select(bypass_single_window_warp => 1);
         }
     } else {
-        # Try to focus previously focused window (or any window)
-        if (my $win = $self->{focus} || $self->first_window()) {
-            if ($win->{floating} or $win->{maximized} or $opts{noselect}) {
-                $win->focus(); # floating, maximized, always_on
-            } else {
-                $win->select(bypass_single_window_warp => 1); # tiled
-            }
-        }
+        # If focused window is hidden (it's on the same screen and another tag) we want to drop focus
+        $focus->{screen}->focus();
     }
 
     $X->flush();

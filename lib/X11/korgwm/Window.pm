@@ -179,7 +179,7 @@ sub _stack_place(@stack) {
 
     # Infuse @stack with pinned windows, removing duplicates
     my @pinned = pinned_list();
-    @stack = @pinned, grep { not pinned_check($_) } @stack if @pinned;
+    @stack = (@pinned, grep { not pinned_check($_) } @stack) if @pinned;
 
     my $above = shift @stack;
     my %seen = ($above => undef);
