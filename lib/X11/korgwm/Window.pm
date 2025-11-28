@@ -620,6 +620,8 @@ sub urgent_by_class(@classes) {
 
 # Almost just warp pointer to the window. Does nothing if the window already owns the pointer.
 sub warp_pointer($self, %opts) {
+    return if $cfg->{mouse_nowarp};
+
     # Do nothing if this window already owns the pointer not in (0, 0) position
     my $ptr = pointer();
     return if $self->{id} == ($ptr->{child} // 0) and sum0 map { $ptr->{$_} // () } qw( root_x root_y );

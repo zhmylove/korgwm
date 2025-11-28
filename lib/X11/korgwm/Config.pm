@@ -36,10 +36,12 @@ BEGIN {
     $cfg->{expose_show_id} = 1;
     $cfg->{font} = "DejaVu Sans Mono 10";
     $cfg->{hide_empty_tags} = 1;
+    $cfg->{tag_rotate} = 1;
     $cfg->{initial_pointer_position} = "center"; # values: undef, "center", "hidden"
     $cfg->{lang_format} = " %s ";
     $cfg->{lang_names} = { 0 => chr(0x00a3), 1 => chr(0x20bd) };
     $cfg->{mouse_follow} = 1;
+    $cfg->{mouse_nowarp} = 0;
     $cfg->{move_follow} = 1;
     $cfg->{warp_ignore_korgwm} = 1;
     $cfg->{notification_server} = 1;

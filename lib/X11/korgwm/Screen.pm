@@ -56,7 +56,7 @@ sub destroy($self, $new_screen) {
 sub tag_set_active($self, $tag_new_id, %opts) {
     $opts{rotate} //= 1;
 
-    $tag_new_id = $self->{tag_prev} if $opts{rotate} and $tag_new_id == $self->{tag_curr};
+    $tag_new_id = $self->{tag_prev} if $cfg->{tag_rotate} and $opts{rotate} and $tag_new_id == $self->{tag_curr};
     return if $tag_new_id == $self->{tag_curr};
 
     # Remember previous tag
