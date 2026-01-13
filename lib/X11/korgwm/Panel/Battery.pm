@@ -16,7 +16,10 @@ use X11::korgwm::Panel;
         my ($val, $txt, $fd, $battery_low);
 
         # Get current value
-        open $fd, "<", "/sys/class/power_supply/BAT0/capacity" or return;
+        my $bat = (sort glob "/sys/class/power_supply/BAT*")[0] or return;
+        -d $bat or return;
+
+        open $fd, "<", "$bat/capacity" or return;
         $val = 0 + <$fd>;
         $battery_low = 1 if $val <= 16;
         close $fd;
@@ -25,7 +28,7 @@ use X11::korgwm::Panel;
         $txt = sprintf $cfg->{battery_format}, $val;
 
         # Process status
-        open $fd, "<", "/sys/class/power_supply/BAT0/status" or return;
+        open $fd, "<", "$bat/status" or return;
         unless (<$fd> eq "Discharging\n") {
             $txt = "" if $val == 100 and $cfg->{battery_hide_charged};
             $txt .= $cfg->{battery_charging_character};
