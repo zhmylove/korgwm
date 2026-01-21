@@ -119,7 +119,10 @@ sub init {
     my $root_id = $X->root->id;
     for my $key (keys %{ $hotkeys }) {
         for my $mask (keys %{ $hotkeys->{$key} }) {
-            $X->grab_key(0, $root_id, $mask, $keycodes->{$key}, GRAB_MODE_ASYNC, GRAB_MODE_ASYNC);
+            # In case of improper setxkbmap (when "us" is not on the first place) keycodes could be undefined
+            my $keycode = $keycodes->{$key} // croak "Keycode for key '$key' is not defined on X11 server!";
+
+            $X->grab_key(0, $root_id, $mask, $keycode, GRAB_MODE_ASYNC, GRAB_MODE_ASYNC);
         }
     }
     $X->flush();
