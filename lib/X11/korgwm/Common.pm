@@ -141,15 +141,15 @@ sub gtk_init() {
     Gtk3::disable_setlocale();
     Gtk3::init();
 
-    my $color_bg = sprintf "#%x", $cfg->{color_bg};
-    my $color_fg = sprintf "#%x", $cfg->{color_fg};
-    my $color_append_bg = sprintf "#%x", $cfg->{color_append_bg};
-    my $color_append_fg = sprintf "#%x", $cfg->{color_append_fg};
-    my $color_battery_low = sprintf '#%x', $cfg->{color_battery_low};
-    my $color_border = sprintf "#%x", $cfg->{color_border};
-    my $color_expose = sprintf "#%x", $cfg->{color_expose};
-    my $color_urgent_bg = sprintf "#%x", $cfg->{color_urgent_bg};
-    my $color_urgent_fg = sprintf "#%x", $cfg->{color_urgent_fg};
+    my $color_bg = sprintf "#%06x", $cfg->{color_bg};
+    my $color_fg = sprintf "#%06x", $cfg->{color_fg};
+    my $color_append_bg = sprintf "#%06x", $cfg->{color_append_bg};
+    my $color_append_fg = sprintf "#%06x", $cfg->{color_append_fg};
+    my $color_battery_low = sprintf '#%06x', $cfg->{color_battery_low};
+    my $color_border = sprintf "#%06x", $cfg->{color_border};
+    my $color_expose = sprintf "#%06x", $cfg->{color_expose};
+    my $color_urgent_bg = sprintf "#%06x", $cfg->{color_urgent_bg};
+    my $color_urgent_fg = sprintf "#%06x", $cfg->{color_urgent_fg};
     my ($font_name, $font_size) = $cfg->{font} =~ /(.+)\s+(\d+)$/ or die "Font: $cfg->{font} has invalid format";
 
     my $css_provider = Gtk3::CssProvider->new();
