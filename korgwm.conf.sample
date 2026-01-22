@@ -147,6 +147,9 @@ hotkeys:
   mod_alt_F3: 'exec(pactl set-sink-volume 0 +10%)'
   mod_alt_F5: 'exec(light -U 20)'
   mod_alt_F6: 'exec(light -A 20)'
+  mod_alt_F10: 'layout_set(narrow)'
+  mod_alt_F11: 'layout_set(columns)'
+  mod_alt_F12: 'layout_set(grid)'
   mod_ctrl_h: 'layout_resize(h)'
   mod_ctrl_j: 'layout_resize(j)'
   mod_ctrl_k: 'layout_resize(k)'
@@ -216,11 +219,13 @@ hotkeys:
 rules:
   evolution:
     follow: 0
-    tag: 3      # place it on the first screen, tag #3
+    # see Placement above; place it on the first screen, tag #3
+    tag: 3
   org.gnome.Evolution:
     follow: 0
-    screen: 1   # place it on the first screen
-    tag: 3      # place it on the tag #3
+    # see Placement above; place it on the first screen, on the tag #3
+    screen: 1
+    tag: 3
   evolution-alarm-notify:
     floating: 1
     urgent: 1
@@ -232,11 +237,16 @@ rules:
   galculator:
     floating: 1
   mattermost:
+    # see Placement above:
+    # 0 screens: we don't care
+    # 1 screens: place it on the only screen, tag #4
+    # 2 screens: place it on the second screen, tag #4
+    # 3 screens: place it on the third screen, tag #4
     placement:
-      - ~       # 0 screens: we don't care
-      - [1, 4]  # 1 screens: place it on the only screen, tag #4
-      - [2, 4]  # 2 screens: place it on the second screen, tag #4
-      - [3, 4]  # 3 screens: place it on the third screen, tag #4
+      - ~
+      - [1, 4]
+      - [2, 4]
+      - [3, 4]
     follow: 1
   urxvt-float:
     floating: 1

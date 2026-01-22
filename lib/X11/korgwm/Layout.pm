@@ -51,13 +51,13 @@ grid will look like:
 
     [
         [
-            '0.5',
-            '0.5',
-            '0.5'
+            '0.5', <-- weight (column ratio, 0..1)
+            '0.5', <-- vertical (row) ratio; 0.5 to split screen evenly
+            '0.5'  <-- vertical (row) ratio for second window
         ],
         [
-            '0.5',
-            '0.333333333333333',
+            '0.5', <-- this column has the same width as the first one
+            '0.333333333333333', <-- all three windows have the same row ratio
             '0.333333333333333',
             '0.333333333333333'
         ]
@@ -65,6 +65,10 @@ grid will look like:
 
 User *maybe* will be able to change weights in their local copy of grid and
 everything will work in the same way.
+
+Layout also defines display order for tiled windows.  Default order depends
+on the layout type: reverse order for grid, forward order for columns.
+See API on how to change it dynamically.
 
 =cut
 
@@ -79,7 +83,13 @@ sub _nrows($windows) {
     ceil($windows / _ncols($windows));
 }
 
-sub _new_layout($windows) {
+# Implement dynamic grid
+# +-----+-----+
+# |     |     |
+# +-----+-----+
+# |     |     |
+# +-----+-----+
+sub _new_grid_layout($windows) {
     croak "Cannot create a layout for imaginary windows" if $windows <= 0;
     my $nrows = _nrows($windows);
     my $ncols = _ncols($windows);
@@ -109,6 +119,45 @@ sub _new_layout($windows) {
     return $grid;
 }
 
+# Implement simple columns layout
+# +--+--+--+--+
+# |  |  |  |  |
+# |  |  |  |  |
+# |  |  |  |  |
+# +--+--+--+--+
+sub _new_columns_layout($windows) {
+    # Use default "grid" mode when there are a lot of windows
+    return _new_grid_layout($windows) if $windows <= 2 or $windows > 7;
+
+    # I don't want to make any algorithm to calculate these values, so just hardcode them
+    return [ [0.34, 1], [0.33, 1       ], [0.33, 1       ]                   ] if $windows == 3;
+    return [ [0.25, 1], [0.25, 1       ], [0.25, 1       ], [0.25, 1       ] ] if $windows == 4;
+    return [ [0.25, 1], [0.25, 1       ], [0.25, 1       ], [0.25, 0.5, 0.5] ] if $windows == 5;
+    return [ [0.25, 1], [0.25, 1       ], [0.25, 0.5, 0.5], [0.25, 0.5, 0.5] ] if $windows == 6;
+    return [ [0.25, 1], [0.25, 0.5, 0.5], [0.25, 0.5, 0.5], [0.25, 0.5, 0.5] ] if $windows == 7;
+}
+
+# Implement very simple narrow layout for 1 or 2 windows
+# +--+-----+--+
+# |--|     |--|
+# |--+-----+--|
+# |--|     |--|
+# +--+-----+--+
+sub _new_narrow_layout($windows) {
+    my $padding = 0.20;
+    return [ [$padding], [1 - (2 * $padding), 1       ], [$padding] ] if $windows == 1;
+    return [ [$padding], [1 - (2 * $padding), 0.5, 0.5], [$padding] ] if $windows == 2;
+
+    # Fallback to a grid layout
+    return _new_grid_layout($windows);
+}
+
+our %layouts = (
+    grid => { func => \&_new_grid_layout, reverse_windows => 1 },
+    columns => { func => \&_new_columns_layout, reverse_windows => 0 },
+    narrow => { func => \&_new_narrow_layout, reverse_windows => 0 },
+);
+
 sub arrange_windows($self, $windows, $dpy_width, $dpy_height, $x_offset=0, $y_offset=0) {
     # Validate parameters
     croak "Cannot arrange non-windows" unless ref $windows eq "ARRAY";
@@ -120,11 +169,11 @@ sub arrange_windows($self, $windows, $dpy_width, $dpy_height, $x_offset=0, $y_of
     my ($dpy_width_orig, $dpy_height_orig) = ($dpy_width, $dpy_height);
 
     # Create layout if needed
-    my $grid = dclone($self->{grid}->[$nwindows - 1] //= _new_layout($nwindows));
+    my $grid = dclone($self->{grid}->[$nwindows - 1] //= $self->{func}->($nwindows));
 
     # Prepare windows and grid to zip them
     my @cols = reverse @{ $grid };
-    my @windows = reverse @{ $windows };
+    my @windows = $self->{reverse_windows} ? reverse @{ $windows } : @{ $windows };
     my $hide_border = (1 == @windows and 1 == @screens);
 
     # Prepare $i, $j to save actual position
@@ -192,8 +241,12 @@ sub resize($self, $nwindows, $i, $j, $delta_x, $delta_y) {
     }
 }
 
-sub new($self) {
-    bless { grid => [] }, $self;
+sub new($self, %params) {
+    my $layout = $layouts{ $params{func} // "grid" } or croak "Unknown layout: $params{func}";
+
+    my $reverse_windows = $params{reverse_windows} // $layout->{reverse_windows};
+
+    bless { grid => [], func => $layout->{func}, reverse_windows => $reverse_windows }, $self;
 }
 
 1;

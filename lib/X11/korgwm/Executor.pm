@@ -212,6 +212,14 @@ our @parser = (
         $win->swap($new);
     }}],
 
+    # Change the layout
+    [qr/layout_set\((\w+\s*(,\s*\d+)?)\)/, sub ($arg) { return sub {
+        my ($func, $reverse) = split /\s*,\s*/, $arg;
+        my $tag = $focus->{screen}->current_tag();
+        $tag->layout_set($func, $reverse) or return;
+        $tag->show();
+    }}],
+
     # Resize the layout
     [qr/layout_resize\(([hjkl])\)/, sub ($arg) { return sub {
         my $win = $focus->{window};
@@ -321,7 +329,7 @@ DEBUG_API and push @parser,
     }}],
 ;
 
-# Parses $cmd and returns corresponding \&sub
+# Parse $cmd and return corresponding \&sub
 sub parse($cmd) {
     for my $known (@parser) {
         return $known->[1]->($1) if $cmd =~ m{^$known->[0]$}s;

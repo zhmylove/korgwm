@@ -71,7 +71,7 @@ my @preferred_tags = ();
 our @handle_screens_post_hooks;
 
 ## Define functions
-# Handles any screen change
+# Handle any screen change
 sub handle_screens {
     my @xscreens = @{ $X->screens() };
 

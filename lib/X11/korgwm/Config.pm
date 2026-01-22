@@ -100,6 +100,9 @@ BEGIN {
                 "mod_alt_F3"            => "exec(pactl set-sink-volume 0 +10%)",
                 "mod_alt_F5"            => "exec(light -U 20)",
                 "mod_alt_F6"            => "exec(light -A 20)",
+                "mod_alt_F10"           => "layout_set(narrow)",
+                "mod_alt_F11"           => "layout_set(columns)",
+                "mod_alt_F12"           => "layout_set(grid)",
     };
 
     $cfg->{rules} = {

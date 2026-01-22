@@ -6,10 +6,12 @@ CRLF endings are also supported in order to use it via telnet(1).
 
 Possible tokens:
 
+- `<BOOL>` -- `0` for False, `1` for True
 - `<COLUMN NUM>` -- desired column
 - `<DIRECTION>` -- any vimish direction: `h`, `j`, `k`, `l`
 - `<FLOAT>` -- floating point number, dot is mandatory: `0.00`, `0.1`, `-3.145`
 - `<FOCUS DIRECTION>` -- empty or `backward`
+- `<LAYOUT>` -- layout one of: `grid` (default), `columns`, `narrow`
 - `<ROW NUM>` -- desired row
 - `<SCREEN NUM>` -- desired screen
 - `<STRING>` -- any arbitrary UTF-8 string
@@ -29,6 +31,7 @@ Supported API functions are:
 - Cycle focus over the windows on current tag: `focus_cycle(<FOCUS DIRECTION>)`
 - Focus move to a certain direction: `focus_move(<DIRECTION>)`
 - Swap focused window with another one in a certain direction: `focus_swap(<DIRECTION>)`
+- Set a specific layout: `layout_set(<LAYOUT>)` or with `reverse_windows` order: `layout_set(<LAYOUT>, <BOOL>)`
 - Resize the layout: `layout_resize(<DIRECTION>)`
 - Show window selection dialog using Expose module: `expose()`
 - Mark a window with some key: `mark_window()` -- reads next key to mark a window with

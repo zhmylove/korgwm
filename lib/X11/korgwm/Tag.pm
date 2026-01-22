@@ -67,7 +67,10 @@ sub hide($self) {
 # - noselect => do not call select() to avoid warp_pointer()
 sub show($self, %opts) {
     # Redefine layout if needed
-    $self->{layout} //= X11::korgwm::Layout->new();
+    $self->{layout} //= X11::korgwm::Layout->new(
+        func => $self->{layout_func},
+        reverse_windows => $self->{reverse_windows},
+    );
     DEBUG8 and carp "tag->show($self, @{[%opts]})";
 
     # Map all windows from the tag
@@ -155,6 +158,9 @@ sub win_remove($self, $win, $norefresh = undef) {
 
     # Remove title when removing focused window
     $self->{screen}->{panel}->title() if $win == $focus->{window};
+
+    # Remove layout when removing the last window
+    $self->{layout} = undef unless $self->first_window(1);
 
     # Update panel if tag becomes empty
     $self->{screen}->{panel}->ws_set_visible($self->{idx} + 1, 0)
@@ -255,6 +261,17 @@ sub drop_appends($self) {
     $self->{screen}->{panel}->ws_drop_appends();
 
     $self->{windows_appended} = [];
+}
+
+# Set layout function and windows order for tag; layout should be re-created using show()
+sub layout_set($self, $func_name, $reverse_windows=1) {
+    return unless exists $X11::korgwm::Layout::layouts{ $func_name };
+
+    $self->{layout_func} = $func_name;
+    $self->{reverse_windows} = $reverse_windows;
+    $self->{layout} = undef;
+
+    return 1; # Executor relies on the rc to call show()
 }
 
 1;
