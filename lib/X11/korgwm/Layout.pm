@@ -126,15 +126,15 @@ sub _new_grid_layout($windows) {
 # |  |  |  |  |
 # +--+--+--+--+
 sub _new_columns_layout($windows) {
-    # Use default "grid" mode when there are a lot of windows
-    return _new_grid_layout($windows) if $windows <= 2 or $windows > 7;
-
     # I don't want to make any algorithm to calculate these values, so just hardcode them
-    return [ [0.34, 1], [0.33, 1       ], [0.33, 1       ]                   ] if $windows == 3;
+    return [ [0.34, 1], [0.33, 1                ], [0.33, 1                ] ] if $windows == 3;
     return [ [0.25, 1], [0.25, 1       ], [0.25, 1       ], [0.25, 1       ] ] if $windows == 4;
     return [ [0.25, 1], [0.25, 1       ], [0.25, 1       ], [0.25, 0.5, 0.5] ] if $windows == 5;
     return [ [0.25, 1], [0.25, 1       ], [0.25, 0.5, 0.5], [0.25, 0.5, 0.5] ] if $windows == 6;
     return [ [0.25, 1], [0.25, 0.5, 0.5], [0.25, 0.5, 0.5], [0.25, 0.5, 0.5] ] if $windows == 7;
+
+    # Fallback to a grid layout
+    return _new_grid_layout($windows);
 }
 
 # Implement very simple narrow layout for 1 or 2 windows

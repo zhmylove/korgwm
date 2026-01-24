@@ -37,6 +37,8 @@ $windows => {
             windows_appended => [],         # list of windows that belongs to others tags and were appended using tag_append
             urgent_windows => {},           # hash of windows with urgency flag
             layout => Ref,                  # reference to Layout object, or undef (when there is no tiled windows on tag)
+            layout_func => Str,             # if defined, overrides default layout name for the tag
+            reverse_windows => Bool,        # flag if tiled windows should show in reverse order
             focus => Ref,                   # ref to a focused Window, used for selecting which one give the focus to during tag switching
         ],
         idx => Int,                         # screen index inside @screens
