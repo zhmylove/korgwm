@@ -96,6 +96,7 @@ sub _title($wid) {
     $title =~ s/\n/ /g;
     $title =~ s/ *$//g;
     $title =~ s/^ *//g;
+    $title =~ s/\p{Grapheme_Extend}/?/g;
     $title;
 }
 

@@ -1,0 +1,5 @@
+[korgwm]
+source = "git"
+git = "https://github.com/zhmylove/korgwm.git"
+prefix = "v"
+exclude_regex = '.*(alpha|beta|pre|rc).*'
