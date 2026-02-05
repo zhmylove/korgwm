@@ -27,6 +27,7 @@ my $keys = {
     "XF86AudioPrev"         => 0x1008FF16,
     "XF86AudioNext"         => 0x1008FF17,
     "XF86WakeUp"            => 0x1008FF2B,
+    "XF86AudioPause"        => 0x1008FF31,
 };
 
 # xcb modifiers
@@ -73,7 +74,7 @@ sub init {
     # Prepare reverse mapping
     for (my $i = $#{ $keymap }; $i > 0; $i--) {
         my $keycode = $keymap->[$i] or next;
-        $keycodes->{$keycode->[0]} = $i;
+        push @{ $keycodes->{$keycode->[0]} }, $i;
     }
 
     # Parse hotkeys from config and fill %$hotkeys
@@ -120,9 +121,9 @@ sub init {
     for my $key (keys %{ $hotkeys }) {
         for my $mask (keys %{ $hotkeys->{$key} }) {
             # In case of improper setxkbmap (when "us" is not on the first place) keycodes could be undefined
-            my $keycode = $keycodes->{$key} // croak "Keycode for key '$key' is not defined on X11 server!";
+            my $keycodes_list = $keycodes->{$key} // croak "Keycode for key '$key' is not defined on X11 server!";
 
-            $X->grab_key(0, $root_id, $mask, $keycode, GRAB_MODE_ASYNC, GRAB_MODE_ASYNC);
+            $X->grab_key(0, $root_id, $mask, $_, GRAB_MODE_ASYNC, GRAB_MODE_ASYNC) for @{ $keycodes_list };
         }
     }
     $X->flush();
