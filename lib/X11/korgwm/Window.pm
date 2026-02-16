@@ -39,6 +39,13 @@ sub DESTROY($self) {
     1;
 }
 
+# Returns:
+# - in scalar context: just a value
+# - in list context: the value and reply object itself
+# The value could be modified depending on the $prop_type:
+# - UTF-8 is being decoded on the fly
+# - WINDOW CARDINAL is unpacked as a single int
+# - ATOM is unpacked as [ int, int, int... ] for each ATOM in the reply
 sub _get_property($wid, $prop_name, $prop_type='UTF8_STRING', $ret_length=8) {
     my $aname = atom($prop_name);
     my $atype = atom($prop_type);
@@ -49,8 +56,11 @@ sub _get_property($wid, $prop_name, $prop_type='UTF8_STRING', $ret_length=8) {
     my $value = $prop ? $prop->{value} : undef;
 
     # Convert to internal format
-    $value = decode('UTF-8', $value) if defined $value and $prop_type eq 'UTF8_STRING';
-    ($value) = unpack('L', $value) if defined $value and $prop_type eq 'WINDOW';
+    if (defined $value) {
+        $value = decode('UTF-8', $value) if $prop_type eq 'UTF8_STRING';
+        ($value) = unpack('L', $value) if $prop_type eq 'WINDOW';
+        $value = [ unpack 'L' x $prop->{value_len}, $value ] if $prop_type eq 'ATOM';
+    }
 
     return wantarray ? ($value, $prop) : $value;
 }

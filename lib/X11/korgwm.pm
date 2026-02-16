@@ -513,10 +513,15 @@ sub FireInTheHole {
         $win->urgency_raise(1) if $rule->{urgent};
         $win->toggle_pinned() if $rule->{pinned};
 
+        # I'm not sure if we properly maximize it in case we already have $tag->{maximized}
+        $win->toggle_maximize(1, allow_invisible => 1) if first {
+            atom("_NET_WM_STATE_FULLSCREEN") == $_
+        } @{ $win->get_property("_NET_WM_STATE", "ATOM") // [] };
+
         # The reason of floating does not matter here so checking the object directly
         prevent_enter_notify() if $win->{floating};
 
-        if ($tag->{max_window} and not $win->relative_for($tag->{max_window})) {
+        if ($tag->{max_window} and not $win == $tag->{max_window} and not $win->relative_for($tag->{max_window})) {
             # There is some maximized window on the tag and $win is not transient for it or its children
             # TODO consider if we want to respect $follow here
             DEBUG2 and carp "Window $win is starting _hidden() behind some maximized one";
