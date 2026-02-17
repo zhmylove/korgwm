@@ -547,7 +547,7 @@ sub close($self) {
     my $len = $prop->{value_len};
 
     # Use ICCCM to gently ask client to close the window
-    if ($len and first { $_ == $icccm_del_win } unpack "L" x $len, $value) {
+    if ($len and first { $_ == $icccm_del_win } @{ $value }) {
         my $packed = pack('CCSLLLL', CLIENT_MESSAGE, 32, 0, $self->{id}, atom("WM_PROTOCOLS"),
             atom("WM_DELETE_WINDOW"), TIME_CURRENT_TIME);
         $X->send_event(0, $self->{id}, EVENT_MASK_STRUCTURE_NOTIFY, $packed);
