@@ -518,8 +518,8 @@ sub FireInTheHole {
             atom("_NET_WM_STATE_FULLSCREEN") == $_
         } @{ $win->get_property("_NET_WM_STATE", "ATOM") // [] };
 
-        # The reason of floating does not matter here so checking the object directly
-        prevent_enter_notify() if $win->{floating};
+        # We probably want to prevent EnterNotify for any MapRequest despite floatingness of the window
+        prevent_enter_notify();
 
         if ($tag->{max_window} and not $win == $tag->{max_window} and not $win->relative_for($tag->{max_window})) {
             # There is some maximized window on the tag and $win is not transient for it or its children
