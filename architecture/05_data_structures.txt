@@ -32,6 +32,7 @@ $windows => {
             screen => Ref,                  # reference to screen
             idx => Int,                     # position in the @$tags
             max_window => Ref,              # if defined, hide panel and maximize window
+            focus_prev => [],               # list of last focused windows on the tag
             windows_tiled => [],            # list (performance bye-bye) of windows attached to this tag, also affects Panel tag visibility
             windows_float => [],            # list of floating windows on the tag
             windows_appended => [],         # list of windows that belongs to others tags and were appended using tag_append

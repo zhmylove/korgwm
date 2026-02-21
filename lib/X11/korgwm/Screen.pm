@@ -126,7 +126,7 @@ sub focus($self, %params) {
         $X->set_input_focus(INPUT_FOCUS_POINTER_ROOT, $X->root->id, TIME_CURRENT_TIME);
 
         # Focus some window on active tag. It's ok if it return undef
-        my $win = $tag->first_window();
+        my $win = focus_prev_get($tag->{focus_prev}) // $tag->first_window();
         $self->{focus} = $win;
     }
 

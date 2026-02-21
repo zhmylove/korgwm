@@ -41,7 +41,7 @@ our $prevent_focus_in;
 our $prevent_enter_notify;
 
 # focus_prev() is now implemented as a functional interface and allows switch between more than two windows
-my @focus_prev;
+my $focus_prev_global = [];
 my $focus_prev_size = 5;
 
 # Some windows could be always on top of the stack; to avoid confusion with "always_on [tag]" I name them "pinned"
@@ -73,20 +73,20 @@ sub init_extension($name, $first_event) {
 }
 
 # focus_prev helpers
-sub focus_prev_push($win) {
+sub focus_prev_push($win, $storage = $focus_prev_global) {
     return unless defined $win;
-    focus_prev_remove($win);
-    push @focus_prev, $win;
-    shift @focus_prev if @focus_prev > $focus_prev_size;
+    focus_prev_remove($win, $storage);
+    push @{ $storage }, $win;
+    shift @{ $storage } if @{ $storage } > $focus_prev_size;
 }
 
-sub focus_prev_remove($win) {
+sub focus_prev_remove($win, $storage = $focus_prev_global) {
     return unless defined $win;
-    @focus_prev = grep { $_ != $win } @focus_prev;
+    @{ $storage } = grep { $_ != $win } @{ $storage };
 }
 
-sub focus_prev_get() {
-    (grep { $_ != $focus->{window} } @focus_prev)[-1];
+sub focus_prev_get($storage = $focus_prev_global) {
+    (grep { $_ != $focus->{window} } @{ $storage })[-1];
 }
 
 # pinned_windows helpers

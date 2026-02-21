@@ -293,6 +293,9 @@ sub focus($self) {
     $focus->{window} = $self;
     $focus->{screen} = $self->{always_on} || $focus_screens[0];
 
+    # NOTE $tag is probably defined here any case
+    focus_prev_push($self, $tag->{focus_prev});
+
     $X->flush();
 }
 

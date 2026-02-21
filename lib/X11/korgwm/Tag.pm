@@ -19,6 +19,7 @@ sub new($class, $screen) {
         screen => $screen,
         layout => undef,
         max_window => undef,
+        focus_prev => [],
         windows_float => [],
         windows_tiled => [],
         windows_appended => [],
@@ -110,7 +111,7 @@ sub show($self, %opts) {
     if (defined $focus_win and exists $focus_win->{on_tags}->{$self}) {
         # If this window is focused on this tag, just give it a focus
         $focus_win->focus();
-    } elsif (my $win = $self->{focus} || $self->first_window()) {
+    } elsif (my $win = $self->{focus} || focus_prev_get($self->{focus_prev}) || $self->first_window()) {
         # Try to focus previously focused window (or any window on the tag)
         if ($opts{noselect}) {
             # Looks like for the situations, when we do not want to warp any case (see Screen.pm /panel)
@@ -166,8 +167,11 @@ sub win_remove($self, $win, $norefresh = undef) {
     $self->{screen}->{panel}->ws_set_visible($self->{idx} + 1, 0)
         if $cfg->{hide_empty_tags} and not $self->first_window();
 
+    # Remove the window from tag->focus_prev
+    focus_prev_remove($win, $self->{focus_prev});
+
     # Clean preferred focus for this tag if needed
-    $self->{focus} = undef if $win == $self->{focus};
+    $self->{focus} = focus_prev_get($self->{focus_prev}) if $win == $self->{focus};
 
     # If this tag is visible, call screen refresh
     $self->{screen}->refresh() if not $norefresh and $self == $self->{screen}->current_tag();
