@@ -101,11 +101,12 @@ Please see comments inside [korgwm.conf.sample](korgwm.conf.sample).
 
 Supported environment variables:
 
-|    Variable name    |         Description                                                                         |
-| ------------------- | ------------------------------------------------------------------------------------------- |
-| `KORGWM_DEBUG`      | Alternative way to set the `debug` option                                                   |
-| `KORGWM_DEBUG_API`  | If defined, `debug_*()` calls will be enabled in [API](API.md) regardless `debug` option    |
-| `KORGWM_DEBUG_PORT` | Port number [API](API.md) binds to. Useful to avoid EADDRINUSE running several `korgwm`s    |
+|    Variable name      |         Description                                                                        |
+| --------------------- | ------------------------------------------------------------------------------------------ |
+| `KORGWM_DEBUG`        | Alternative way to set the `debug` option                                                  |
+| `KORGWM_DEBUG_API`    | If defined, `debug_*()` calls will be enabled in [API](API.md) regardless `debug` option   |
+| `KORGWM_DEBUG_CONFIG` | If defined, Config.pm tries to read this file instead of a default list                    |
+| `KORGWM_DEBUG_PORT`   | Port number [API](API.md) binds to. Useful to avoid EADDRINUSE running several `korgwm`s   |
 
 ## Contribution
 

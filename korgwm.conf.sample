@@ -63,7 +63,7 @@ battery_format: '%s'
 # Enable/disable display of the battery percentage when it's full
 battery_hide_charged: 1
 # Format string for the clock, see strftime(3)
-clock_format: ' %a, %e %B %H:%M'
+clock_format: ' %a %e %B %H:%M'
 # Format string for the language selector
 lang_format: ' %s '
 # Mapping of the languages to strings on the panel
@@ -105,11 +105,11 @@ color_urgent_fg: 0x464729
 
 ## Hotkeys, see API.pm for description of possible functions
 hotkeys:
-  XF86AudioLowerVolume: 'exec(pactl set-sink-volume 0 -10%)'
-  XF86AudioMute: 'exec(pactl set-sink-mute 0 toggle)'
-  XF86AudioRaiseVolume: 'exec(pactl set-sink-volume 0 +10%)'
-  XF86MonBrightnessDown: 'exec(light -U 20)'
-  XF86MonBrightnessUp: 'exec(light -A 20)'
+  XF86AudioLowerVolume: 'nop()'
+  XF86AudioMute: 'nop()'
+  XF86AudioRaiseVolume: 'nop()'
+  XF86MonBrightnessDown: 'nop()'
+  XF86MonBrightnessUp: 'nop()'
   XF86AudioPlay: 'exec(playerctl play-pause)'
   XF86AudioStop: 'exec(playerctl stop)'
   XF86AudioPrev: 'exec(playerctl previous)'
@@ -164,7 +164,8 @@ hotkeys:
   mod_l: 'focus_move(l)'
   mod_m: 'win_toggle_maximize()'
   mod_r: 'exec(xkb-switch -s us; rofi -show drun)'
-  mod_s: 'mark_window()'
+  mod_s: 'mark_switch_window()'
+  mod_p: 'win_toggle_pinned()'
   mod_ctrl_1: 'tag_append(1)'
   mod_ctrl_2: 'tag_append(2)'
   mod_ctrl_3: 'tag_append(3)'
@@ -183,7 +184,7 @@ hotkeys:
   mod_shift_7: 'win_move_tag(7)'
   mod_shift_8: 'win_move_tag(8)'
   mod_shift_9: 'win_move_tag(9)'
-  mod_shift_CR: 'exec(xkb-switch -s us; urxvt -name urxvt-float)'
+  mod_shift_CR: 'exec(xkb-switch -s us; urxvt -name urxvt-float -g 120x32)'
   mod_shift_F1: 'win_move_screen(1)'
   mod_shift_F2: 'win_move_screen(2)'
   mod_shift_F3: 'win_move_screen(3)'
@@ -200,7 +201,7 @@ hotkeys:
   mod_shift_j: 'focus_swap(j)'
   mod_shift_k: 'focus_swap(k)'
   mod_shift_l: 'focus_swap(l)'
-  mod_shift_s: 'mark_switch_window()'
+  mod_shift_s: 'mark_window()'
   mod_shift_w: 'exec(firefox --new-instance)'
   mod_w: 'exec(firefox --new-instance --private-window)'
 

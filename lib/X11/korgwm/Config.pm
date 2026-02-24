@@ -92,7 +92,11 @@ BEGIN {
                 "Print"                 => "exec(flameshot gui)",
                 "XF86AudioLowerVolume"  => "nop()",
                 "XF86AudioMute"         => "nop()",
+                "XF86AudioNext"         => "exec(playerctl next)",
+                "XF86AudioPlay"         => "exec(playerctl play-pause)",
+                "XF86AudioPrev"         => "exec(playerctl previous)",
                 "XF86AudioRaiseVolume"  => "nop()",
+                "XF86AudioStop"         => "exec(playerctl stop)",
                 "XF86MonBrightnessDown" => "nop()",
                 "XF86MonBrightnessUp"   => "nop()",
                 "XF86WakeUp"            => "nop()",
@@ -111,10 +115,14 @@ BEGIN {
         "evolution-alarm-notify"        => { floating => 1, urgent => 1 },
         "org.gnome.Evolution"           => { screen => 1, tag => 3, follow => 0 },
         "rofi"                          => { pinned => 1 },
-        "google-chrome"                 => { soft_placement => [undef, undef, [2, 7], [2, 7]] },
+        "google-chrome"                 => { soft_placement => [
+                map { +{ if_screens => $_, screen => 2, tag => 7 } } 2, 3
+            ] },
         "flameshot"                     => { pinned => 1, floating => 1 },
         "galculator"                    => { floating => 1 },
-        "mattermost"                    => { placement => [undef, [1, 4], [2, 4], [3, 4]], follow => 1 },
+        "mattermost"                    => { follow => 1, placement => [
+                map { +{ if_screens => $_, screen => $_, tag => 4 } } 1..3
+            ] },
         "urxvt-float"                   => { floating => 1 },
         "xeyes"                         => { floating => 1 },
     };
@@ -125,8 +133,10 @@ BEGIN {
 
     # Read local configs
     for my $file (
-        "/etc/korgwm/korgwm.conf", "/usr/local/etc/korgwm/korgwm.conf",
-        "$ENV{HOME}/.korgwmrc", "$ENV{HOME}/.config/korgwm/korgwm.conf"
+        defined $ENV{KORGWM_DEBUG_CONFIG} ? $ENV{KORGWM_DEBUG_CONFIG} : (
+            "/etc/korgwm/korgwm.conf", "/usr/local/etc/korgwm/korgwm.conf",
+            "$ENV{HOME}/.korgwmrc", "$ENV{HOME}/.config/korgwm/korgwm.conf"
+        )
     ) {
         next unless -f $file;
         my $rcfg;
@@ -136,6 +146,13 @@ BEGIN {
         };
         # TODO did not implement validation yet to allow users shoot the legs
         %{ $cfg } = (%{ $cfg }, %{ $rcfg });
+    }
+
+    # Right after reading the config, make a copy of it
+    if (defined $ENV{KORGWM_DEBUG_CONFIG}) {
+        eval "require Storable";
+        Storable->import("dclone");
+        our $debug_config = dclone($cfg);
     }
 
     # Prepare whitelist of windows which we want to see with unset WM_CLASS
