@@ -150,9 +150,17 @@ sub handle_screens {
         unless ($pref_position) {
             # Here is the last chance for windows having no preferred position. We're almost ready to skip them
             my $rules = $cfg->{rules}->{ $win->{cached_class} } or next;
-            ref(my $placement = $rules->{ placement }) eq 'ARRAY' or next;
+            my ($pref_screen, $pref_tag);
 
-            my ($pref_screen, $pref_tag) = map { max($_ - 1, 0) } @{ $placement->[ @screens ] // next };
+            for my $section (qw( soft_placement placement )) {
+                if (ref(my $placement = $rules->{ $section }) eq 'ARRAY') {
+                    if (ref(my $desired = $placement->[ @screens ]) eq 'ARRAY') {
+                        ($pref_screen, $pref_tag) = map { max($_ - 1, 0) } @{ $desired };
+                    }
+                }
+            }
+
+            next unless defined $pref_screen and defined $pref_tag;
             next if $pref_screen >= @screens or $pref_tag >= @{ $cfg->{ws_names} };
 
             # I solemnly swear that I am up to no good

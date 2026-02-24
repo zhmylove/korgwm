@@ -205,25 +205,27 @@ hotkeys:
   mod_w: 'exec(firefox --new-instance --private-window)'
 
 ## Rules applied to new windows by WM_CLASS
-# floating  -- should the window be tiled (by default for non-transient) or floating
-# follow    -- focus new window and switch to it's screen & tag
-# pinned    -- make the window always ahead of others
-# screen    -- preferred screen to attach the window to (starts with 1)
-# tag       -- preferred tag to attach the window to (starts with 1)
-# placement -- takes precedence over screen & tag (see description and example below)
+# floating        -- should the window be tiled (by default for non-transient) or floating
+# follow          -- focus new window and switch to it's screen & tag
+# pinned          -- make the window always ahead of others
+# screen          -- preferred screen to attach the window to (starts with 1)
+# tag             -- preferred tag to attach the window to (starts with 1)
+# placement       -- takes precedence over screen & tag (see description and example below)
+# soft_placement  -- just like placement but used with lower priority and during special events (see handle_screens())
 #
-# Placement is an array indexed over number of screens.
+# There is no any validation, so take care using 'placement'!
+# Placement is an array indexed over number of screens:
+#   - ~       # element #0 means a configuration with no displays
+#   - [1, 6]  # element #1 aka 1 display connected: place the window on the 6th tag of the first screen
+#   - [1, 4]  # element #2 aka 2 displays connected: place the window on the first screen, 4th tag
 # Value should be an undef (~) or an array of [ screen, tag ] (both starts with 1).
-# There is no any validation, so take care using 'placement'.
 # Either you connect more screens than specified, or the placement is undef; the default screen and tag will be used.
 rules:
   evolution:
     follow: 0
-    # see Placement above; place it on the first screen, tag #3
     tag: 3
   org.gnome.Evolution:
     follow: 0
-    # see Placement above; place it on the first screen, on the tag #3
     screen: 1
     tag: 3
   evolution-alarm-notify:
@@ -237,7 +239,7 @@ rules:
   galculator:
     floating: 1
   mattermost:
-    # see Placement above:
+    # see Placement above
     # 0 screens: we don't care
     # 1 screens: place it on the only screen, tag #4
     # 2 screens: place it on the second screen, tag #4
