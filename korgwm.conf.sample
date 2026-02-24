@@ -218,6 +218,10 @@ hotkeys:
 #   - ~       # element #0 means a configuration with no displays
 #   - [1, 6]  # element #1 aka 1 display connected: place the window on the 6th tag of the first screen
 #   - [1, 4]  # element #2 aka 2 displays connected: place the window on the first screen, 4th tag
+# Placement could also be defined as an array of hashes:
+#   - if_screens: 2 # the window should be placed on the 1st screen and 5th tag when there are 2 displays connected
+#     screen: 1
+#     tag: 5
 # Value should be an undef (~) or an array of [ screen, tag ] (both starts with 1).
 # Either you connect more screens than specified, or the placement is undef; the default screen and tag will be used.
 rules:
@@ -245,11 +249,29 @@ rules:
     # 2 screens: place it on the second screen, tag #4
     # 3 screens: place it on the third screen, tag #4
     placement:
-      - ~
-      - [1, 4]
-      - [2, 4]
-      - [3, 4]
+      - if_screens: 1
+        screen: 1
+        tag: 4
+      - if_screens: 2
+        screen: 2
+        tag: 4
+      - if_screens: 3
+        screen: 3
+        tag: 4
     follow: 1
+  google-chrome:
+    # see Placement above
+    # During screen topology change (HDMI/DP hotplug) in case of:
+    # - 2 screens connected => by default move Chrome to 2nd screen, tag #7
+    # - 3 screens connected => by default move Chrome to 2nd screen, tag #7
+    # "by default" means in the absense of $pref_position and 'placement' rules for the window
+    soft_placement:
+      - if_screens: 2
+        screen: 2
+        tag: 7
+      - if_screens: 3
+        screen: 2
+        tag: 7
   urxvt-float:
     floating: 1
   xeyes:

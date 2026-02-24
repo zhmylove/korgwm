@@ -5,6 +5,7 @@ package X11::korgwm::Config;
 use strict;
 use warnings;
 use feature 'signatures';
+use List::Util qw( first );
 use YAML::Tiny;
 use X11::korgwm::Common;
 
@@ -142,6 +143,21 @@ BEGIN {
 
     # Normalize numeric values
     $_ = hexnum for @{ $cfg }{grep /^color_/, keys %{ $cfg }};
+
+    # Allow new syntax for placement
+    for my $name (keys %{ $cfg->{rules} }) {
+        for my $section (qw( placement soft_placement )) {
+            next unless ref(my $ref = $cfg->{rules}->{$name}->{$section}) eq 'ARRAY';
+
+            # If at least one HASH, we assume the whole section should be converted to ARRAY
+            next unless first { ref($_) eq 'HASH' } @{ $ref };
+
+            # $ref has HASH entries, so we need to convert all it's values to array refs
+            my @arr;
+            $arr[$_->{if_screens}] = [$_->{screen}, $_->{tag}] for @{ $ref };
+            $cfg->{rules}->{$name}->{$section} = \@arr;
+        }
+    }
 
     # Setup the DEBUG
     ## Allow override via environment and create a closure
