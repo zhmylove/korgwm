@@ -51,7 +51,14 @@ sub _motion_resize($evt) {
 sub _motion_move($evt) {
     # Prepare and amend the vector
     my ($new_x, $new_y) = map { $_motion_win->{$_} + $evt->{"root_$_"} - $_motion_start{$_} } qw( x y );
-    $new_y = $cfg->{panel_height} if $new_y < $cfg->{panel_height};
+
+    # Handle inter-screen movement, prevent panel overlapping
+    my $new_screen = screen_by_xy($evt->{event_x}, $evt->{event_y});
+    if ($new_screen) {
+        $new_y = $new_screen->{y} + $cfg->{panel_height} if $new_y < $new_screen->{y} + $cfg->{panel_height};
+    } else {
+        $new_y = $visible_min_y + $cfg->{panel_height} if $new_y < $visible_min_y + $cfg->{panel_height};
+    }
     @{ _motion_start }{qw( x y )} = @{ $evt }{qw( root_x root_y )};
 
     # Execute real movement
@@ -59,11 +66,11 @@ sub _motion_move($evt) {
     $_motion_win->move($new_x, $new_y);
 
     # Check if the pointer went outside the screen
-    my $new_screen;
-    if ($new_screen = screen_by_xy($evt->{event_x}, $evt->{event_y}) and $focus->{screen} != $new_screen) {
+    if ($new_screen and $focus->{screen} != $new_screen) {
         my $always_on = $_motion_win->{always_on};
         $focus->{screen}->win_remove($_motion_win, 1);
-        $focus->{screen}->{panel}->title();
+        my $old_focus = $focus->{screen}->current_tag()->{focus};
+        $focus->{screen}->{panel}->title($old_focus ? $old_focus->title() : "");
         $new_screen->win_add($_motion_win, $always_on);
         $focus->{screen} = $new_screen;
         $new_screen->{panel}->title($_motion_win->title());

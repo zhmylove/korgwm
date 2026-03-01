@@ -28,7 +28,7 @@ sub new($class, $w, $h, $x, $y) {
     $self->{tag_prev} = 0;
     $self->{tags} = [ map { X11::korgwm::Tag->new($self) } @{ $cfg->{ws_names} } ];
     $_->{idx} = $idx++ for @{ $self->{tags} };
-    $self->{panel} = X11::korgwm::Panel->new(0, $w, $x,
+    $self->{panel} = X11::korgwm::Panel->new(0, $w, $x, $y,
         sub ($btn, $ws) { $self->tag_set_active($ws - 1, noselect => 1) }
     );
     $self->{x} = $x;

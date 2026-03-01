@@ -113,14 +113,14 @@ sub add_element($name, $watcher = undef) {
     $elements{$name} = $watcher;
 }
 
-sub new($class, $panel_id, $panel_width, $panel_x, $ws_cb) {
+sub new($class, $panel_id, $panel_width, $panel_x, $panel_y, $ws_cb) {
     my ($panel, $window, @workspaces, $label) = {};
     _init() unless $ready;
     bless $panel, $class;
     # Prepare main window
     $window = Gtk3::Window->new('popup');
     $window->set_default_size($panel_width, $cfg->{panel_height});
-    $window->move($panel_x, 0);
+    $window->move($panel_x, $panel_y);
     $window->set_decorated(Gtk3::false);
     $window->set_startup_id("korgwm-panel-$panel_id");
 
@@ -131,7 +131,7 @@ sub new($class, $panel_id, $panel_width, $panel_x, $ws_cb) {
 
     # Save X coordinate for event handlers
     $panel->{x} = $panel_x;
-    $panel->{y} = 0;
+    $panel->{y} = $panel_y;
     $panel->{width} = $panel_width;
     $panel->{height} = $cfg->{panel_height};
 
