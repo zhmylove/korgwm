@@ -694,7 +694,10 @@ sub FireInTheHole {
         my $limit = 1024;
         while ($limit--) {
             my $evt = $X->poll_for_event();
-            last unless $evt;
+            unless ($evt) {
+                Gtk3::main_iteration_do(0);
+                last;
+            }
 
             # MotionNotifies(6) are ignored anyways. No room for error
             DEBUG9 and $evt->{response_type} != 6 and warn Dumper $evt;
