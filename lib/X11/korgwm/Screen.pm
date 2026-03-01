@@ -10,6 +10,13 @@ use X11::XCB ':all';
 use X11::korgwm::Tag;
 use X11::korgwm::Common;
 
+# Simplify object usage
+use Scalar::Util qw( refaddr );
+use overload '""' => sub { sprintf "%s[id:%s]", overload::StrVal($_[0]), $_[0]->{id} // "undef" };
+use overload '==' => sub { (refaddr($_[0]) // 0) == (refaddr($_[1]) // 0) };
+use overload '!=' => sub { (refaddr($_[0]) // 0) != (refaddr($_[1]) // 0) };
+use overload cmp => sub { (refaddr($_[0]) // 0) cmp (refaddr($_[1]) // 0) };
+
 sub new($class, $w, $h, $x, $y) {
     # tags iterator
     my $idx = 0;
@@ -105,7 +112,7 @@ sub win_remove($self, $win, $norefresh = undef) {
     $tag->win_remove($win, $norefresh);
 
     # Remove from always_on
-    if (($win->{always_on} // 0) == $self) {
+    if ($self == $win->{always_on}) {
         my $arr = $self->{always_on};
         $win->{always_on} = undef;
         @{ $arr } = grep { $win != $_ } @{ $arr };
