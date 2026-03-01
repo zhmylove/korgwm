@@ -10,11 +10,11 @@ use X11::XCB ':all';
 use X11::korgwm::Tag;
 use X11::korgwm::Common;
 
-sub new($class, $x, $y, $w, $h) {
+sub new($class, $w, $h, $x, $y) {
     # tags iterator
     my $idx = 0;
     my $self = bless {}, $class;
-    $self->{id} = "$x,$y,$w,$h";
+    $self->{id} = "$w,$h,$x,$y";
     $self->{always_on} = [];
     $self->{focus} = undef;
     $self->{tag_curr} = 0;

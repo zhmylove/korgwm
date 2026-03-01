@@ -85,7 +85,7 @@ sub handle_screens {
     my %curr_screens;
     for my $s (@xscreens) {
         my ($x, $y, $w, $h) = map { $s->rect->$_ } qw( x y width height );
-        $curr_screens{"$x,$y,$w,$h"} = undef;
+        $curr_screens{"$w,$h,$x,$y"} = undef;
 
         # Update visible area information
         $visible_min_x = defined $visible_min_x ? min($visible_min_x, $x)      : $x;
@@ -134,7 +134,11 @@ sub handle_screens {
 
     # Sort screens based on X axis and store them in @screens
     DEBUG2 and carp "Old screens: (@screens)";
-    @screens = map { $screens{$_} } sort { (split /,/, $a)[0] <=> (split /,/, $b)[0] or $a <=> $b } keys %screens;
+    @screens = map { $screens{$_} } sort {
+        (split /,/, $a)[2] <=> (split /,/, $b)[2] or # sort by x
+        (split /,/, $a)[3] <=> (split /,/, $b)[3] or # sort by y
+        $a cmp $b # sort somehow
+    } keys %screens;
     DEBUG2 and carp "New screens: (@screens)";
 
     # Assign indexes to use them during possible next handle_screens events

@@ -27,7 +27,8 @@ $windows => {
 
 @screens = [Ref, ...]                       # references on existing screens sorted by $x
 %screens = (                                # hash, not a hashref
-    "$x,$y,$w,$h" => {                      # key is the screen's geometry
+    "$w,$h,$x,$y" => {                      # key is the screen's geometry
+        id => Str,                          # id of the screen "$w,$h,$x,$y"
         tags => [
             screen => Ref,                  # reference to screen
             idx => Int,                     # position in the @$tags
