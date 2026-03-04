@@ -1,0 +1,7 @@
+#!/bin/sh
+xrandr --output HDMI-A-0 --left-of eDP --auto \
+       --output DisplayPort-0 --right-of eDP --auto \
+       --output eDP --primary
+
+# Script should explicitly exit with 0 to avoid extra "xrandr --auto" call
+exit 0

@@ -34,7 +34,7 @@ mouse_nowarp: 0
 # Start own notifications server to improve urgency experience. Disable if you want to use another one
 notification_server: 1
 # Command which is used to set relevant screen positions on each RandR event
-randr_cmd: 'xrandr --output HDMI-A-0 --left-of eDP --auto --output DisplayPort-0 --right-of eDP --auto'
+randr_cmd: 'korgwm_xrandr || xrandr --auto'
 # Enable/disable setting the colour for root window
 set_root_color: 0
 # Debug level 1--9. Levels >= 7 MAY LEAK SENSITIVE INFORMATION

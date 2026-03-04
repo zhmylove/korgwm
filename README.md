@@ -30,21 +30,22 @@ It uses several X11 extensions: RandR, Xinerama, Composite, Xkb, and maybe more.
 ## Functionality
 
 - Tiling and floating windows
-- Dynamic layout that could be resized and reconfigured using hotkeys
+- Full [multi-monitor support](doc/Screen_Management.md): per-screen tags, windows remember their positions
 - Vimish marks for windows: use them to instantly switch between them
-- EWMH support: full screen, gentle exit, urgency, title, size hints, ...
-- Always ON &mdash; floating windows that are displayed on each tag
 - TCP API to control over the network &mdash; see [API.md](API.md)
-- Non-reparenting for purpose
-- Excessive hotkeys including media keys
-- Move and resize using mouse
-- Bar on GTK3 &mdash; supports UTF-8 and has extensible plugin system
-- Included bar plugins to show info about battery, clock, calendar, XKB language
 - Mouse pointer warp system
 - Expose mode to show all windows from all tags and quickly switch between them
 - YAML config &mdash; see [korgwm.conf.sample](korgwm.conf.sample)
+- Bar on GTK3 &mdash; supports UTF-8 and has extensible plugin system
+- Included bar plugins to show info about battery, clock, calendar, XKB language
+- Always ON &mdash; floating windows that are displayed on each tag
 - Display rules for certain windows: screen & tag affinity, floating by default, ...
+- Move and resize using mouse
+- Dynamic layout that could be resized and reconfigured using hotkeys
+- EWMH support: full screen, gentle exit, urgency, title, size hints, ...
+- Non-reparenting for purpose
 - D-Bus notifications handling and relevant windows urgency
+- Excessive hotkeys including media keys
 - ... and many more.
 
 ## Screenshots
