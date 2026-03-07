@@ -6,7 +6,7 @@ use strict;
 use warnings;
 use feature 'signatures';
 
-our $VERSION = "5.0";
+our $VERSION = "6.0";
 
 # Third-party includes
 use X11::XCB 0.24 ':all';
@@ -773,7 +773,7 @@ And these for Archlinux:
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (c) 2023--2025 Sergei Zhmylev E<lt>zhmylove@narod.ru<gt>
+Copyright (c) 2023--2026 Sergei Zhmylev E<lt>zhmylove@narod.ru<gt>
 
 MIT License.  Full text is in LICENSE.
 

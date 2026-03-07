@@ -39,6 +39,7 @@ It uses several X11 extensions: RandR, Xinerama, Composite, Xkb, and maybe more.
 - Bar on GTK3 &mdash; supports UTF-8 and has extensible plugin system
 - Included bar plugins to show info about battery, clock, calendar, XKB language
 - Always ON &mdash; floating windows that are displayed on each tag
+- Pinned windows &mdash; windows that are always in the foreground
 - Display rules for certain windows: screen & tag affinity, floating by default, ...
 - Move and resize using mouse
 - Dynamic layout that could be resized and reconfigured using hotkeys

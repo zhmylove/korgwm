@@ -2,6 +2,7 @@
 \.old$
 \.tar\.gz$
 ^.git
+^.nvchecker.toml$
 ^META_new\.(?:json|yml)
 ^MYMETA\.
 ^Makefile$
@@ -9,6 +10,7 @@
 ^\.travis\.yml
 ^architecture/
 ^blib/
+^debian/
 ^doc/
 ^errors/
 ^pm_to_blib

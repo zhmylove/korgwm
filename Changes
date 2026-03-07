@@ -1,5 +1,79 @@
 Revision history for korgwm.
 
+6.0     2026-03-07
+    - Update to X11::XCB 0.24 to ensure compatibility with Perl 5.42.0
+
+    - Implement new tiling layouts:
+        - Add 'columns' layout for vertical window arrangement
+        - Add 'narrow' layout optimized for wide screens
+        - Refactor Layout module to simplify addition of new layout functions
+        - Add option to specify tiled windows order: reverse or forward
+
+    - Implement pinned windows feature:
+        - Windows can be pinned to stay visible across all tags
+        - Pinned windows work with both managed and unmanaged windows
+        - Pinned windows are not affected by tag switching
+
+    - Enhance screen management and topology:
+        - Support screens with y != 0 coordinates
+        - Change Screen->id format from x,y,w,h to w,h,x,y for consistency
+        - Implement soft_placement rule for handle_screens() as fallback
+        - Select proper tags on completely new screens
+        - Use external korgwm_xrandr script in randr_cmd for flexible monitor handling
+        - Add doc/Screen_Management.md describing multi-monitor management
+        - Implement @handle_screens_post_hooks to make proper updates on RandR events
+
+    - Improve focus handling and window management:
+        - Refactor focus logic in Tag->show() for better consistency
+        - Focus previous window per Tag on close() with per-tag focus_prev tracking
+        - Fix stale input focus on hidden windows
+        - Fix stale focus on hidden windows during tag switching
+        - Support Window->focus() on BUTTON_PRESS for tiled windows
+        - Make mod+click focus the window unconditionally
+        - Fix improper $old_screen selection in win_move_* functions
+
+    - Enhance pointer warping and mouse interaction:
+        - Introduce bypass_single_window_warp to prevent unnecessary warping
+        - Introduce warp_ignore_korgwm and fix bug with bypass_single_window_warp
+        - Improve warp_pointer() during screen_select()
+        - Warp pointer on de-maximizing window
+        - Prevent EnterNotify for any MapRequest, not only floating windows
+
+    - Add multimedia and attention support:
+        - Add support for XF86Audio multimedia buttons (Play, Stop, Prev, Next)
+        - Add support for _NET_WM_STATE_DEMANDS_ATTENTION
+        - Honour _NET_WM_FULLSCREEN state on MapRequest
+
+    - Enhance Panel and calendar functionality:
+        - Implement toggle_calendar() API function
+        - Open calendar when clicking on clock
+        - Make calendar separate for each screen
+        - Add padding for calendar children
+        - Improve Panel::add_element() with %params for flexible configuration
+        - Switch colors to CSS format and remove Pango markup hack
+        - Improve battery configuration with BAT* support for Panel/Battery
+        - Avoid Grapheme_Extend characters in Panel title for better rendering
+
+    - Enhance configuration and debugging:
+        - Implement KORGWM_DEBUG_CONFIG environment variable to override config search paths
+        - Add support for multiple keycodes in keymap
+        - Support new syntax for placement and soft_placement rules
+        - Add mouse_nowarp and tag_rotate options for perl-conf
+        - Fix issue with leading zeros in colours config
+        - Add croak to Hotkeys initialization for better error handling
+
+    - Other improvements and fixes:
+        - Fix issue processing WM_PROTOCOLS on window close
+        - Fix issue with newline in title and fix backspace handling in auth_korgwm
+        - Fix stale Panel->ws urgency
+        - Fix critical mistype in Tag.pm
+        - Try processing Gtk3 events on X11 idle for better responsiveness
+        - Make Xkb::lang_update() callable from external places
+        - Update doc with tag-specific layout fields
+        - Update resources/.XCompose with some emojis
+        - Add usage comment to korgwm_xrandr
+        - Update doc/Development.md with release procedure enhancements
+
 5.0     2025-01-22
     - Introduce vimish marks for windows:
         - Add API calls to remember focused window and quicky select it when needed

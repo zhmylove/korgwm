@@ -1,5 +1,6 @@
 # Release checklist for korgwm
 
+- Prepare new copy of the repository with no unstaged files
 - Write proper relnotes/changelog:
     - Changes
 - Based on `Changes` update all relevant documentation
