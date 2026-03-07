@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=korgwm
+Comment=Tiling window manager for X11
+Exec=korgwm-session
+Icon=korgwm
+Terminal=false
+Categories=WindowManager;System;
+Keywords=tiling;window;manager;X11

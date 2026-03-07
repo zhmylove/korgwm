@@ -5,10 +5,12 @@
 - Based on `Changes` update all relevant documentation
 - Update VERSION in the following files:
     - lib/X11/korgwm.pm
+    - debian/changelog
 - Update copyright date in:
     - LICENSE
     - lib/X11/korgwm.pm
     - script/korgwm
+    - debian/copyright
 - In case X11::XCB version changed, update it in:
     - Changes
     - Makefile.PL

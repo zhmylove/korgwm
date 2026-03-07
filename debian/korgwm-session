@@ -1,0 +1,40 @@
+#!/bin/sh
+# korgwm session wrapper
+# Sets up environment before launching korgwm
+
+# Set XDG desktop environment variables for proper desktop integration
+export XDG_CURRENT_DESKTOP="korgwm"
+XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+[ -d "$XDG_RUNTIME_DIR" ] || export XDG_RUNTIME_DIR="/run/user/$(id -u)"
+
+# Java X11 compatibility - prevents reparenting issues with Java applications
+export _JAVA_AWT_WM_NONREPARENTING=1
+
+# Accessibility bridge compatibility - skips AT bridge for non-GNOME/KDE environments
+export NO_AT_BRIDGE=1
+
+# Setup systemd user session for xdg-desktop-portal-gtk
+# This enables Gtk portal support (screenshots, file dialogs, etc)
+if command -v systemctl >/dev/null 2>&1; then
+    systemctl --user import-environment DISPLAY XAUTHORITY 2>/dev/null || true
+    systemctl --user --no-block restart xdg-desktop-portal-gtk 2>/dev/null || true
+fi
+
+# Basic X11 setup
+xsetroot -cursor_name left_ptr 2>/dev/null || true
+xset s off 2>/dev/null || true
+xset -dpms 2>/dev/null || true
+
+# Load user X resources if available
+[ -r "$HOME/.Xresources" ] && xrdb -merge "$HOME/.Xresources" 2>/dev/null || true
+
+# Setup keyboard (provide sensible defaults if user hasn't configured)
+if command -v setxkbmap >/dev/null 2>&1; then
+    # Only set if not already configured by user script
+    if [ ! -r "$HOME/.xkbmap" ]; then
+        setxkbmap -layout us 2>/dev/null || true
+    fi
+fi
+
+# Launch korgwm
+exec korgwm

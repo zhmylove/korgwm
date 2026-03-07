@@ -1,0 +1,48 @@
+korgwm for Debian
+================================
+
+This package provides korgwm, a tiling window manager for X11 written in Perl.
+
+Configuration
+-------------
+Example configuration is available in /usr/share/doc/korgwm/examples/korgwm.conf.sample.
+Copy it to ~/.config/korgwm/korgwm.conf and customize as needed.
+
+korgwm searches for configuration files in the following order:
+  /etc/korgwm/korgwm.conf
+  /usr/local/etc/korgwm/korgwm.conf
+  ~/.korgwmrc
+  ~/.config/korgwm/korgwm.conf
+
+Session Configuration
+---------------------
+For best integration with display managers (lightdm, gdm, sddm), select
+"korgwm" from the session menu at login. The korgwm-session wrapper sets
+up the appropriate environment variables (XDG, NO_AT_BRIDGE, etc).
+
+Starting from .xinitrc
+--------------------
+To start korgwm manually:
+
+    korgwm-session
+
+Or directly without the wrapper:
+
+    korgwm
+
+Documentation
+-------------
+Perl POD documentation is available via perldoc:
+
+    perldoc X11::korgwm
+
+Dependencies
+------------
+X11 libraries: libxcb, libxinerama, libxrandr
+Perl modules: AnyEvent, AnyEvent::DBus, Net::DBus, Gtk3,
+             Glib::Object::Introspection, YAML::Tiny, X11::XCB
+
+Bug Reporting
+-------------
+Report bugs to the Debian Bug Tracking System or upstream:
+https://github.com/zhmylove/korgwm/issues

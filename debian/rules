@@ -1,0 +1,24 @@
+#!/usr/bin/make -f
+
+%:
+	dh $@
+
+override_dh_auto_clean:
+	[ -f Makefile ] && $(MAKE) distclean || true
+
+override_dh_auto_configure:
+	dh_auto_configure -- INSTALLDIRS=vendor
+
+override_dh_auto_install:
+	dh_auto_install
+	find debian/korgwm -name .packlist -delete
+	# Install additional runtime files
+	install -D -m 755 debian/korgwm-session $(CURDIR)/debian/korgwm/usr/bin/korgwm-session
+	install -D -m 644 debian/korgwm.desktop $(CURDIR)/debian/korgwm/usr/share/xsessions/korgwm.desktop
+	install -D -m 644 korgwm.conf.sample $(CURDIR)/debian/korgwm/usr/share/doc/korgwm/examples/korgwm.conf.sample
+
+override_dh_installdocs:
+	dh_installdocs README.md API.md
+
+override_dh_installinit:
+	# No init script needed for a window manager

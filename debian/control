@@ -1,0 +1,29 @@
+Source: korgwm
+Section: x11
+Priority: optional
+Maintainer: Sergei Zhmylev <zhmylove@narod.ru>
+Build-Depends: debhelper-compat (= 13), perl, libmodule-build-perl
+Build-Depends-Indep: libanyevent-perl, libanyevent-dbus-perl,
+ libnet-dbus-perl, libglib-object-introspection-perl, libgtk3-perl,
+ libyaml-tiny-perl, libx11-xcb-perl (>= 0.24), xauth, x11-utils,
+ x11-xserver-utils
+Standards-Version: 4.7.0
+Homepage: https://github.com/zhmylove/korgwm
+Rules-Requires-Root: no
+
+Package: korgwm
+Architecture: all
+Depends: ${perl:Depends}, ${misc:Depends}, libanyevent-perl,
+ libanyevent-dbus-perl, libnet-dbus-perl, libglib-object-introspection-perl,
+ libgtk3-perl, libyaml-tiny-perl, libx11-xcb-perl (>= 0.24), xauth,
+ x11-utils, x11-xserver-utils, x11-xkb-utils, x11-session-utils
+Description: Tiling window manager for X11
+ korgwm is a tiling window manager for X11 written entirely in Perl.
+ It provides keyboard-driven navigation, automatic window tiling,
+ and a minimal yet powerful interface.
+ .
+ Features:
+  - Automatic tiling with configurable layouts
+  - Keyboard-driven workflow
+  - Multi-monitor support
+  - Perl-based extensibility
