@@ -153,7 +153,7 @@ sub gtk_init() {
     my ($font_name, $font_size) = $cfg->{font} =~ /(.+)\s+(\d+)$/ or die "Font: $cfg->{font} has invalid format";
 
     my $css_provider = Gtk3::CssProvider->new();
-    my $css = <<~ "CSS";
+    my $css = qq[
     * {
         background-color: $color_bg;
         border-radius: 0;
@@ -201,7 +201,7 @@ sub gtk_init() {
         background-color: $color_fg;
         color: $color_bg;
     }
-    CSS
+    ];
 
     $css_provider->load_from_data($css);
     Gtk3::StyleContext::add_provider_for_screen(

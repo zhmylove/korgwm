@@ -23,6 +23,7 @@
     - korgwm.conf.sample
     - API.md
 - Verify release candidate is buildable:
+    - `perlver --blame .` from `Perl::MinimumVersion`
     - `make distclean`
     - check all the changed files `git status`
     - `perl Makefile.PL`
@@ -38,6 +39,7 @@
     - build an archive in clean tree: `make dist`
     - `make disttest`
     - carefully inspect what was created and contents of the archive
+- Verify tar.gz with `cpants_lint.pl --verbose ./X11-korgwm-*.tar.gz` from `App::CPANTS::Lint`
 - Commit changes with message `git commit -sm 'Release X.Y'`
 - Tag the commit `git tag X.Y`
 - Push both: commit and tag to remote repository

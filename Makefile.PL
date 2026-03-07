@@ -26,6 +26,7 @@ WriteMakefile(
         x_authority     => "cpan:ZHMYLOVE",
         x_contributors  => [], # Feel free to add yourself here ;-)
     },
+    MIN_PERL_VERSION => "5.20.0",
     PREREQ_PM       => {
         "AnyEvent"                      => "0",
         "AnyEvent::DBus"                => "0",
