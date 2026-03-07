@@ -1,4 +1,13 @@
 #!/bin/sh
+
+# This script configures RandR outputs position
+# Use it to customize their configuration or even create conditional layout
+# based on "xrandr --listactivemonitors", your network IP address, etc.
+# You can also define RandR monitors using "xrandr --setmonitor"
+
+# Example laptop setup: HDMI on the left, DP on the right, internal eDP as
+# primary
+
 xrandr --output HDMI-A-0 --left-of eDP --auto \
        --output DisplayPort-0 --right-of eDP --auto \
        --output eDP --primary
