@@ -773,7 +773,7 @@ And these for Archlinux:
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (c) 2023--2026 Sergei Zhmylev E<lt>zhmylove@narod.ru<gt>
+Copyright (c) 2023--2026 Sergei Zhmylev E<lt>zhmylove@narod.ruE<gt>
 
 MIT License.  Full text is in LICENSE.
 

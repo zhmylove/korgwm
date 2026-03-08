@@ -68,6 +68,9 @@ sub hotkey($hotkey, $cmd) {
 }
 
 sub init {
+    # Override xkb rules to support XF86 media keys via xf86-input-evdev
+    qx(setxkbmap -rules evdev) if $cfg->{setxkb_evdev};
+
     # Init keymap
     $keymap = $X->get_keymap();
 

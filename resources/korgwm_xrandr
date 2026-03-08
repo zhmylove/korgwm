@@ -12,5 +12,10 @@ xrandr --output HDMI-A-0 --left-of eDP --auto \
        --output DisplayPort-0 --right-of eDP --auto \
        --output eDP --primary
 
+# For 4K screens you may want to set mode manually:
+#xrandr --output HDMI-A-0 --left-of eDP --mode 1920x1080 \
+#       --output DisplayPort-0 --right-of eDP --mode 1920x1080 \
+#       --output eDP --primary
+
 # Script should explicitly exit with 0 to avoid extra "xrandr --auto" call
 exit 0

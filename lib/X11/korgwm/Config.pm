@@ -50,9 +50,8 @@ BEGIN {
     $cfg->{panel_height} = 20;
     $cfg->{panel_hide} = undef;
     $cfg->{randr_cmd} = "korgwm_xrandr || xrandr --auto";
-    ## For 4K screens we perhaps need to override:
-    # --output HDMI-A-0 --left-of eDP --mode 1920x1080 --output DisplayPort-0 --right-of eDP --mode 1920x1080
     $cfg->{set_root_color} = 0;
+    $cfg->{setxkb_evdev} = 1;
     $cfg->{title_max_len} = 128;
     $cfg->{ws_names} = [qw( 1 2 3 4 5 6 7 8 9 )];
 

@@ -37,6 +37,8 @@ notification_server: 1
 randr_cmd: 'korgwm_xrandr || xrandr --auto'
 # Enable/disable setting the colour for root window
 set_root_color: 0
+# If true, run "setxkbmap -rules evdev" before hotkeys processing. Disable to get more control
+setxkb_evdev: 1
 # Debug level 1--9. Levels >= 7 MAY LEAK SENSITIVE INFORMATION
 debug: 0
 
