@@ -1,5 +1,10 @@
 Revision history for korgwm.
 
+6.1     2026-03-08
+    - Add setxkb_evdev parameter to explicitly set evdev Xkb
+
+    - Improve kwalitee, add linter to release checklist
+
 6.0     2026-03-07
     - Update to X11::XCB 0.24 to ensure compatibility with Perl 5.42.0
 
