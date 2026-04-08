@@ -42,6 +42,7 @@ BEGIN {
     $cfg->{lang_format} = " %s ";
     $cfg->{lang_names} = { 0 => chr(0x00a3), 1 => chr(0x20bd) };
     $cfg->{mouse_follow} = 1;
+    $cfg->{mouse_follow_transients} = 0;
     $cfg->{mouse_nowarp} = 0;
     $cfg->{move_follow} = 1;
     $cfg->{warp_ignore_korgwm} = 1;

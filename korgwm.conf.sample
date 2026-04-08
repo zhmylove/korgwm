@@ -25,6 +25,8 @@ expose_spacing: 15
 initial_pointer_position: center
 # Should mouse follow the focus under certain circumstances (RTFS)
 mouse_follow: 1
+# Should mouse warp on transients window (usually, modal dialogs like "Save file")
+mouse_follow_transients: 0
 # If set: tag will be switched together with a window during win_move_tag(). Stay on current tag otherwise
 move_follow: 1
 # Do not warp mouse pointer whenever it is over any korgwm window (panel, expose, etc.)

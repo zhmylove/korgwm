@@ -480,7 +480,7 @@ sub FireInTheHole {
 
             # toggle_floating() won't do for transient, so do some things manually
             $win->{floating} = 1;
-            $rule->{follow} //= $cfg->{mouse_follow};
+            $rule->{follow} //= $cfg->{mouse_follow_transients};
             $win->{transient_for} = $parent;
             $parent->{children}->{$wid} = undef;
 
