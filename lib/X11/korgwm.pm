@@ -159,7 +159,7 @@ sub handle_screens {
             for my $section (qw( soft_placement placement )) {
                 if (ref(my $placement = $rules->{ $section }) eq 'ARRAY') {
                     if (ref(my $desired = $placement->[ @screens ]) eq 'ARRAY') {
-                        ($pref_screen, $pref_tag) = map { max($_ - 1, 0) } @{ $desired };
+                        ($pref_screen, $pref_tag) = map { max($_ - 1, -1) } @{ $desired };
                     }
                 }
             }
@@ -183,6 +183,9 @@ sub handle_screens {
 
         # Below we consider the window belongs to a single screen and tag, so just check if they're preferred
         next if $old_screen->{idx} == $pref_position->[0];
+
+        # Handle special value which indicates that tag number should stay untouched
+        $pref_position->[1] = $old_tag->{idx} if $pref_position->[1] == -1;
 
         my $new_screen = $screens[$pref_position->[0]] or croak "Invalid screen in pref_position";
         my $new_tag = $new_screen->{tags}->[$pref_position->[1]] or croak "Invalid tag in pref_position";
@@ -468,7 +471,7 @@ sub FireInTheHole {
             my $preferred;
             if (ref $rule->{placement} eq 'ARRAY' && ref($preferred = $rule->{placement}->[ @screens ]) eq 'ARRAY') {
                 $screen = $screens[ $preferred->[0] - 1 ] // $screen // $focus->{screen};
-                $tag = $screen->{tags}->[ $preferred->[1] - 1 ] // $tag // $screen->current_tag();
+                $tag = $screen->{tags}->[ max($preferred->[1] - 1, 0) ] // $tag // $screen->current_tag();
             }
         }
 

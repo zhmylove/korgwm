@@ -116,7 +116,7 @@ BEGIN {
         "org.gnome.Evolution"           => { screen => 1, tag => 3, follow => 0 },
         "rofi"                          => { pinned => 1 },
         "google-chrome"                 => { soft_placement => [
-                map { +{ if_screens => $_, screen => 2, tag => 7 } } 2, 3
+                map { +{ if_screens => $_, screen => 2, tag => 0 } } 2, 3
             ] },
         "flameshot"                     => { pinned => 1, floating => 1 },
         "galculator"                    => { floating => 1 },

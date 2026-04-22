@@ -228,6 +228,7 @@ hotkeys:
 #     screen: 1
 #     tag: 5
 # Value should be an undef (~) or an array of [ screen, tag ] (both starts with 1).
+# For soft_placement special value "0" of tag means that old tag index should be used on a preferred (new) screen.
 # Either you connect more screens than specified, or the placement is undef; the default screen and tag will be used.
 rules:
   evolution:
@@ -273,10 +274,10 @@ rules:
     soft_placement:
       - if_screens: 2
         screen: 2
-        tag: 7
+        tag: 0
       - if_screens: 3
         screen: 2
-        tag: 7
+        tag: 0
   urxvt-float:
     floating: 1
   xeyes:
